@@ -16,10 +16,6 @@ public class Vision extends SubsystemBase {
     public class VisionMap {
         public static final String LimelightFrontName = "limelight-front";
         public static final String LimelightRearName = "limelight-rear";
-        public static final double[] ReefAprilTags = new double[] {
-                6, 7, 8, 9, 10, 11,
-                17, 18, 19, 20, 21, 22
-        };
     }
 
     Map<LimelightNameEnum, LimeLightNT> _limelights = new HashMap<>();
@@ -107,15 +103,6 @@ public class Vision extends SubsystemBase {
 
     public static boolean isAprilTagIdValid(int apriltagId) {
         return apriltagId >= 1 && apriltagId <= 22;
-    }
-
-    public static boolean isReefTag(int tagId) {
-        for (var i = 0; i < VisionMap.ReefAprilTags.length; i++) {
-            if (tagId == VisionMap.ReefAprilTags[i])
-                return true;
-        }
-
-        return false;
     }
 
     //#region Commands

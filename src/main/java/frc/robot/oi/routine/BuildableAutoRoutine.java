@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import frc.robot.Container;
 import frc.robot.Elastic;
-import frc.robot.subsystems.elevator.ElevatorPosition;
 
 /**
  * A dashboard widget for building autonomous routines from a base of Pathplanner paths and named commands.
@@ -61,9 +60,6 @@ public class BuildableAutoRoutine {
     private SendableChooser<Boolean> _toggleFilterSwitch;
     private SendableChooser<RoutinePreviewMode> _toggleRoutinePreviewMode;
     private SendableChooser<StartingLocationFilter> _toggleStartingFilterLocation;
-
-    // Auto Raise Elevator
-    private AutoRoutineAutoRaiseElevator _autoRaiseElevator = new AutoRoutineAutoRaiseElevator();
 
     // History management
     private AutoRoutineHistory _routineHistory;
@@ -365,7 +361,6 @@ public class BuildableAutoRoutine {
         _routineHistory.addRoutineToHistory(routineName, _routineSteps);
         _historyChooser.addOption(routineName + " - " + String.join(", ", _routineSteps), routineName);
 
-        _autoRaiseElevator.constructAutoElevatorPositionsList(_routineSteps);
         return autoCommand;
     }
 

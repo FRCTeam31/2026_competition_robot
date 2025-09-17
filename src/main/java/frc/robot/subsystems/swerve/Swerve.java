@@ -16,8 +16,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.dashboard.DrivetrainDashboardSection;
-import frc.robot.game.AprilTagReefMap;
-import frc.robot.game.ReefBranchSide;
 import frc.robot.oi.ImpactRumbleHelper;
 import frc.robot.Container;
 import frc.robot.Elastic;
@@ -161,15 +159,6 @@ public class Swerve extends SubsystemBase {
 
     var isRunningPathfind = _activePathfindCommand != null && _activePathfindCommand.isScheduled()
         && !_activePathfindCommand.isFinished();
-    if (DriverStation.isTeleopEnabled() && !isRunningPathfind) {
-      double elevatorHeight = Container.Elevator.getElevatorPositionMeters();
-      double speedCoef = DriveSpeedSlowCoeffient.get(elevatorHeight);
-      speedCoef = elevatorHeight < 0.3 ? 1 : speedCoef;
-
-      robotRelativeChassisSpeeds.vxMetersPerSecond = robotRelativeChassisSpeeds.vxMetersPerSecond * speedCoef;
-      robotRelativeChassisSpeeds.vyMetersPerSecond = robotRelativeChassisSpeeds.vyMetersPerSecond * speedCoef;
-      robotRelativeChassisSpeeds.omegaRadiansPerSecond = robotRelativeChassisSpeeds.omegaRadiansPerSecond * speedCoef;
-    }
 
     // Calculate the module states from the chassis speeds
     var swerveModuleStates = _swervePackager.Kinematics.toSwerveModuleStates(robotRelativeChassisSpeeds);
@@ -305,65 +294,6 @@ public class Swerve extends SubsystemBase {
           && !_activePathfindCommand.isFinished()) {
         _activePathfindCommand.cancel();
       }
-    });
-  }
-
-  /**
-   * Creates a command that drives the robot to the desired branch of the in-view reef side
-   * @param branchSide
-   * @return
-   */
-  public Command driveToReefTargetBranch(ReefBranchSide branchSide, SwerveControlSuppliers controlSuppliers) {
-    return this.defer(() -> {
-      var llInputs = Container.Vision.getLimelightInputs(LimelightNameEnum.kFront);
-
-      if (!Vision.isReefTag(llInputs.ApriltagId)) {
-        Container.Vision.blinkLed(LimelightNameEnum.kRear, 2);
-        Elastic.sendWarning("Command Failed", "No reef tag in view");
-
-        return Commands.print("[SWERVE] - No reef tag in view");
-      }
-
-      var reefSide = AprilTagReefMap.getReefSide(llInputs.ApriltagId);
-      Logger.recordOutput(getName() + "/driveToReefTargetBranch/targeted-face", reefSide.getFaceName());
-      Logger.recordOutput(getName() + "/driveToReefTargetBranch/targeted-branch",
-          reefSide.getBranchName(branchSide));
-
-      // Check to make sure the tag pose is available
-      if (reefSide.TagPose.isEmpty()) {
-        Container.Vision.blinkLed(LimelightNameEnum.kRear, 2);
-        Elastic.sendWarning("Command Failed", "AprilTag pose not found in field layout");
-
-        return Commands.print("[SWERVE] - AprilTag " + llInputs.ApriltagId + " pose not found in field layout");
-      }
-
-      var targetPose = reefSide.TagPose.orElseThrow();
-      Logger.recordOutput(getName() + "/driveToReefTargetBranch/target-pose-field-space", targetPose);
-
-      // Get the approach pose for the desired branch side
-      var branchPose = AprilTagReefMap.getBranchPoseFromTarget(branchSide, targetPose.toPose2d()); // translated over 16.5 cm
-      var approachPose = AprilTagReefMap.getApproachPose(branchPose, SwerveMap.Chassis.ApproachDistance); // translated forward
-      Logger.recordOutput(getName() + "/driveToReefTargetBranch/branch-approach-pose", approachPose);
-
-      var pathfindConstraints = new PathConstraints(
-          SwerveMap.Chassis.MaxSpeedMetersPerSecond,
-          SwerveMap.Chassis.MaxSpeedMetersPerSecond * 1.5,
-          SwerveMap.Chassis.MaxAngularSpeedRadians,
-          SwerveMap.Chassis.MaxAngularSpeedRadians * 1.5);
-
-      _activePathfindCommand = Commands.sequence(
-          cancelPathfindingCommand(),
-          stopAllMotorsCommand(),
-          AutoBuilder.pathfindToPose(approachPose, pathfindConstraints)
-              .withTimeout(5)
-              .finallyDo(_swervePackager::stopAllMotors),
-          stopAllMotorsCommand())
-          .handleInterrupt(() -> DriverStation.reportWarning("[DRIVE] driveToReefTargetBranch interrupted", false))
-          .asProxy();
-
-      // .andThen(setAutoAlignSetpointCommand(_inputs.GyroAngle.getDegrees()));
-
-      return _activePathfindCommand;
     });
   }
 

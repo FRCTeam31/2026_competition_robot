@@ -123,24 +123,7 @@ public class Robot extends LoggedRobot {
   public void disabledInit() {
     DataLogManager.log("Robot disabled");
     Container.Swerve.disableAutoAlignCommand().schedule();
-    Container.Elevator.stopMotorsCommand().schedule();
     Container.Swerve.stopAllMotorsCommand();
-    Container.Climber.stopAllMotors();
-
-    if (_hasEnteredTeleop) {
-      Commands.sequence(
-          Commands.print("TESTLEDS"),
-          Container.LEDs.setAllSectionPatternsCommand(
-              LEDPattern.solid(getAllianceColor()).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.85))),
-          Commands.waitSeconds(3.15),
-          Container.LEDs.setAllSectionPatternsCommand(
-              LEDPattern.solid(Color.kGreen).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.15))),
-          Commands.waitSeconds(0.75),
-          Container.LEDs
-              .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(4))))
-          .ignoringDisable(true)
-          .schedule();
-    }
   }
 
   /**
@@ -206,8 +189,6 @@ public class Robot extends LoggedRobot {
     }
 
     Container.Swerve.disableAutoAlignCommand().schedule();
-    Container.Climber.stopAllMotors();
-    Container.Elevator.stopMotorsCommand().schedule();
   }
 
   /**
