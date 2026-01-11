@@ -61,7 +61,7 @@ public final class Elastic {
     }
 
     /**
-     * Sends an error notification to the Elastic dashboard with the given title and description or a set amount of time in seconds.
+     * Sends an error notification to the Elastic dashboard with the given title and description for a set amount of time in seconds.
      */
     public static void sendError(String title, String description, double displayTimeSeconds) {
         sendNotification(new Notification(Notification.NotificationLevel.ERROR, title, description)

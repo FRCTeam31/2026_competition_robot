@@ -15,12 +15,10 @@ import org.prime.util.BuildConstants;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.net.WebServer;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -43,7 +41,6 @@ public class Robot extends LoggedRobot {
 
   public static EventLoop EventLoop = new EventLoop();
   private Command _autonomousCommand;
-  private boolean _hasEnteredTeleop = false;
 
   public Robot() {
     // Set up pathfinding compatibility with AdvantageKit
@@ -176,7 +173,6 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopInit() {
     DataLogManager.log("Teleop Enabled");
-    _hasEnteredTeleop = true;
 
     if (_autonomousCommand != null) {
       // Cancel the auto command if it's still running
