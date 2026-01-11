@@ -12,6 +12,7 @@ import frc.robot.subsystems.swerve.module.SwerveModuleMap;
 import org.prime.control.ExtendedPIDConstants;
 
 public class SwerveMap {
+        // TODO: Chassis constants will need to be remeasured
         public class Chassis {
                 public static final double TrackWidthMeters = Units.inchesToMeters(24.75);
                 public static final double WheelBaseMeters = Units.inchesToMeters(24.75);
@@ -42,8 +43,11 @@ public class SwerveMap {
         public static final double DriveGearRatio = 5.9;
         public static final double DriveWheelDiameterMeters = Units.inchesToMeters(3.875);
         public static final double DriveWheelCircumferenceMeters = Math.PI * DriveWheelDiameterMeters;
+
+        // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
         public static final int DriveFreeCurrentLimit = 30;
+
         public static final int DriveSupplyCurrentLimitDuration = 100;
 
         public static final int PigeonId = 10;
@@ -81,6 +85,7 @@ public class SwerveMap {
                         new Translation2d(-Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
+                        // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(50),
                         MomentOfInertia.ofBaseUnits(3, edu.wpi.first.units.Units.KilogramSquareMeters)
                                         .baseUnitMagnitude(),

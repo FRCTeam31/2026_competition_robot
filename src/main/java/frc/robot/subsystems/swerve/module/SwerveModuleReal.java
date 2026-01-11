@@ -2,13 +2,12 @@ package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -35,9 +34,9 @@ public class SwerveModuleReal implements ISwerveModule {
   private final String _optimizeModuleKey = "Optimize";
 
   // Devices
-  private SparkFlex _steeringMotor;
+  private TalonFX _steeringMotor;
   private PIDController _steeringPidController;
-  private SparkFlex _driveMotor;
+  private TalonFX _driveMotor;
   private PIDController _drivingPidController;
   private SimpleMotorFeedforward _driveFeedForward;
   private CANcoder _encoder;
@@ -57,15 +56,28 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the steering motor and PID controller
    */
   private void setupSteeringMotor(ExtendedPIDConstants pid) {
-    _steeringMotor = new SparkFlex(_map.SteeringMotorCanId, MotorType.kBrushless);
-    SparkMaxConfig config = new SparkMaxConfig();
-    config.inverted(_map.SteerInverted); // CCW inversion
-    config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(30, 20);
 
-    _steeringMotor.clearFaults();
-    _steeringMotor.configure(config, ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters);
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    TalonFXConfigurator configurator = _steeringMotor.getConfigurator();
+
+    // Steering Motor Configuration
+    // TODO: Check that SteerInverted true equals CCW positive
+    config.MotorOutput.Inverted = _map.SteerInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // TODO: Test current limits on robot
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 60;
+
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 80;
+
+    // Clears faults and applies configuration
+    configurator.clearStickyFaults();
+    configurator.apply(config);
 
     // Create a PID controller to calculate steering motor output
     _steeringPidController = pid.createPIDController(0.02);
@@ -86,18 +98,36 @@ public class SwerveModuleReal implements ISwerveModule {
    * @param pid
    */
   private void setupDriveMotor(ExtendedPIDConstants pid) {
-    _driveMotor = new SparkFlex(_map.DriveMotorCanId, MotorType.kBrushless);
-    SparkMaxConfig config = new SparkMaxConfig();
-    config.smartCurrentLimit(SwerveMap.DriveStallCurrentLimit, SwerveMap.DriveFreeCurrentLimit);
-    config.openLoopRampRate(_map.DriveMotorRampRate);
-    config.inverted(_map.DriveInverted);
-    config.idleMode(IdleMode.kBrake);
-    config.limitSwitch.forwardLimitSwitchEnabled(false);
-    config.limitSwitch.reverseLimitSwitchEnabled(false);
-    config.voltageCompensation(12);
 
-    // Apply the configuration
-    _driveMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    _driveMotor = new TalonFX(_map.DriveMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    TalonFXConfigurator configurator = _driveMotor.getConfigurator();
+
+    // Drive Motor Configuration
+    // TODO: Check that DriveInverted true equals CCW positive
+    config.MotorOutput.Inverted = _map.DriveInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // TODO: Test current limits on the robot
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 120;
+
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 80;
+
+    // TODO: Ensure DriveMotorRampRate is the voltage ramp rate
+    config.OpenLoopRamps.VoltageOpenLoopRampPeriod = _map.DriveMotorRampRate;
+
+    config.HardwareLimitSwitch.ForwardLimitEnable = false;
+    config.HardwareLimitSwitch.ReverseLimitEnable = false;
+
+    config.Voltage.PeakForwardVoltage = 12;
+    config.Voltage.PeakReverseVoltage = -12;
+
+    configurator.clearStickyFaults();
+    configurator.apply(config);
 
     // Create a PID controller to calculate driving motor output
     _drivingPidController = pid.createPIDController(0.02);
@@ -138,9 +168,9 @@ public class SwerveModuleReal implements ISwerveModule {
     inputs.ModuleState.speedMetersPerSecond = speedMps;
     inputs.ModulePosition.angle = rotation;
     inputs.ModulePosition.distanceMeters = distanceMeters.magnitude();
-    inputs.DriveMotorVoltage = _driveMotor.getAppliedOutput() * _driveMotor.getBusVoltage();
+    inputs.DriveMotorVoltage = _driveMotor.getMotorVoltage().getValueAsDouble();
     Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage",
-        _driveMotor.getAppliedOutput() * _driveMotor.getBusVoltage());
+        _driveMotor.getMotorVoltage().getValueAsDouble());
   }
 
   @Override
@@ -229,7 +259,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the current velocity of the module
    */
   private MutLinearVelocity getCurrentVelocity() {
-    var speedMps = ((_driveMotor.getEncoder().getVelocity() / 60) / SwerveMap.DriveGearRatio)
+    var speedMps = ((_driveMotor.getVelocity().getValueAsDouble() / 60) / SwerveMap.DriveGearRatio)
         * SwerveMap.DriveWheelCircumferenceMeters;
 
     return Units.MetersPerSecond.mutable(speedMps);
@@ -239,7 +269,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the distance the module has traveled
    */
   private MutDistance getModuleDistance() {
-    var distMeters = _driveMotor.getEncoder().getPosition()
+    var distMeters = _driveMotor.getPosition().getValueAsDouble()
         * (SwerveMap.DriveWheelCircumferenceMeters / SwerveMap.DriveGearRatio);
 
     return Meters.mutable(distMeters);
