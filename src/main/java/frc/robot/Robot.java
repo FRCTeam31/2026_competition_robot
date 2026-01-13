@@ -64,7 +64,7 @@ public class Robot extends LoggedRobot {
     // Set an LED pattern to display when the robot goes disabled after a match
     new BooleanEvent(EventLoop, () -> DriverStation.isFMSAttached() && DriverStation.isDisabled() && _hasEnteredTeleop)
         .rising()
-        .ifHigh(() -> Commands.sequence(
+        .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
             Container.LEDs.setAllSectionPatternsCommand(
                 LEDPattern.solid(getAllianceColor()).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.85))),
             Commands.waitSeconds(3.15),
@@ -73,8 +73,7 @@ public class Robot extends LoggedRobot {
             Commands.waitSeconds(0.75),
             Container.LEDs
                 .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(4))))
-            .ignoringDisable(true)
-            .schedule());
+            .ignoringDisable(true)));
   }
 
   /**
@@ -137,7 +136,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     DataLogManager.log("Robot disabled");
-    Container.Swerve.disableAutoAlignCommand().schedule();
+    CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
   }
 
   /**
@@ -170,7 +169,7 @@ public class Robot extends LoggedRobot {
       }
 
       // Schedule the auto command
-      _autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(_autonomousCommand);
     }
   }
 
