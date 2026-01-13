@@ -83,7 +83,7 @@ class GyroSimTest {
         }
 
         assertEquals(-90.0, inputs.Rotation.getDegrees(), 0.1,
-                "After 1 second at 90°/s clockwise, heading should be -90°");
+                "After 1 second at 90-degrees/s clockwise, heading should be -90-degrees");
     }
 
     @Test
@@ -97,7 +97,7 @@ class GyroSimTest {
         }
 
         assertEquals(90.0, inputs.Rotation.getDegrees(), 0.1,
-                "After 0.5 seconds at 180°/s CCW, heading should be 90°");
+                "After 0.5 seconds at 180-degrees/s CCW, heading should be 90-degrees");
     }
 
     @Test
@@ -111,7 +111,7 @@ class GyroSimTest {
         }
 
         assertEquals(10.0, inputs.Rotation.getDegrees(), 0.1,
-                "After 2 seconds at 5°/s, heading should be 10°");
+                "After 2 seconds at 5-degrees/s, heading should be 10-degrees");
     }
 
     //#endregion
@@ -122,21 +122,21 @@ class GyroSimTest {
     void testAutonomous90DegreeTurn() {
         // Simulate a PID-controlled 90-degree turn in autonomous
         // In practice, PID would vary the speed - simplified here to constant speed
-        double omegaRadPerSec = Math.toRadians(180); // 180°/s average speed
+        double omegaRadPerSec = Math.toRadians(180); // 180-degrees/s average speed
 
-        // Rotate for 0.5 seconds to achieve ~90°
+        // Rotate for 0.5 seconds to achieve ~90-degrees
         for (int i = 0; i < 25; i++) {
             gyro.updateInputs(inputs, omegaRadPerSec);
         }
 
         // Should be close to 90 degrees
         assertEquals(90.0, inputs.Rotation.getDegrees(), 2.0,
-                "Autonomous 90° turn should result in heading near 90°");
+                "Autonomous 90-degrees turn should result in heading near 90-degrees");
     }
 
     @Test
     void testAutonomous180DegreeTurn() {
-        // Fast 180-degree spin at 360°/s for 0.5 seconds
+        // Fast 180-degree spin at 360-degrees/s for 0.5 seconds
         double omegaRadPerSec = Math.toRadians(360);
 
         for (int i = 0; i < 25; i++) {
@@ -144,7 +144,7 @@ class GyroSimTest {
         }
 
         assertEquals(180.0, inputs.Rotation.getDegrees(), 1.0,
-                "180° turn should result in heading of 180°");
+                "180-degrees turn should result in heading of 180-degrees");
     }
 
     //#endregion
@@ -164,23 +164,24 @@ class GyroSimTest {
         // Gyro should handle full rotation (might wrap to 0 or stay at -360)
         double heading = inputs.Rotation.getDegrees();
         assertTrue(Math.abs(heading) < 1.0 || Math.abs(heading + 360) < 1.0,
-                "After 360° clockwise rotation, heading should be near 0° or -360°, got: " + heading);
+                "After 360-degrees clockwise rotation, heading should be near 0-degrees or -360-degrees, got: "
+                        + heading);
     }
 
     @Test
     void testMultipleRotations() {
         // Robot spinning continuously (like testing rotation in place)
-        // 720 degrees in 2 seconds = 360°/s
+        // 720 degrees in 2 seconds = 360-degrees/s
         double omegaRadPerSec = Math.toRadians(360);
 
         for (int i = 0; i < 100; i++) { // 2 seconds
             gyro.updateInputs(inputs, omegaRadPerSec);
         }
 
-        // After 2 full rotations, could be 720° or wrapped
+        // After 2 full rotations, could be 720-degrees or wrapped
         double heading = inputs.Rotation.getDegrees();
         assertTrue(Math.abs(heading) < 1.0 || Math.abs(heading - 720) < 1.0,
-                "After 720° rotation, heading handling should be consistent");
+                "After 720-degrees rotation, heading handling should be consistent");
     }
 
     //#endregion
@@ -191,7 +192,7 @@ class GyroSimTest {
     void testOscillatingRotation() {
         // Robot rotating back and forth (like driver correcting heading)
 
-        // Rotate 45° CCW
+        // Rotate 45-degrees CCW
         double omegaCCW = Math.toRadians(180);
         for (int i = 0; i < 12; i++) { // 0.24 seconds
             gyro.updateInputs(inputs, omegaCCW);
@@ -199,16 +200,16 @@ class GyroSimTest {
 
         double headingAfterCCW = inputs.Rotation.getDegrees();
         assertTrue(headingAfterCCW > 40.0 && headingAfterCCW < 50.0,
-                "After CCW rotation should be ~45°, got: " + headingAfterCCW);
+                "After CCW rotation should be ~45-degrees, got: " + headingAfterCCW);
 
-        // Rotate back 45° CW
+        // Rotate back 45-degrees CW
         double omegaCW = -Math.toRadians(180);
         for (int i = 0; i < 12; i++) {
             gyro.updateInputs(inputs, omegaCW);
         }
 
         assertEquals(0.0, inputs.Rotation.getDegrees(), 2.0,
-                "After oscillation, should return near 0°");
+                "After oscillation, should return near 0-degrees");
     }
 
     @Test
@@ -248,7 +249,7 @@ class GyroSimTest {
         gyro.updateInputs(inputs, 0);
 
         assertEquals(0.0, inputs.Rotation.getDegrees(), 0.001,
-                "After reset, gyro should be at 0°");
+                "After reset, gyro should be at 0-degrees");
     }
 
     @Test
@@ -259,18 +260,18 @@ class GyroSimTest {
         gyro.updateInputs(inputs, 0);
 
         assertEquals(180.0, inputs.Rotation.getDegrees(), 0.001,
-                "After reset to 180°, gyro should read 180°");
+                "After reset to 180-degrees, gyro should read 180-degrees");
     }
 
     @Test
     void testResetToNegativeAngle() {
-        // Reset to negative angle (like -90° starting position)
+        // Reset to negative angle (like -90-degrees starting position)
         gyro.reset(-90.0);
 
         gyro.updateInputs(inputs, 0);
 
         assertEquals(-90.0, inputs.Rotation.getDegrees(), 0.001,
-                "After reset to -90°, gyro should read -90°");
+                "After reset to -90-degrees, gyro should read -90-degrees");
     }
 
     @Test
@@ -286,7 +287,7 @@ class GyroSimTest {
         }
 
         assertEquals(135.0, inputs.Rotation.getDegrees(), 1.0,
-                "After reset to 45° then 90° rotation, should be at 135°");
+                "After reset to 45-degrees then 90-degrees rotation, should be at 135-degrees");
     }
 
     @Test
@@ -303,7 +304,7 @@ class GyroSimTest {
         gyro.reset();
         gyro.updateInputs(inputs, 0);
         assertEquals(0.0, inputs.Rotation.getDegrees(), 0.001,
-                "Second reset should return to 0°");
+                "Second reset should return to 0-degrees");
 
         for (int i = 0; i < 10; i++) {
             gyro.updateInputs(inputs, -Math.toRadians(90));
@@ -320,9 +321,9 @@ class GyroSimTest {
     @Test
     void testFieldOrientedDriveScenario() {
         // Simulate field-oriented drive: robot rotates while driving
-        // Start at 0°, rotate to 90° over 1 second while driving
+        // Start at 0-degrees, rotate to 90-degrees over 1 second while driving
 
-        double rotationSpeed = Math.toRadians(90); // 90°/s
+        double rotationSpeed = Math.toRadians(90); // 90-degrees/s
 
         for (int i = 0; i < 50; i++) {
             gyro.updateInputs(inputs, rotationSpeed);
@@ -344,35 +345,35 @@ class GyroSimTest {
     @Test
     void testSmallAngleAccuracy() {
         // Test precision for small rotations (like holding heading)
-        double omegaRadPerSec = Math.toRadians(1); // Very slow 1°/s
+        double omegaRadPerSec = Math.toRadians(1); // Very slow 1-degrees/s
 
         for (int i = 0; i < 50; i++) { // 1 second
             gyro.updateInputs(inputs, omegaRadPerSec);
         }
 
         assertEquals(1.0, inputs.Rotation.getDegrees(), 0.1,
-                "Small angle accumulation should be accurate to 0.1°");
+                "Small angle accumulation should be accurate to 0.1-degrees");
     }
 
     @Test
     void testHighSpeedAccuracy() {
-        // Test at maximum expected rotation speed (540°/s for some swerve drives)
+        // Test at maximum expected rotation speed (540-degrees/s for some swerve drives)
         double omegaRadPerSec = Math.toRadians(540);
 
-        // Rotate for 1/3 second to get 180°
+        // Rotate for 1/3 second to get 180-degrees
         for (int i = 0; i < 17; i++) {
             gyro.updateInputs(inputs, omegaRadPerSec);
         }
 
         assertEquals(180.0, inputs.Rotation.getDegrees(), 5.0,
-                "High-speed rotation should maintain accuracy within 5°");
+                "High-speed rotation should maintain accuracy within 5-degrees");
     }
 
     @Test
     void testZeroOmegaMaintainsAngle() {
         // Robot rotates then stops - gyro should hold angle
 
-        // Rotate to 60°
+        // Rotate to 60-degrees
         double omegaRadPerSec = Math.toRadians(180);
         for (int i = 0; i < 17; i++) {
             gyro.updateInputs(inputs, omegaRadPerSec);
@@ -410,18 +411,18 @@ class GyroSimTest {
     void testNegativeToPositiveTransition() {
         // Start with negative rotation, cross through 0 to positive
 
-        // Start at -45°
+        // Start at -45-degrees
         gyro.reset(-45.0);
         gyro.updateInputs(inputs, 0);
 
-        // Rotate 90° CCW to end at +45°
+        // Rotate 90-degrees CCW to end at +45-degrees
         double omegaRadPerSec = Math.toRadians(180);
         for (int i = 0; i < 25; i++) {
             gyro.updateInputs(inputs, omegaRadPerSec);
         }
 
         assertEquals(45.0, inputs.Rotation.getDegrees(), 1.0,
-                "Crossing through 0° should work correctly");
+                "Crossing through 0-degrees should work correctly");
     }
 
     @Test
