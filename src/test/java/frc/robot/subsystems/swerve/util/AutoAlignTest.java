@@ -63,7 +63,7 @@ class AutoAlignTest {
 
         double expectedModulated = Math.toRadians(-90); // 270 degrees wraps to -90
         assertEquals(expectedModulated, autoAlign.getSetpoint().getRadians(), EPSILON,
-                "Setpoint should be modulated to [-π, π] range");
+                "Setpoint should be modulated to [-pi, pi] range");
     }
 
     @Test
@@ -173,7 +173,7 @@ class AutoAlignTest {
 
         double correction = highGainAutoAlign.getCorrection(Rotation2d.fromDegrees(0));
 
-        // Correction should be clamped to MaxAngularSpeedRadians (2π rad/s)
+        // Correction should be clamped to MaxAngularSpeedRadians (2pi rad/s)
         assertTrue(Math.abs(correction) <= Math.PI * 2 + EPSILON,
                 "Correction should be clamped to max angular speed");
     }
@@ -231,7 +231,7 @@ class AutoAlignTest {
 
     @Test
     void testAtSetpoint_UsesToleranceOf1Degree() {
-        // Tolerance is set to π/180 radians (1 degree) in constructor
+        // Tolerance is set to pi/180 radians (1 degree) in constructor
         autoAlign.setSetpoint(Rotation2d.fromDegrees(90));
 
         // Test just within tolerance

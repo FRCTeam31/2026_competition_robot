@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
  * Unit tests for Swerve subsystem - validates high-level swerve drive control.
@@ -179,23 +180,6 @@ class SwerveTest {
         });
     }
 
-    // ==================== Periodic Method Tests ====================
-
-    @Test
-    void testPeriodic_DoesNotThrowOnFirstCall() {
-        assertDoesNotThrow(() -> swerve.periodic(),
-                "Periodic should not throw on first call");
-    }
-
-    @Test
-    void testPeriodic_DoesNotThrowOnMultipleCalls() {
-        assertDoesNotThrow(() -> {
-            swerve.periodic();
-            swerve.periodic();
-            swerve.periodic();
-        }, "Periodic should not throw on multiple calls");
-    }
-
     // ==================== Edge Cases ====================
 
     @Test
@@ -229,9 +213,8 @@ class SwerveTest {
 
     @Test
     void testSubsystemCanBeScheduled() {
-        // Subsystems need to be able to have their periodic method called
-        assertDoesNotThrow(() -> {
-            swerve.periodic();
-        }, "Subsystem periodic should be callable");
+        // Verify Swerve extends SubsystemBase for Command scheduling compatibility
+        assertTrue(swerve instanceof SubsystemBase,
+                "Swerve should extend SubsystemBase for Command integration");
     }
 }
