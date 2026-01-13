@@ -70,10 +70,10 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // TODO: Test current limits on robot
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 60;
+    config.CurrentLimits.StatorCurrentLimit = 5;
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 80;
+    config.CurrentLimits.SupplyCurrentLimit = 5;
 
     // Clears faults and applies configuration
     configurator.clearStickyFaults();
@@ -112,10 +112,10 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // TODO: Test current limits on the robot
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 120;
+    config.CurrentLimits.StatorCurrentLimit = 5;
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 80;
+    config.CurrentLimits.SupplyCurrentLimit = 5;
 
     // TODO: Ensure DriveMotorRampRate is the voltage ramp rate
     config.OpenLoopRamps.VoltageOpenLoopRampPeriod = _map.DriveMotorRampRate;
