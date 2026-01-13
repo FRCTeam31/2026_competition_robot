@@ -93,15 +93,17 @@ public class Swerve extends SubsystemBase {
     _primeHolonomicController = new PrimeHolonomicDriveController(
         SwerveMap.PathPlannerTranslationPID.toPIDConstants(),
         SwerveMap.PathPlannerRotationPID.toPIDConstants());
-    AutoBuilder.configure(
-        () -> SuperStructure.Swerve.EstimatedRobotPose,
-        _swervePackager::setEstimatorPose,
-        () -> SuperStructure.Swerve.RobotRelativeChassisSpeeds,
-        (speeds, feedForwards) -> driveRobotRelative(speeds),
-        _primeHolonomicController,
-        _pathplannerRobotConfig,
-        Robot::onRedAlliance, // Boolean supplier that controls when the path will be mirrored for the red alliance
-        this);
+    if (!AutoBuilder.isConfigured()) {
+      AutoBuilder.configure(
+          () -> SuperStructure.Swerve.EstimatedRobotPose,
+          _swervePackager::setEstimatorPose,
+          () -> SuperStructure.Swerve.RobotRelativeChassisSpeeds,
+          (speeds, feedForwards) -> driveRobotRelative(speeds),
+          _primeHolonomicController,
+          _pathplannerRobotConfig,
+          Robot::onRedAlliance, // Boolean supplier that controls when the path will be mirrored for the red alliance
+          this);
+    }
 
     // Override PathPlanner's rotation feedback
     // PPHolonomicDriveController.overrideRotationFeedback(() -> SuperStructure.SwerveState.AutoAlignCorrection);
