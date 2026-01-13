@@ -50,35 +50,35 @@ public class SwerveMap {
 
         public static final int DriveSupplyCurrentLimitDuration = 100;
 
-        public static final int PigeonId = 10;
+        public static final int PigeonId = 13;
         public static final SwerveModuleMap FrontLeftSwerveModule = new SwerveModuleMap(
-                        1,
-                        2,
-                        14,
+                        3,
+                        4,
+                        10,
                         47 * 0.0025,
                         false,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
         public static final SwerveModuleMap FrontRightSwerveModule = new SwerveModuleMap(
-                        7,
-                        8,
-                        13,
+                        6,
+                        5,
+                        11,
                         272 * 0.0025,
                         true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearRightSwerveModule = new SwerveModuleMap(
-                        5,
-                        6,
+                        7,
+                        8,
                         12,
                         278.75 * 0.0025,
                         true,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearLeftSwerveModule = new SwerveModuleMap(
-                        3,
-                        4,
-                        11,
+                        2,
+                        1,
+                        9,
                         55 * 0.0025,
                         false,
                         false,
