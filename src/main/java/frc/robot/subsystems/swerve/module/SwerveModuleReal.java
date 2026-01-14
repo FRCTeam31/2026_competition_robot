@@ -203,13 +203,9 @@ public class SwerveModuleReal implements ISwerveModule {
     // Scale speed by cosine of angle error for smoother driving.
     desiredState.cosineScale(getCurrentHeading());
 
-    // Set the drive motor to the desired speed
+    // Set the drive and steering motors to the desired state
     setDriveSpeed(desiredState.speedMetersPerSecond);
-
-    // Set the steering motor to the desired angle, if trying to drive
-    if (Math.abs(desiredState.speedMetersPerSecond) > 0.05) {
-      setModuleAngle(desiredState.angle);
-    }
+    setModuleAngle(desiredState.angle);
   }
 
   private void setDriveSpeed(double desiredSpeedMetersPerSecond) {
@@ -259,7 +255,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the current velocity of the module
    */
   private MutLinearVelocity getCurrentVelocity() {
-    var speedMps = ((_driveMotor.getVelocity().getValueAsDouble() / 60) / SwerveMap.DriveGearRatio)
+    var speedMps = ((_driveMotor.getVelocity().getValueAsDouble()) / SwerveMap.DriveGearRatio)
         * SwerveMap.DriveWheelCircumferenceMeters;
 
     return Units.MetersPerSecond.mutable(speedMps);
