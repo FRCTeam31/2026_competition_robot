@@ -35,53 +35,52 @@ public class SwerveMap {
         public static final ExtendedPIDConstants PathPlannerRotationPID = new ExtendedPIDConstants(2, 0, 0);
 
         // Uniform Drive Constants
-        public static final double DriveGearRatio = 5.9;
+        public static final double DriveGearRatio = 6.75;
         public static final double DriveWheelDiameterMeters = Units.inchesToMeters(3.875);
         public static final double DriveWheelCircumferenceMeters = Math.PI * DriveWheelDiameterMeters;
+
+        // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
         public static final int DriveFreeCurrentLimit = 30;
+
         public static final int DriveSupplyCurrentLimitDuration = 100;
 
-        public static final double FrontLeftEncoderOffsetDegrees = 47;
-        public static final double FrontRightEncoderOffsetDegrees = 272.0;
-        public static final double RearRightEncoderOffsetDegrees = 278.75;
-        public static final double RearLeftEncoderOffsetDegrees = 55.0;
-
-        public static final int PigeonId = 10;
+        public static final int PigeonId = 13;
         public static final SwerveModuleMap FrontLeftSwerveModule = new SwerveModuleMap(
-                        1,
-                        2,
-                        14,
-                        FrontLeftEncoderOffsetDegrees * 0.0025,
-                        false,
+                        3,
+                        4,
+                        10,
+                        0.563721,
+                        true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
         public static final SwerveModuleMap FrontRightSwerveModule = new SwerveModuleMap(
-                        7,
-                        8,
-                        13,
-                        FrontRightEncoderOffsetDegrees * 0.0025,
+                        6,
+                        5,
+                        11,
+                        0.540039,
                         true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearRightSwerveModule = new SwerveModuleMap(
-                        5,
-                        6,
+                        7,
+                        8,
                         12,
-                        RearRightEncoderOffsetDegrees * 0.0025,
-                        true,
+                        0.186279,
+                        false,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearLeftSwerveModule = new SwerveModuleMap(
-                        3,
-                        4,
-                        11,
-                        RearLeftEncoderOffsetDegrees * 0.0025,
+                        2,
+                        1,
+                        9,
+                        0.075928,
                         false,
                         false,
                         new Translation2d(-Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
+                        // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(50),
                         MomentOfInertia.ofBaseUnits(3, edu.wpi.first.units.Units.KilogramSquareMeters)
                                         .baseUnitMagnitude(),

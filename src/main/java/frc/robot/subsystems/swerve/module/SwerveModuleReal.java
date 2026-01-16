@@ -2,9 +2,16 @@ package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
@@ -27,6 +34,11 @@ public class SwerveModuleReal implements ISwerveModule {
   private final String _optimizeModuleKey = "Optimize";
 
   // Devices
+  private TalonFX _steeringMotor;
+  private PIDController _steeringPidController;
+  private TalonFX _driveMotor;
+  private PIDController _drivingPidController;
+  private SimpleMotorFeedforward _driveFeedForward;
   private CANcoder _encoder;
 
   public SwerveModuleReal(String name, SwerveModuleMap moduleMap) {
@@ -44,12 +56,38 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the steering motor and PID controller
    */
   private void setupSteeringMotor(ExtendedPIDConstants pid) {
-    // TODO
+
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    TalonFXConfigurator configurator = _steeringMotor.getConfigurator();
+
+    // Steering Motor Configuration
+    config.MotorOutput.Inverted = _map.SteerInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // TODO: Test current limits on robot
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 5;
+
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 5;
+
+    // Clears faults and applies configuration
+    configurator.clearStickyFaults();
+    configurator.apply(config);
+
+    // Create a PID controller to calculate steering motor output
+    _steeringPidController = pid.createPIDController(0.02);
+    _steeringPidController.enableContinuousInput(0, 1); // 0 to 1 rotation
   }
 
   @Override
   public void setSteeringPID(ExtendedPIDConstants steeringPID) {
-    // TODO
+    _steeringPidController.setP(steeringPID.kP);
+    _steeringPidController.setI(steeringPID.kI);
+    _steeringPidController.setD(steeringPID.kD);
     System.out.println("Reset Steering PID " + _name);
   }
 
@@ -59,12 +97,47 @@ public class SwerveModuleReal implements ISwerveModule {
    * @param pid
    */
   private void setupDriveMotor(ExtendedPIDConstants pid) {
-    // TODO
+
+    _driveMotor = new TalonFX(_map.DriveMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    TalonFXConfigurator configurator = _driveMotor.getConfigurator();
+
+    // Drive Motor Configuration
+    config.MotorOutput.Inverted = _map.DriveInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // TODO: Test current limits on the robot
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 5;
+
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 5;
+
+    // TODO: Ensure DriveMotorRampRate is the voltage ramp rate
+    config.OpenLoopRamps.VoltageOpenLoopRampPeriod = _map.DriveMotorRampRate;
+
+    config.HardwareLimitSwitch.ForwardLimitEnable = false;
+    config.HardwareLimitSwitch.ReverseLimitEnable = false;
+
+    config.Voltage.PeakForwardVoltage = 12;
+    config.Voltage.PeakReverseVoltage = -12;
+
+    configurator.clearStickyFaults();
+    configurator.apply(config);
+
+    // Create a PID controller to calculate driving motor output
+    _drivingPidController = pid.createPIDController(0.02);
+    _driveFeedForward = new SimpleMotorFeedforward(pid.kS, pid.kV, pid.kA);
   }
 
   @Override
   public void setDrivePID(ExtendedPIDConstants drivePID) {
-    // TODO
+    _drivingPidController.setP(drivePID.kP);
+    _drivingPidController.setI(drivePID.kI);
+    _drivingPidController.setD(drivePID.kD);
+    _driveFeedForward = new SimpleMotorFeedforward(drivePID.kS, drivePID.kV, drivePID.kA);
     System.out.println("Reset Drive PID " + _name);
   }
 
@@ -93,19 +166,23 @@ public class SwerveModuleReal implements ISwerveModule {
     inputs.ModuleState.speedMetersPerSecond = speedMps;
     inputs.ModulePosition.angle = rotation;
     inputs.ModulePosition.distanceMeters = distanceMeters.magnitude();
-    inputs.DriveMotorVoltage = 0; // TODO
+    inputs.DriveMotorVoltage = _driveMotor.getMotorVoltage().getValueAsDouble();
+    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage",
+        _driveMotor.getMotorVoltage().getValueAsDouble());
   }
 
   @Override
   public void setDriveVoltage(double voltage, Rotation2d moduleAngle) {
-    // TODO
+
+    _driveMotor.setVoltage(voltage);
 
     setModuleAngle(moduleAngle);
   }
 
   @Override
   public void stopMotors() {
-    // TODO
+    _driveMotor.stopMotor();
+    _steeringMotor.stopMotor();
   }
 
   /**
@@ -124,17 +201,30 @@ public class SwerveModuleReal implements ISwerveModule {
     // Scale speed by cosine of angle error for smoother driving.
     desiredState.cosineScale(getCurrentHeading());
 
-    // Set the drive motor to the desired speed
+    // Set the drive and steering motors to the desired state
     setDriveSpeed(desiredState.speedMetersPerSecond);
-
-    // Set the steering motor to the desired angle, if trying to drive
-    if (Math.abs(desiredState.speedMetersPerSecond) > 0.05) {
-      setModuleAngle(desiredState.angle);
-    }
+    setModuleAngle(desiredState.angle);
   }
 
   private void setDriveSpeed(double desiredSpeedMetersPerSecond) {
-    // TODO
+    // Convert the speed to rotations per second by dividing by the wheel
+    // circumference and gear ratio
+
+    var desiredSpeedRotationsPerSecond = (desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
+        * SwerveMap.DriveGearRatio;
+
+    var currentSpeedMetersPerSecond = getCurrentVelocity().in(MetersPerSecond);
+    var currentSpeedRotationsPerSecond = (currentSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
+        * SwerveMap.DriveGearRatio;
+
+    var pid = _drivingPidController.calculate(currentSpeedRotationsPerSecond, desiredSpeedRotationsPerSecond);
+    var ff = _driveFeedForward.calculate(desiredSpeedRotationsPerSecond);
+    var driveOutput = MathUtil.clamp(pid + ff, -12, 12);
+
+    Logger.recordOutput("Swerve/Modules/" + _name + "/DrivePID", pid);
+    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveFF", ff);
+    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorOutputVoltage", driveOutput);
+    _driveMotor.setVoltage(driveOutput);
   }
 
   private void setModuleAngle(Rotation2d angle) {
@@ -143,7 +233,13 @@ public class SwerveModuleReal implements ISwerveModule {
     if (setpoint < 0)
       setpoint += 1;
 
-    // TODO
+    // Calculate the new output using the PID controller
+    var newOutput = _steeringPidController.calculate(getCurrentHeading().getRotations(), setpoint);
+    var steerSpeed = MathUtil.clamp(newOutput, -1, 1);
+
+    // Set the steering motor's speed to the calculated output
+    Logger.recordOutput("Swerve/Modules/" + _name + "/SteeringMotorOutputSpeed", steerSpeed);
+    _steeringMotor.set(steerSpeed);
   }
 
   /**
@@ -157,7 +253,8 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the current velocity of the module
    */
   private MutLinearVelocity getCurrentVelocity() {
-    var speedMps = 0; // TODO
+    var speedMps = ((_driveMotor.getVelocity().getValueAsDouble()) / SwerveMap.DriveGearRatio)
+        * SwerveMap.DriveWheelCircumferenceMeters;
 
     return Units.MetersPerSecond.mutable(speedMps);
   }
@@ -166,7 +263,8 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the distance the module has traveled
    */
   private MutDistance getModuleDistance() {
-    var distMeters = 0; // TODO
+    var distMeters = _driveMotor.getPosition().getValueAsDouble()
+        * (SwerveMap.DriveWheelCircumferenceMeters / SwerveMap.DriveGearRatio);
 
     return Meters.mutable(distMeters);
   }
