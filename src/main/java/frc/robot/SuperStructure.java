@@ -9,5 +9,6 @@ import frc.robot.subsystems.vision.LimelightNameEnum;
 
 public class SuperStructure {
     public static SwerveSubsystemInputsAutoLogged Swerve = new SwerveSubsystemInputsAutoLogged();
+    public static HopperInputsAutoLogged Hopper = new HopperInputsAutoLogged();
     public static Map<LimelightNameEnum, LimelightInputsAutoLogged> Limelights = new HashMap<>();
 }
