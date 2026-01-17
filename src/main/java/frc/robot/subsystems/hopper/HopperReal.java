@@ -1,26 +1,33 @@
 package frc.robot.subsystems.hopper;
 
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsControlModule;
 import frc.robot.Container;
 
 public class HopperReal implements IHopper {
     private DoubleSolenoid _solenoid;
-    private SparkFlex _sparkFlex;
+    private SparkFlex _feedSparkFlex;
+    private SparkFlex _intakeControlSparkFlex;
+    private SparkFlex _intakeFeedSparkFlex;
+    private DigitalInput _inLimitSwitch;
+    private DigitalInput _outLimitSwitch;
 
     public HopperReal() {
         _solenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.ForwardChannel,
                 HopperMap.ReverseChannel);
-        _sparkFlex = new SparkFlex(HopperMap.CANID, MotorType.kBrushless);
+        _feedSparkFlex = new SparkFlex(HopperMap.CANID, MotorType.kBrushless);
     }
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
-
+        inputs.intakeINLimitSwitch = _inLimitSwitch.get();
+        inputs.intakeOUTLimitSwitch = _outLimitSwitch.get();
     }
 
     @Override
@@ -35,29 +42,64 @@ public class HopperReal implements IHopper {
 
     @Override
     public void setFeedSpeed(Hopper.FeedState feedState) {
-        // if (feedState == Hopper.FeedState.INWARDS) {
-        //     _sparkFlex.set(0.5);
-        // }
-        // if (feedState == Hopper.FeedState.OUTWARDS) {
-        //     _sparkFlex.set(-0.5);
-        // }
-        // if (feedState == Hopper.FeedState.STOPPED) {}
+
         switch (feedState) {
             case INWARDS:
-                _sparkFlex.set(0.5);
+                _feedSparkFlex.set(0.5);
                 break;
             case OUTWARDS:
-                _sparkFlex.set(-0.5);
+                _feedSparkFlex.set(-0.5);
                 break;
             case STOPPED:
             default:
-                _sparkFlex.set(0);
+                _feedSparkFlex.set(0);
                 break;
         }
     }
 
     @Override
     public void feedStop() {
-        _sparkFlex.stopMotor();
+        _feedSparkFlex.stopMotor();
     }
+
+    @Override
+    public void setIntakePosition(Hopper.IntakeControlState controlState) {
+        switch (controlState) {
+            case OUT:
+                if (_outLimitSwitch.get()) {
+                    break;
+                }
+                _intakeControlSparkFlex.set(0.5);
+                break;
+            case IN:
+            default:
+                if (_inLimitSwitch.get()) {
+                    break;
+                }
+                _intakeControlSparkFlex.set(-0.5);
+                break;
+        }
+    }
+
+    @Override
+    public void stopIntake() {
+        _intakeControlSparkFlex.set(0);
+
+    }
+
+    public void setIntakeFeedState(Hopper.IntakeFeedState intakeFeedState) {
+        switch (intakeFeedState) {
+            case INWARDS:
+                _intakeFeedSparkFlex.set(.5);
+                break;
+            case OUTWARDS:
+                _intakeFeedSparkFlex.set(-.5);
+                break;
+            case STOPPED:
+            default:
+                stopIntake();
+                break;
+        }
+    }
+
 }

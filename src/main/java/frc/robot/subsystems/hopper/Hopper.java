@@ -13,16 +13,24 @@ public class Hopper extends SubsystemBase {
 
     public enum HopperPosition { // For extending and retracting Hopper
         IN,
-
         OUT
     }
 
     public enum FeedState { // For feeding in and out to the shooter
         INWARDS,
-
         OUTWARDS,
-
         STOPPED
+    }
+
+    public enum IntakeFeedState { // For intake wheels
+        INWARDS,
+        OUTWARDS,
+        STOPPED
+    }
+
+    public enum IntakeControlState { // For intake rotation
+        IN,
+        OUT
     }
 
     public Hopper(boolean isReal) {
