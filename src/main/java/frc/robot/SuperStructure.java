@@ -3,6 +3,7 @@ package frc.robot;
 import java.util.HashMap;
 import java.util.Map;
 
+import frc.robot.subsystems.hopper.HopperInputsAutoLogged;
 import frc.robot.subsystems.swerve.SwerveSubsystemInputsAutoLogged;
 import frc.robot.subsystems.vision.LimelightInputsAutoLogged;
 import frc.robot.subsystems.vision.LimelightNameEnum;

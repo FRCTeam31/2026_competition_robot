@@ -14,7 +14,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
+import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
+import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.Vision;
 
@@ -29,6 +31,8 @@ public class Container {
   public static PwmLEDs LEDs;
   public static Swerve Swerve;
   public static Vision Vision;
+  public static Pneumatics Pneumatics;
+  public static Hopper Hopper;
 
   public static void initialize(boolean isReal) {
     try {
@@ -42,6 +46,8 @@ public class Container {
       LEDs = new PwmLEDs();
       Vision = new Vision();
       Swerve = new Swerve(isReal);
+      Pneumatics = new Pneumatics(isReal);
+      Hopper = new Hopper(isReal);
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();

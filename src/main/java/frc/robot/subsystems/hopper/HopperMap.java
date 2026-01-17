@@ -1,5 +1,8 @@
 package frc.robot.subsystems.hopper;
 
 public class HopperMap {
+    public static final int ForwardChannel = 0;
+    public static final int ReverseChannel = 0;
 
+    public static final double HopperPulseDelay = 0;
 }
