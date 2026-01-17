@@ -92,13 +92,27 @@ task(eventDeploy) {
 
             
             gradle.buildFinished { result ->
+
+
+                def COLOR_CLEAR = "\u001B[0m"
+                def COLOR_LRED = "\u001B[38;2;230;115;99m"
+                def COLOR_RED = "\u001B[38;2;220;79;38m"
+                def COLOR_YELLOW = "\u001B[38;2;240;163;75m"
+                def COLOR_GREEN = "\u001B[38;2;120;157;111m"
+                def COLOR_PINK = "\u001B[38;2;228;169;157m"
+
+
+                
+
+
+
                 if (result.failure != null) {
                     println ''
                     println ''
                     println ''
                     println ''
                     println '                                                                                 '
-                    println '                        &###%#%%#*/,*(&@&###&&##(##(####(##&                    '
+                    println COLOR_RED +'                        &###%#%%#*/,*(&@&###&&##(##(####(##&                    '
                     println '                   ,#/(###((((,.*////(((((####(/%&%((((((////((%                '
                     println '                 %#(###((////////////((/(((/**(##/(#%#(((////////(*             '
                     println '              %%%%%##((((((///////////(((((/*...##(((/(##/////////((%           '
@@ -133,7 +147,7 @@ task(eventDeploy) {
                     println ''
                     println ''
                     println '            -~ You fool. the build failed, Mango Bird is dissapointed ~-                      '
-                    println ''
+                    println COLOR_CLEAR + ''
                     println ''
                     println ''
                 } else {
@@ -142,40 +156,40 @@ task(eventDeploy) {
                     println ''
                     println ''
                     println ''
-                    println '                      &%###%%#((/**/(//#&&&#(((((######@                     '
-                    println '                 &/((###(((,,./(/(((((###%#(#&%#(((((////((&                 '
-                    println '              &#((###((//////**//////((////#((/#%#((((///////(&              '
-                    println '            &%#%%#(((((////////////(#(((*.../#(((/(##(/////////(%            '
-                    println '          &%%%%#((#((###(///((((#, /((((*,..../(((((((##////////((%          '
-                    println '        .&%%%#((/*%&%%%%%%###((/(##(((((/,....../((((((/(#///////((#*        '
-                    println '       @&%%%##((/#%&%%%%%%%%#((///(((((((*,,......*/(((((((#(////(((#%       '
-                    println '      /&%%%###((###%%&%%%%##((((/(((((((//,,,.......,/(((#(((##////((##      '
-                    println '     .&&%%########(/&%%%#((((((((///////*,,,,,,,,,...,,//((##((#(/(/(((#     '
-                    println '     @&%%#####(#(#(((%(*/((((((//////******,,*,,,,,,,,,,*//((##((#((((((%    '
-                    println '     &&%%#####((((((///////(///////*******/////*/**,,,****/(/((##((#(((((,   '
-                    println '     &%%%%######(((((//(////////////**//*////(///////*****/(((#/(#((#///(&   '
-                    println '     @%%%%######((((((////(((/////////////(((######(((/////(###&&(((((///%   '
-                    println '     /%%%%###########(((##(((/////(/////(((########%###((((##%#%(  #/(///,   '
-                    println '      @##################(((((((((((((((######%%%%%#%%%#%%%%%#%%(    #//(    '
-                    println '       @####%%#%############(#####((#####%%%%%%%%%%%%%%%%%%%%%%%(            '
-                    println '        *###%%%%%%%##%#%#%%%#########%%%%%%%&&&%%%&%%&&&&&%%%%%&(            '
-                    println '          ###%%%%%%%%%%%%%%%%%#%#%#%%%%%%%%%&&&&&&&&&&&&&&%%%%%&             '
-                    println '            %#%%%%%%%%%%%%%%%%%%%%%%%%%%%%&%&&&&&&&&&&&&&&%%%%%@             '
-                    println '              ##%%%%%%%%%%%%%%%%%%%%%%%%%%%&%&&&&&&&&&&&&%%%%%&              '
-                    println '               .#%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&%%%%%&.              '
-                    println '                  ##%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&%%%%%%%%%                '
-                    println '                    ##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&                 '
-                    println '                       %###%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#%(                  '
-                    println '                        .###%%%%%%%%%%%%%%%%%%%%%%%%%%##%                    '
-                    println '                        %######%%%#%#####%%%%%%%%#######                     '
-                    println '                    #(((((((((#. #           %%####((#  (,/,.&               '
-                    println '              *./#//,..((///////#/.,/(/////*/((((///****/(//%/               '
-                    println '               ##(//*///(#     (*( ((#/*/****/((((////*(                     '
+                    println COLOR_LRED + '                      &%###%%#((/**/(//#&&&' + COLOR_GREEN + '#(((((######@                     ' + COLOR_CLEAR
+                    println COLOR_LRED + '                 &/((###(((,,./(/(((((###%#' + COLOR_GREEN + '(#&%#(((((////((&                 ' + COLOR_CLEAR
+                    println COLOR_LRED + '              &#((###((//' + COLOR_RED + '////**//////((////' + COLOR_GREEN + '#((/#%#((((///////(&              ' + COLOR_CLEAR
+                    println COLOR_LRED + '            &%#%%#((((' + COLOR_RED + '(////////////(#(((*.../' + COLOR_GREEN +'#(((/(##(/////////(%            ' + COLOR_CLEAR
+                    println COLOR_LRED + '          &%%%%#((#(' + COLOR_PINK + '(###(/' + COLOR_RED + '//((((#, /((((*,..' + COLOR_GREEN + '../(((((((##////////((%          ' + COLOR_CLEAR
+                    println COLOR_LRED + '        .&%%%#((/' + COLOR_PINK + '*%&%%%%%%###' + COLOR_RED + '((/(##(((((/,.....' + COLOR_GREEN + './((((((/(#///////((#*        ' + COLOR_CLEAR
+                    println COLOR_LRED + '       @&%%%#' + COLOR_RED + '#((' + COLOR_PINK + '/#%&%%%%%%%%#' + COLOR_RED + '((///(((((((*,,.....' + COLOR_GREEN + '*/(((((((#(////(((#%       ' + COLOR_CLEAR
+                    println COLOR_LRED + '      /&%%%'+ COLOR_RED +'###((' + COLOR_PINK + '###%%&%%%%##' + COLOR_RED + '((((/(((((((//,,,.......' + COLOR_GREEN + ',/(((#(((##////((##      ' + COLOR_CLEAR
+                    println COLOR_LRED + '     .&&%%' + COLOR_RED + '########(' + COLOR_PINK + '/&%%%#' + COLOR_RED + '((((((((///////*,,,,,,,,,...,' + COLOR_GREEN + '//((##((#(/(/(((#     ' + COLOR_CLEAR
+                    println COLOR_LRED + '     @&%%#' + COLOR_RED + '####(#(#(((' + COLOR_PINK + '%(*' + COLOR_RED + '/((((((//////******,,*,,,,,,,,,' + COLOR_GREEN + '*//((##((#((((((%    ' + COLOR_CLEAR
+                    println COLOR_LRED + '    &&%%' + COLOR_RED + '#####((((((///////(///////*******/////*/**,,,**/' + COLOR_GREEN + '(/((##((#(((((,(&   ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '     &%%' + COLOR_RED + '%%######(' + COLOR_RED + '((((//(////////////**//*////(///////****' + COLOR_GREEN + '*/(((#/(#((#///(&   ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '     @%%%%######((' + COLOR_RED + '((((////(((/////////////(((######(((/////(#' + COLOR_GREEN + '##&&(((((///%   ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '     /%%%%###########(((' + COLOR_RED + '##(((/////(/////(((########%###((((##%#%(' + COLOR_GREEN + '  #/(///,   ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '      @##################(' + COLOR_RED + '((((((((((((((######%%%%%#%%%#%%%%%#%%(' + COLOR_GREEN + '    #//(    ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '       @####%%#%############(#####((#####%%%%%%%%%%%%%%%%%%%%%%%(            ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '        *###%%%%%%%##%#%#%%%#########%%%%%%%&&&%%%&%%&&&&&%%%%%&(            ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '          ###%%%%%%%%%%%%%%%%%#%#%#%%%%%%%%%&&&&&&&&&&&&&&%%%%%&             ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '            %#%%%%%%%%%%%%%%%%%%%%%%%%%%%%&%&&&&&&&&&&&&&&%%%%%@             ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '              ##%%%%%%%%%%%%%%%%%%%%%%%%%%%&%&&&&&&&&&&&&%%%%%&              ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '               .#%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&%%%%%&.              ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '                  ##%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&%%%%%%%%%                ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '                    ##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&                 ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '                       %###%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#%(                  ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '                        .###%%%%%%%%%%%%%%%%%%%%%%%%%%##%                    ' + COLOR_CLEAR
+                    println COLOR_YELLOW + '                        %######%%%#%#####%%%%%%%%#######                     ' + COLOR_CLEAR
+                    println COLOR_PINK + '                    #(((((((((#. #           %%####((#  (,/,.&               ' + COLOR_CLEAR
+                    println COLOR_PINK + '              *./#//,..((///////#/.,/(/////*/((((///****/(//%/               ' + COLOR_CLEAR
+                    println COLOR_PINK + '               ##(//*///(#     (*( ((#/*/****/((((////*(                     ' + COLOR_CLEAR
                     println ''
                     println ''
                     println ''
                     println ''
-                    println '                          -~ Mango Bird My Beloved ~-                        '
+                    println '                          ' + COLOR_PINK + '-~ '+ COLOR_RED + 'Mango' + COLOR_GREEN +' Bird' + COLOR_LRED + ' My ' + COLOR_YELLOW + ' Beloved'+COLOR_PINK+' ~- '+ COLOR_CLEAR +'                        '
                     println ''
                     println ''
                     println ''
