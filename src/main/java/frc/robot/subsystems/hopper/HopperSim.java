@@ -2,6 +2,8 @@ package frc.robot.subsystems.hopper;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.subsystems.hopper.Hopper.FeedState;
+import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
+import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 
 public class HopperSim implements IHopper {
 
@@ -33,6 +35,24 @@ public class HopperSim implements IHopper {
     public void feedStop() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'feedStop'");
+    }
+
+    @Override
+    public void stopIntake() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'stopIntake'");
+    }
+
+    @Override
+    public void setIntakePosition(IntakeControlState controlState) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setIntakePosition'");
+    }
+
+    @Override
+    public void setIntakeFeedState(IntakeFeedState intakeFeedState) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setIntakeFeedState'");
     }
 
 }

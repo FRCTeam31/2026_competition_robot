@@ -12,4 +12,10 @@ public interface IHopper {
     public void setFeedSpeed(Hopper.FeedState feedState);
 
     public void feedStop();
+
+    public void stopIntake();
+
+    public void setIntakePosition(Hopper.IntakeControlState controlState);
+
+    public void setIntakeFeedState(Hopper.IntakeFeedState intakeFeedState);
 }
