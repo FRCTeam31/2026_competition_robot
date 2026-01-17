@@ -189,7 +189,7 @@ task(eventDeploy) {
                     println ''
                     println ''
                     println ''
-                    println '                          ' + COLOR_PINK + '-~ '+ COLOR_RED + 'Mango' + COLOR_GREEN +' Bird' + COLOR_LRED + ' My ' + COLOR_YELLOW + ' Beloved'+COLOR_PINK+' ~- '+ COLOR_CLEAR +'                        '
+                    println '                          ' + COLOR_PINK + '-~ '+ COLOR_RED + 'Mango' + COLOR_GREEN +' Bird' + COLOR_LRED + ' My' + COLOR_YELLOW + ' Beloved'+COLOR_PINK+' ~- '+ COLOR_CLEAR +'                        '
                     println ''
                     println ''
                     println ''
