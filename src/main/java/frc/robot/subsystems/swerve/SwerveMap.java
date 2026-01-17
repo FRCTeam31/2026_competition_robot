@@ -35,7 +35,7 @@ public class SwerveMap {
         public static final ExtendedPIDConstants PathPlannerRotationPID = new ExtendedPIDConstants(2, 0, 0);
 
         // Uniform Drive Constants
-        public static final double DriveGearRatio = 6.75;
+        public static final double DriveGearRatio = 5.9;
         public static final double DriveWheelDiameterMeters = Units.inchesToMeters(3.875);
         public static final double DriveWheelCircumferenceMeters = Math.PI * DriveWheelDiameterMeters;
         public static final double SteeringGearRatio = 18.75;
