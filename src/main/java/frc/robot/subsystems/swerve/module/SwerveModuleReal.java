@@ -1,17 +1,17 @@
 package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
@@ -35,11 +35,12 @@ public class SwerveModuleReal implements ISwerveModule {
 
   // Devices
   private TalonFX _steeringMotor;
-  private PIDController _steeringPidController;
   private TalonFX _driveMotor;
-  private PIDController _drivingPidController;
-  private SimpleMotorFeedforward _driveFeedForward;
   private CANcoder _encoder;
+
+  // Control requests
+  private final MotionMagicVoltage _steeringControl = new MotionMagicVoltage(0);
+  private final VelocityVoltage _driveControl = new VelocityVoltage(0);
 
   public SwerveModuleReal(String name, SwerveModuleMap moduleMap) {
     _name = name;
@@ -47,113 +48,157 @@ public class SwerveModuleReal implements ISwerveModule {
     _dashboardSection = new DashboardSection("Drive/" + _name);
     _dashboardSection.putBoolean(_optimizeModuleKey, true);
 
+    setupCanCoder();
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
-    setupCanCoder();
   }
 
   /**
-   * Configures the steering motor and PID controller
-   */
-  private void setupSteeringMotor(ExtendedPIDConstants pid) {
-
-    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
-
-    TalonFXConfiguration config = new TalonFXConfiguration();
-    TalonFXConfigurator configurator = _steeringMotor.getConfigurator();
-
-    // Steering Motor Configuration
-    config.MotorOutput.Inverted = _map.SteerInverted ? InvertedValue.CounterClockwise_Positive
-        : InvertedValue.Clockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-    // TODO: Test current limits on robot
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 5;
-
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 5;
-
-    // Clears faults and applies configuration
-    configurator.clearStickyFaults();
-    configurator.apply(config);
-
-    // Create a PID controller to calculate steering motor output
-    _steeringPidController = pid.createPIDController(0.02);
-    _steeringPidController.enableContinuousInput(0, 1); // 0 to 1 rotation
-  }
-
-  @Override
-  public void setSteeringPID(ExtendedPIDConstants steeringPID) {
-    _steeringPidController.setP(steeringPID.kP);
-    _steeringPidController.setI(steeringPID.kI);
-    _steeringPidController.setD(steeringPID.kD);
-    System.out.println("Reset Steering PID " + _name);
-  }
-
-  /**
-   * Configures the drive motors
-   * 
-   * @param pid
-   */
-  private void setupDriveMotor(ExtendedPIDConstants pid) {
-
-    _driveMotor = new TalonFX(_map.DriveMotorCanId);
-
-    TalonFXConfiguration config = new TalonFXConfiguration();
-    TalonFXConfigurator configurator = _driveMotor.getConfigurator();
-
-    // Drive Motor Configuration
-    config.MotorOutput.Inverted = _map.DriveInverted ? InvertedValue.CounterClockwise_Positive
-        : InvertedValue.Clockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-    // TODO: Test current limits on the robot
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 5;
-
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 5;
-
-    // TODO: Ensure DriveMotorRampRate is the voltage ramp rate
-    config.OpenLoopRamps.VoltageOpenLoopRampPeriod = _map.DriveMotorRampRate;
-
-    config.HardwareLimitSwitch.ForwardLimitEnable = false;
-    config.HardwareLimitSwitch.ReverseLimitEnable = false;
-
-    config.Voltage.PeakForwardVoltage = 12;
-    config.Voltage.PeakReverseVoltage = -12;
-
-    configurator.clearStickyFaults();
-    configurator.apply(config);
-
-    // Create a PID controller to calculate driving motor output
-    _drivingPidController = pid.createPIDController(0.02);
-    _driveFeedForward = new SimpleMotorFeedforward(pid.kS, pid.kV, pid.kA);
-  }
-
-  @Override
-  public void setDrivePID(ExtendedPIDConstants drivePID) {
-    _drivingPidController.setP(drivePID.kP);
-    _drivingPidController.setI(drivePID.kI);
-    _drivingPidController.setD(drivePID.kD);
-    _driveFeedForward = new SimpleMotorFeedforward(drivePID.kS, drivePID.kV, drivePID.kA);
-    System.out.println("Reset Drive PID " + _name);
-  }
-
-  /**
-   * Configures the CANCoder
+   * Configures the CANCoder first so it can be used as a remote sensor
    */
   private void setupCanCoder() {
     _encoder = new CANcoder(_map.CANCoderCanId);
     _encoder.clearStickyFaults();
-    _encoder.getConfigurator().apply(new CANcoderConfiguration());
 
-    // AbsoluteSensorRangeValue
-    _encoder.getConfigurator()
-        .apply(new CANcoderConfiguration()
-            .withMagnetSensor(new MagnetSensorConfigs().withAbsoluteSensorDiscontinuityPoint(1)
-                .withMagnetOffset(-_map.CanCoderStartingOffset)));
+    CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
+    canCoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
+    canCoderConfig.MagnetSensor.MagnetOffset = -_map.CanCoderStartingOffset;
+
+    _encoder.getConfigurator().apply(canCoderConfig);
+  }
+
+  /**
+   * Configures the steering motor with Motion Magic and CANCoder as remote sensor
+   */
+  private void setupSteeringMotor(ExtendedPIDConstants pid) {
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    // Motor Output Configuration
+    config.MotorOutput.Inverted = _map.SteerInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // Current Limits
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 40;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 40;
+
+    // Feedback Configuration - Use CANCoder as remote sensor
+    config.Feedback.FeedbackRemoteSensorID = _map.CANCoderCanId;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    config.Feedback.RotorToSensorRatio = SwerveMap.SteeringGearRatio;
+    config.Feedback.SensorToMechanismRatio = 1.0;
+
+    // PID Configuration (Slot 0)
+    Slot0Configs slot0 = new Slot0Configs();
+    slot0.kP = pid.kP;
+    slot0.kI = pid.kI;
+    slot0.kD = pid.kD;
+    slot0.kS = pid.kS; // Static friction feedforward
+    slot0.kV = pid.kV; // Velocity feedforward
+    slot0.kA = pid.kA; // Acceleration feedforward
+    config.Slot0 = slot0;
+
+    // Motion Magic Configuration
+    MotionMagicConfigs motionMagic = new MotionMagicConfigs();
+    motionMagic.MotionMagicCruiseVelocity = 100; // rotations per second (tune this)
+    motionMagic.MotionMagicAcceleration = 200; // rotations per second^2 (tune this)
+    motionMagic.MotionMagicJerk = 1600; // rotations per second^3 (tune this)
+    config.MotionMagic = motionMagic;
+
+    // Closed Loop Configuration
+    config.ClosedLoopGeneral.ContinuousWrap = true; // Enable continuous wrap for steering
+
+    // Apply configuration
+    _steeringMotor.getConfigurator().apply(config);
+    _steeringMotor.clearStickyFaults();
+
+    // Configure control request to use FOC and slot 0
+    _steeringControl.EnableFOC = true;
+    _steeringControl.Slot = 0;
+  }
+
+  @Override
+  public void setSteeringPID(ExtendedPIDConstants steeringPID) {
+    Slot0Configs slot0 = new Slot0Configs();
+    slot0.kP = steeringPID.kP;
+    slot0.kI = steeringPID.kI;
+    slot0.kD = steeringPID.kD;
+    slot0.kS = steeringPID.kS;
+    slot0.kV = steeringPID.kV;
+    slot0.kA = steeringPID.kA;
+
+    _steeringMotor.getConfigurator().apply(slot0);
+    System.out.println("Reset Steering PID " + _name);
+  }
+
+  /**
+   * Configures the drive motor with velocity PID control
+   */
+  private void setupDriveMotor(ExtendedPIDConstants pid) {
+    _driveMotor = new TalonFX(_map.DriveMotorCanId);
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    // Motor Output Configuration
+    config.MotorOutput.Inverted = _map.DriveInverted ? InvertedValue.CounterClockwise_Positive
+        : InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // Current Limits
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 80;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 60;
+
+    // Voltage Configuration
+    config.Voltage.PeakForwardVoltage = 12;
+    config.Voltage.PeakReverseVoltage = -12;
+
+    // Feedback Configuration - Use integrated sensor
+    config.Feedback.SensorToMechanismRatio = SwerveMap.DriveGearRatio;
+
+    // PID Configuration (Slot 0)
+    Slot0Configs slot0 = new Slot0Configs();
+    slot0.kP = pid.kP;
+    slot0.kI = pid.kI;
+    slot0.kD = pid.kD;
+    slot0.kS = pid.kS; // Static friction feedforward
+    slot0.kV = pid.kV; // Velocity feedforward
+    slot0.kA = pid.kA; // Acceleration feedforward
+    config.Slot0 = slot0;
+
+    // Open Loop Ramps
+    config.OpenLoopRamps.VoltageOpenLoopRampPeriod = _map.DriveMotorRampRate;
+
+    // Disable hardware limit switches
+    config.HardwareLimitSwitch.ForwardLimitEnable = false;
+    config.HardwareLimitSwitch.ReverseLimitEnable = false;
+
+    // Apply configuration
+    _driveMotor.getConfigurator().apply(config);
+    _driveMotor.clearStickyFaults();
+
+    // Configure control request to use FOC and slot 0
+    _driveControl.EnableFOC = true;
+    _driveControl.Slot = 0;
+  }
+
+  @Override
+  public void setDrivePID(ExtendedPIDConstants drivePID) {
+    Slot0Configs slot0 = new Slot0Configs();
+    slot0.kP = drivePID.kP;
+    slot0.kI = drivePID.kI;
+    slot0.kD = drivePID.kD;
+    slot0.kS = drivePID.kS;
+    slot0.kV = drivePID.kV;
+    slot0.kA = drivePID.kA;
+
+    _driveMotor.getConfigurator().apply(slot0);
+    System.out.println("Reset Drive PID " + _name);
   }
 
   @Override
@@ -167,15 +212,18 @@ public class SwerveModuleReal implements ISwerveModule {
     inputs.ModulePosition.angle = rotation;
     inputs.ModulePosition.distanceMeters = distanceMeters.magnitude();
     inputs.DriveMotorVoltage = _driveMotor.getMotorVoltage().getValueAsDouble();
+
     Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage",
         _driveMotor.getMotorVoltage().getValueAsDouble());
+    Logger.recordOutput("Swerve/Modules/" + _name + "/SteeringMotorPosition",
+        _steeringMotor.getPosition().getValueAsDouble());
+    Logger.recordOutput("Swerve/Modules/" + _name + "/CANCoderPosition",
+        _encoder.getPosition().getValueAsDouble());
   }
 
   @Override
   public void setDriveVoltage(double voltage, Rotation2d moduleAngle) {
-
     _driveMotor.setVoltage(voltage);
-
     setModuleAngle(moduleAngle);
   }
 
@@ -198,7 +246,7 @@ public class SwerveModuleReal implements ISwerveModule {
       desiredState = SwerveUtil.optimize(desiredState, getCurrentHeading());
     }
 
-    // Scale speed by cosine of angle error for smoother driving.
+    // Scale speed by cosine of angle error for smoother driving
     desiredState.cosineScale(getCurrentHeading());
 
     // Set the drive and steering motors to the desired state
@@ -207,43 +255,31 @@ public class SwerveModuleReal implements ISwerveModule {
   }
 
   private void setDriveSpeed(double desiredSpeedMetersPerSecond) {
-    // Convert the speed to rotations per second by dividing by the wheel
-    // circumference and gear ratio
+    // Convert speed from meters per second to rotations per second
+    // The motor controller will handle this based on SensorToMechanismRatio
+    var wheelRotationsPerSecond = desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters;
 
-    var desiredSpeedRotationsPerSecond = (desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
-        * SwerveMap.DriveGearRatio;
+    Logger.recordOutput("Swerve/Modules/" + _name + "/DesiredWheelRPS", wheelRotationsPerSecond);
+    Logger.recordOutput("Swerve/Modules/" + _name + "/ActualWheelRPS",
+        getCurrentVelocity().in(MetersPerSecond) / SwerveMap.DriveWheelCircumferenceMeters);
 
-    var currentSpeedMetersPerSecond = getCurrentVelocity().in(MetersPerSecond);
-    var currentSpeedRotationsPerSecond = (currentSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
-        * SwerveMap.DriveGearRatio;
-
-    var pid = _drivingPidController.calculate(currentSpeedRotationsPerSecond, desiredSpeedRotationsPerSecond);
-    var ff = _driveFeedForward.calculate(desiredSpeedRotationsPerSecond);
-    var driveOutput = MathUtil.clamp(pid + ff, -12, 12);
-
-    Logger.recordOutput("Swerve/Modules/" + _name + "/DrivePID", pid);
-    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveFF", ff);
-    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorOutputVoltage", driveOutput);
-    _driveMotor.setVoltage(driveOutput);
+    // Send velocity command in rotations per second (wheel rotations)
+    _driveMotor.setControl(_driveControl.withVelocity(wheelRotationsPerSecond));
   }
 
   private void setModuleAngle(Rotation2d angle) {
-    // Normalize to 0 to 1
-    var setpoint = angle.getRotations() % 1;
-    if (setpoint < 0)
-      setpoint += 1;
+    // Get target position in rotations
+    var targetRotations = angle.getRotations();
 
-    // Calculate the new output using the PID controller
-    var newOutput = _steeringPidController.calculate(getCurrentHeading().getRotations(), setpoint);
-    var steerSpeed = MathUtil.clamp(newOutput, -1, 1);
+    Logger.recordOutput("Swerve/Modules/" + _name + "/TargetAngle", angle.getDegrees());
+    Logger.recordOutput("Swerve/Modules/" + _name + "/CurrentAngle", getCurrentHeading().getDegrees());
 
-    // Set the steering motor's speed to the calculated output
-    Logger.recordOutput("Swerve/Modules/" + _name + "/SteeringMotorOutputSpeed", steerSpeed);
-    _steeringMotor.set(steerSpeed);
+    // Send Motion Magic position command in rotations
+    _steeringMotor.setControl(_steeringControl.withPosition(targetRotations));
   }
 
   /**
-   * Gets the current heading of the module
+   * Gets the current heading of the module from the CANCoder
    */
   private Rotation2d getCurrentHeading() {
     return Rotation2d.fromRotations(_encoder.getPosition().getValueAsDouble());
@@ -253,8 +289,11 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the current velocity of the module
    */
   private MutLinearVelocity getCurrentVelocity() {
-    var speedMps = ((_driveMotor.getVelocity().getValueAsDouble()) / SwerveMap.DriveGearRatio)
-        * SwerveMap.DriveWheelCircumferenceMeters;
+    // Get velocity in wheel rotations per second from the motor
+    var wheelRPS = _driveMotor.getVelocity().getValueAsDouble();
+
+    // Convert to meters per second
+    var speedMps = wheelRPS * SwerveMap.DriveWheelCircumferenceMeters;
 
     return Units.MetersPerSecond.mutable(speedMps);
   }
@@ -263,8 +302,11 @@ public class SwerveModuleReal implements ISwerveModule {
    * Gets the distance the module has traveled
    */
   private MutDistance getModuleDistance() {
-    var distMeters = _driveMotor.getPosition().getValueAsDouble()
-        * (SwerveMap.DriveWheelCircumferenceMeters / SwerveMap.DriveGearRatio);
+    // Get position in wheel rotations from the motor
+    var wheelRotations = _driveMotor.getPosition().getValueAsDouble();
+
+    // Convert to meters
+    var distMeters = wheelRotations * SwerveMap.DriveWheelCircumferenceMeters;
 
     return Meters.mutable(distMeters);
   }

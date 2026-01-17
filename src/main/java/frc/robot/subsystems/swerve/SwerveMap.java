@@ -38,6 +38,7 @@ public class SwerveMap {
         public static final double DriveGearRatio = 6.75;
         public static final double DriveWheelDiameterMeters = Units.inchesToMeters(3.875);
         public static final double DriveWheelCircumferenceMeters = Math.PI * DriveWheelDiameterMeters;
+        public static final double SteeringGearRatio = 18.75;
 
         // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
