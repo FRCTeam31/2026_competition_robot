@@ -8,4 +8,8 @@ public interface IHopper {
     public void setHopper(DoubleSolenoid.Value value);
 
     public void toggleHopper();
+
+    public void setFeedSpeed(Hopper.FeedState feedState);
+
+    public void feedStop();
 }

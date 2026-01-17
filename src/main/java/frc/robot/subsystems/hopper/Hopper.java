@@ -4,11 +4,26 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.SuperStructure;
 
 public class Hopper extends SubsystemBase {
     private IHopper _hopper;
     private DoubleSolenoid.Value _lastHopperValue;
+
+    public enum HopperPosition { // For extending and retracting Hopper
+        IN,
+
+        OUT
+    }
+
+    public enum FeedState { // For feeding in and out to the shooter
+        INWARDS,
+
+        OUTWARDS,
+
+        STOPPED
+    }
 
     public Hopper(boolean isReal) {
         _hopper = isReal ? new HopperReal() : new HopperSim();
