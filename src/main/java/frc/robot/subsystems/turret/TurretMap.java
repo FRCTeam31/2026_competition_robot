@@ -12,4 +12,11 @@ public class TurretMap {
     public static final int FLYWHEEL_RIGHT_CANID = 0;
     public static final boolean FLYWHEEL_LEFT_INVERTED = false;
     public static final double FLYWHEEL_RAMP_PERIOD = 1;
+    public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants();
+    public static final double FLYWHEEL_IDLE_VELOCITY_RPS = 1.0;
+
+    public static final int FEEDER_CANID = 0;
+    public static final boolean FEEDER_INVERTED = false;
+    public static final double FEEDER_VELOCITY_CONVERSION_FACTOR = 1.0;
+
 }

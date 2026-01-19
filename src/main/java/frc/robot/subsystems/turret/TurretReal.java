@@ -7,15 +7,26 @@ import org.prime.control.ExtendedPIDConstants;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.subsystems.turret.Turret.FlywheelStates;
+import frc.robot.subsystems.turret.Turret.TargetingStates;
 
 public class TurretReal implements ITurret {
 
@@ -69,10 +80,22 @@ public class TurretReal implements ITurret {
         _flywheelLeft.getConfigurator().apply(leftConfig);
         _flywheelLeft.clearStickyFaults();
 
-        // TODO: Configure flywheel right to inverted follow flywheel left
+        // Right is inverted follower
+        TalonFXConfiguration rightConfig = new TalonFXConfiguration();
+        rightConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+
+        _flywheelRight.getConfigurator().apply(rightConfig);
+
+        _flywheelRight.setControl(new Follower(_flywheelLeft.getDeviceID(), MotorAlignmentValue.Opposed));
     }
 
     private void configureSparkFeedMotor() {
+        _sparkFeed = new SparkFlex(TurretMap.FEEDER_CANID, MotorType.kBrushless);
+        var sparkConfig = new SparkFlexConfig()
+                .inverted(TurretMap.FEEDER_INVERTED);
+        sparkConfig.encoder.velocityConversionFactor(TurretMap.FEEDER_VELOCITY_CONVERSION_FACTOR);
+
+        _sparkFeed.configure(sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     }
 
@@ -137,4 +160,48 @@ public class TurretReal implements ITurret {
 
         return RotationsPerSecond.mutable(averageVelocity);
     }
+
+    // CTRE Control Requests
+    private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
+    private final MotionMagicVoltage _rotatorControl = new MotionMagicVoltage(0);
+    private final DutyCycleOut _rotatorManualControl = new DutyCycleOut(0);
+
+    @Override
+    public void controlFlywheel(FlywheelStates state, double manualTargetVelocityRPS) {
+        switch (state) {
+            case IDLE:
+                _flywheelLeft.setControl(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
+                break;
+            case SHOOT_MANUAL:
+                _flywheelLeft.setControl(_flywheelControl.withVelocity(manualTargetVelocityRPS));
+                break;
+            case SHOOT_AUTO:
+                // TODO: Calculate target velocity based on distance to target
+                break;
+            case STOPPED:
+            default:
+                _flywheelLeft.stopMotor();
+                break;
+        }
+    }
+
+    @Override
+    public void controlTargeting(TargetingStates state, double manualControlSpeed) {
+        switch (state) {
+            case MANUAL_CONTROL:
+                _turretRotator.setControl(_rotatorManualControl.withOutput(manualControlSpeed));
+                break;
+            case AUTO_ASSISTED:
+            default:
+                // TODO: Implement auto-assisted targeting
+                // _turretRotator.setControl(_rotatorControl.withPosition(robotRelativeTargetAngle));
+                break;
+        }
+    }
+
+    @Override
+    public void setFeederSpeed(double speed) {
+        _sparkFeed.set(speed);
+    }
+
 }
