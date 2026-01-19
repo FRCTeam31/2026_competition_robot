@@ -16,6 +16,7 @@ import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.Vision;
@@ -33,6 +34,7 @@ public class Container {
   public static Vision Vision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
+  public static Climb Climb;
 
   public static void initialize(boolean isReal) {
     try {
@@ -48,6 +50,7 @@ public class Container {
       Swerve = new Swerve(isReal);
       Pneumatics = new Pneumatics(isReal);
       Hopper = new Hopper(isReal);
+      Climb = new Climb(isReal);
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();

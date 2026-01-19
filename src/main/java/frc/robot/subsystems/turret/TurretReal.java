@@ -37,7 +37,7 @@ public class TurretReal implements ITurret {
     private DigitalInput _turretResetLimitSwitch;
 
     public TurretReal() {
-        configureFlywheelMotors(null); // TODO: add pid values
+        configureFlywheelMotors(TurretMap.FLYWHEEL_PID);
         configureSparkFeedMotor();
         configureTurretRotationMotor(TurretMap.TURRET_ROTATOR_PID);
     }
