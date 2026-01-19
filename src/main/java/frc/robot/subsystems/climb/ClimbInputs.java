@@ -5,4 +5,5 @@ import org.littletonrobotics.junction.AutoLog;
 @AutoLog
 public class ClimbInputs {
     public Climb.ClimbState climbState;
+    public Climb.SupportState supportState;
 }
