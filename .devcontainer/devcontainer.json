@@ -1,7 +1,6 @@
 {
   "name": "WPILib 2026 Development",
   "image": "frcteam31/roborio-cross-ubuntu:2026",
-
   "customizations": {
     "vscode": {
       "extensions": [
@@ -10,19 +9,16 @@
       ],
       "settings": {
         "java.home": "/usr/lib/jvm/java-17-openjdk-amd64",
+        "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk-amd64",
         "wpilib.projectYear": "2026"
       }
     }
   },
-
   "remoteEnv": {
     "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
     "WPILIB_HOME": "/opt/wpilib/2026"
   },
-
   "remoteUser": "root",
-
-  "postCreateCommand": "bash -c 'mkdir -p ~/wpilib && ln -sf /opt/wpilib/2026 ~/wpilib/2026 && for vsix in /opt/wpilib/2026/vsCodeExtensions/*.vsix; do code --install-extension \"$vsix\" --force 2>/dev/null || true; done && echo \"WPILib 2026 environment ready!\"'",
-
+  "postCreateCommand": "bash -c 'mkdir -p ~/wpilib && ln -sf /opt/wpilib/2026 ~/wpilib/2026 && for vsix in /opt/wpilib/2026/vsCodeExtensions/*.vsix; do code --install-extension \"$vsix\" --force; done && echo \"WPILib 2026 environment ready!\"'",
   "features": {}
 }
