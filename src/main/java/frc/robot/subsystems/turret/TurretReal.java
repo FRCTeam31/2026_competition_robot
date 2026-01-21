@@ -9,6 +9,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -23,8 +24,10 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.Container;
 import frc.robot.subsystems.turret.Turret.FlywheelStates;
 import frc.robot.subsystems.turret.Turret.TargetingStates;
 
@@ -195,8 +198,26 @@ public class TurretReal implements ITurret {
             default:
                 // TODO: Implement auto-assisted targeting
                 // _turretRotator.setControl(_rotatorControl.withPosition(robotRelativeTargetAngle));
+
+                Translation3d adjustedVector = Container.Turret.turretLogic();
+
+                shootFromVector(adjustedVector);
                 break;
         }
+    }
+
+    public void shootFromVector(Translation3d vector) {
+        var targetVelocity = vector.getNorm();
+
+        var yaw = Math.atan(vector.getY() / vector.getX());
+        var pitch = Math.atan(vector.getZ() / Math.sqrt(Math.pow(vector.getX(), 2) + Math.pow(vector.getY(), 2)));
+
+        _turretRotator.setControl(_rotatorControl.withPosition(yaw));
+        // TODO: Implement pitch control once CAD finalizes turret
+
+        var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
+
+        _flywheelLeft.setControl(_flywheelControl.withVelocity(targetFlywheelOmega));
     }
 
     @Override

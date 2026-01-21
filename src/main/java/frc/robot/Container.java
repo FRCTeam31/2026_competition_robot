@@ -19,6 +19,7 @@ import frc.robot.subsystems.PwmLEDs;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.Vision;
 
 public class Container {
@@ -35,6 +36,7 @@ public class Container {
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
+  public static Turret Turret;
 
   public static void initialize(boolean isReal) {
     try {
@@ -51,6 +53,7 @@ public class Container {
       Pneumatics = new Pneumatics(isReal);
       Hopper = new Hopper(isReal);
       Climb = new Climb(isReal);
+      Turret = new Turret(isReal);
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
