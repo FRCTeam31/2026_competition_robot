@@ -19,6 +19,6 @@
     "WPILIB_HOME": "/opt/wpilib/2026"
   },
   "remoteUser": "root",
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-create.sh",
   "features": {}
 }
