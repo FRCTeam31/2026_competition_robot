@@ -19,6 +19,6 @@
     "WPILIB_HOME": "/opt/wpilib/2026"
   },
   "remoteUser": "root",
-  "postStartCommand": "bash -c 'mkdir -p ~/wpilib && ln -sf /opt/wpilib/2026 ~/wpilib/2026 && for vsix in /opt/wpilib/2026/vsCodeExtensions/*.vsix; do code --install-extension \"$vsix\" --force; done && echo \"WPILib 2026 environment ready!\"'",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "features": {}
 }
