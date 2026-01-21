@@ -9,7 +9,14 @@ ln -sf /opt/wpilib/2026 ~/wpilib/2026
 
 # Install WPILib extensions from .vsix files
 echo "Installing WPILib extensions..."
-CODE_SERVER=$(find ~/.vscode-remote/bin -name code-server -type f 2>/dev/null | head -n 1)
+CODE_SERVER=""
+for path in $HOME/.vscode-remote/bin/*/bin/code-server; do
+    if [ -f "$path" ]; then
+        CODE_SERVER="$path"
+        break
+    fi
+done
+
 if [ -n "$CODE_SERVER" ]; then
     for vsix in /opt/wpilib/2026/vsCodeExtensions/*.vsix; do
         echo "Installing $(basename "$vsix")..."
