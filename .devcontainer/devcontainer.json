@@ -20,5 +20,6 @@
   },
   "remoteUser": "root",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "features": {}
 }
