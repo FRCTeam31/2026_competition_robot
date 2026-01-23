@@ -197,26 +197,24 @@ public class TurretReal implements ITurret {
                 break;
             case AUTO_ASSISTED:
             default:
-                // TODO: Implement auto-assisted targeting
-                // _turretRotator.setControl(_rotatorControl.withPosition(robotRelativeTargetAngle));
-
-                MutVector adjustedVector = Container.Turret.calculateTurretAimVector();
-                shootFromVector(adjustedVector);
+                MutVector aimVector = Container.Turret.calculateTurretAimVector();
+                shootFromVector(aimVector);
                 break;
         }
     }
 
     public void shootFromVector(MutVector vector) {
         var targetVelocity = vector.getMagnitude();
-
-        var yaw = Math.atan(vector.getY() / vector.getX());
-        var pitch = Math.atan(vector.getZ() / Math.sqrt(Math.pow(vector.getX(), 2) + Math.pow(vector.getY(), 2)));
+        var yaw = vector.getYaw();
+        var pitch = vector.getPitch();
 
         _turretRotator.setControl(_rotatorControl.withPosition(yaw));
+
         // TODO: Implement pitch control once CAD finalizes turret
 
+        // Temp relation between flywheel speed and fuel velocity, will be replaced
+        // with a more concrete relation after testing
         var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
-
         _flywheelLeft.setControl(_flywheelControl.withVelocity(targetFlywheelOmega));
     }
 

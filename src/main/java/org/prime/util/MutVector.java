@@ -1,8 +1,8 @@
 package org.prime.util;
 
 /**
- * Vector object that perminatly changes with addition and subtraction,
- * and can be fully set to a new vector with a single call.
+ * Vector object that permanently changes with addition and subtraction.
+ * Can be fully set to a new vector with a single call.
  */
 public class MutVector {
     private double _x;

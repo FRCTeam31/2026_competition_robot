@@ -32,13 +32,12 @@ public class Turret extends SubsystemBase {
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
-        calculateTargetVector();
     }
 
     // Mutable Vectors
-    private MutVector _mutNominalTargetVector;
-    private MutVector _mutRobotVelocityVector;
-    private MutVector _mutTurretTangentVelocityVector;
+    private final MutVector _mutNominalTargetVector = new MutVector();
+    private final MutVector _mutRobotVelocityVector = new MutVector();
+    private final MutVector _mutTurretTangentVelocityVector = new MutVector();
 
     public MutVector calculateTargetVector() {
         var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
@@ -63,6 +62,8 @@ public class Turret extends SubsystemBase {
     }
 
     public MutVector calculateTurretAimVector() {
+        calculateTargetVector();
+
         if (TurretMap.AUTO_MOTION_COMPENSATION) {
             ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
 
@@ -76,10 +77,8 @@ public class Turret extends SubsystemBase {
                     0,
                     TurretMap.TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT.getDegrees());
 
-            MutVector result = _mutNominalTargetVector
+            return _mutNominalTargetVector
                     .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
-
-            return result;
         } else {
             return _mutNominalTargetVector;
         }
