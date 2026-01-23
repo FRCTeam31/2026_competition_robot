@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
+import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -199,15 +200,14 @@ public class TurretReal implements ITurret {
                 // TODO: Implement auto-assisted targeting
                 // _turretRotator.setControl(_rotatorControl.withPosition(robotRelativeTargetAngle));
 
-                Translation3d adjustedVector = Container.Turret.turretLogic();
-
+                MutVector adjustedVector = Container.Turret.calculateTurretAimVector();
                 shootFromVector(adjustedVector);
                 break;
         }
     }
 
-    public void shootFromVector(Translation3d vector) {
-        var targetVelocity = vector.getNorm();
+    public void shootFromVector(MutVector vector) {
+        var targetVelocity = vector.getMagnitude();
 
         var yaw = Math.atan(vector.getY() / vector.getX());
         var pitch = Math.atan(vector.getZ() / Math.sqrt(Math.pow(vector.getX(), 2) + Math.pow(vector.getY(), 2)));

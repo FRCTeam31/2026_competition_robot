@@ -1,8 +1,12 @@
 package frc.robot.subsystems.turret;
 
+import org.prime.util.MutVector;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Container;
 import frc.robot.SuperStructure;
 
 public class Turret extends SubsystemBase {
@@ -28,38 +32,56 @@ public class Turret extends SubsystemBase {
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
+        calculateTargetVector();
     }
 
-    public Translation3d getTargetVector() {
+    // Mutable Vectors
+    private MutVector _mutNominalTargetVector;
+    private MutVector _mutRobotVelocityVector;
+    private MutVector _mutTurretTangentVelocityVector;
 
+    public MutVector calculateTargetVector() {
         var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
         var deltaX = robotPose.getX() - TurretMap.HUB_GOAL_POSITION.getX();
         var deltaY = robotPose.getY() - TurretMap.HUB_GOAL_POSITION.getY();
-        var deltaZ = TurretMap.HUB_GOAL_POSITION.getZ();
 
         var yaw = Math.atan(deltaY / deltaX);
-        var pitch = Math.atan(deltaZ / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)));
 
-        // TODO: Finish implementation
+        var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 
-        return null;
+        var hubHeight = TurretMap.HUB_GOAL_POSITION.getY();
+        var maxHeight = hubHeight + TurretMap.HUB_OVERSHOOT_HEIGHT;
+        var turretHeight = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
 
+        double pitch = Math.atan(
+                (2 * (maxHeight - turretHeight) + Math.sqrt((maxHeight - turretHeight) * (maxHeight - turretHeight)))
+                        / distance);
+        double velocity = Math.sqrt(2 * 9.81 * (hubHeight - turretHeight)) / Math.sin(pitch);
+
+        _mutNominalTargetVector.setPolar(velocity, pitch, yaw);
+        return _mutNominalTargetVector;
     }
 
-    public Translation3d turretLogic() {
-        Translation3d targetVector = getTargetVector();
+    public MutVector calculateTurretAimVector() {
+        if (TurretMap.AUTO_MOTION_COMPENSATION) {
+            ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
 
-        // TODO: Ideally find a way to avoid creating new Vector's every call
+            _mutRobotVelocityVector.setCartesian(
+                    chassisSpeeds.vxMetersPerSecond,
+                    chassisSpeeds.vyMetersPerSecond,
+                    0);
 
-        var chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
-        Translation3d robotVelocityVector = new Translation3d(chassisSpeeds.vxMetersPerSecond,
-                chassisSpeeds.vyMetersPerSecond, 0);
-        Translation3d robotRotationVector = new Translation3d(
-                chassisSpeeds.omegaRadiansPerSecond * TurretMap.TURRET_DISTANCE_FROM_ROBOT_CENTER,
-                new Rotation3d(TurretMap.TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT));
+            _mutTurretTangentVelocityVector.setPolar(
+                    chassisSpeeds.omegaRadiansPerSecond * TurretMap.TURRET_DISTANCE_FROM_ROBOT_CENTER,
+                    0,
+                    TurretMap.TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT.getDegrees());
 
-        Translation3d finalTargetVector = targetVector.minus(robotVelocityVector.plus(robotRotationVector));
+            MutVector result = _mutNominalTargetVector
+                    .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
 
-        return finalTargetVector;
+            return result;
+        } else {
+            return _mutNominalTargetVector;
+        }
     }
 }

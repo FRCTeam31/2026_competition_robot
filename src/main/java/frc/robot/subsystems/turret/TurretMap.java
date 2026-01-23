@@ -26,7 +26,11 @@ public class TurretMap {
     public static final double TURRET_DISTANCE_FROM_ROBOT_CENTER = 0;
     public static final Rotation2d TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT = new Rotation2d()
             .rotateBy(Rotation2d.kCCW_90deg);
+    public static final double TURRET_HEIGHT_ABOVE_GROUND = 0;
 
     public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
+    public static final double HUB_OVERSHOOT_HEIGHT = 0;
+
+    public static final boolean AUTO_MOTION_COMPENSATION = false;
 
 }
