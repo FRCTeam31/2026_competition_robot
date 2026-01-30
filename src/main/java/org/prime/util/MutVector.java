@@ -44,9 +44,9 @@ public class MutVector {
         double pitchRad = Math.toRadians(pitch);
         double yawRad = Math.toRadians(yaw);
 
-        _x = magnitude * Math.cos(pitchRad) * Math.cos(yawRad);
-        _y = magnitude * Math.sin(pitchRad);
-        _z = magnitude * Math.cos(pitchRad) * Math.sin(yawRad);
+        _x = magnitude * Math.sin(pitchRad) * Math.cos(yawRad);
+        _y = magnitude * Math.sin(pitchRad) * Math.sin(yawRad);
+        _z = magnitude * Math.cos(pitchRad);
 
         return this;
     }
@@ -88,7 +88,7 @@ public class MutVector {
      * @return The pitch 
      */
     public double getPitch() {
-        return Math.atan(_z / Math.sqrt(Math.pow(_x, 2) + Math.pow(_y, 2)));
+        return _x == 0 && _y == 0 ? 0 : Math.toDegrees(Math.atan(_z / Math.sqrt(Math.pow(_x, 2) + Math.pow(_y, 2))));
     }
 
     /**
@@ -96,7 +96,7 @@ public class MutVector {
      * @return The yaw 
      */
     public double getYaw() {
-        return Math.atan(_y / _x);
+        return _x == 0 ? 0 : Math.toDegrees(Math.atan(_y / _x));
     }
 
     /**
@@ -141,6 +141,18 @@ public class MutVector {
      */
     public void setYaw(double yaw) {
         this.fromPolar(this.getMagnitude(), this.getPitch(), yaw);
+    }
+
+    public void setX(double x) {
+        this.fromCartesian(x, _y, _z);
+    }
+
+    public void setY(double y) {
+        this.fromCartesian(_x, y, _z);
+    }
+
+    public void setZ(double z) {
+        this.fromCartesian(_x, _y, z);
     }
 
     /**
