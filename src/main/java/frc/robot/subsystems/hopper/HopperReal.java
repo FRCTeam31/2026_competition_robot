@@ -10,34 +10,35 @@ import edu.wpi.first.wpilibj.PneumaticsControlModule;
 import frc.robot.Container;
 
 public class HopperReal implements IHopper {
-    private DoubleSolenoid _solenoid;
+    private DoubleSolenoid _hopperSolenoid;
+    private DoubleSolenoid _intakeSolenoid;
     private SparkFlex _feedSparkFlex;
-    private SparkFlex _intakeControlSparkFlex;
     private SparkFlex _intakeFeedSparkFlex;
-    private DigitalInput _inLimitSwitch;
-    private DigitalInput _outLimitSwitch;
+
 
     public HopperReal() {
-        _solenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
-                Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.ForwardChannel,
-                HopperMap.ReverseChannel);
+        _hopperSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
+                Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.HopperForwardChannel,
+                HopperMap.HopperReverseChannel);
+        _intakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
+                Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.IntakeForwardChannel,
+                HopperMap.IntakeReverseChannel);
         _feedSparkFlex = new SparkFlex(HopperMap.CANID, MotorType.kBrushless);
     }
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
-        inputs.intakeINLimitSwitch = _inLimitSwitch.get();
-        inputs.intakeOUTLimitSwitch = _outLimitSwitch.get();
+
     }
 
     @Override
     public void setHopper(DoubleSolenoid.Value value) {
-        _solenoid.set(value);
+        _hopperSolenoid.set(value);
     }
 
     @Override
     public void toggleHopper() {
-        _solenoid.toggle();
+        _hopperSolenoid.toggle();
     }
 
     @Override
@@ -66,25 +67,18 @@ public class HopperReal implements IHopper {
     public void setIntakePosition(Hopper.IntakeControlState controlState) {
         switch (controlState) {
             case OUT:
-                if (_outLimitSwitch.get()) {
-                    break;
-                }
-                _intakeControlSparkFlex.set(0.5);
+                _intakeSolenoid.set(DoubleSolenoid.Value.kForward);
                 break;
             case IN:
             default:
-                if (_inLimitSwitch.get()) {
-                    break;
-                }
-                _intakeControlSparkFlex.set(-0.5);
+                _intakeSolenoid.set(DoubleSolenoid.Value.kReverse);
                 break;
         }
     }
 
     @Override
     public void stopIntake() {
-        _intakeControlSparkFlex.set(0);
-
+        _intakeSolenoid.set(DoubleSolenoid.Value.kOff);
     }
 
     public void setIntakeFeedState(Hopper.IntakeFeedState intakeFeedState) {
