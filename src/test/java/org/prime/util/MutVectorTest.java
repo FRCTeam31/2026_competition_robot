@@ -1,9 +1,8 @@
-package org;
+package org.prime.util;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.prime.util.MutVector;
 
 public class MutVectorTest {
     private MutVector mutVector;
@@ -139,7 +138,7 @@ public class MutVectorTest {
         double pitch_before = 1;
         double pitch_after = 2;
 
-        mutVector.fromPolar(0, pitch_before, 0);
+        mutVector.fromPolar(1, pitch_before, 0);
         mutVector.setPitch(pitch_after);
 
         Assertions.assertEquals(pitch_after, mutVector.getPitch());
@@ -150,7 +149,7 @@ public class MutVectorTest {
         double yaw_before = 1;
         double yaw_after = 2;
 
-        mutVector.fromPolar(0, 0, yaw_before);
+        mutVector.fromPolar(1, 0, yaw_before);
         mutVector.setYaw(yaw_after);
 
         Assertions.assertEquals(yaw_after, mutVector.getYaw());
