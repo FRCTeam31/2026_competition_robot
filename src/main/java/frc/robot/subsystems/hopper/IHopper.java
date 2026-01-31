@@ -9,13 +9,13 @@ public interface IHopper {
 
     public void toggleHopper();
 
-    public void setFeedSpeed(Hopper.FeedState feedState);
+    public void setFeedSpeed(double speed);
 
     public void feedStop();
 
     public void stopIntake();
 
-    public void setIntakePosition(Hopper.IntakeControlState controlState);
+    public void setIntakePosition(DoubleSolenoid.Value value);
 
-    public void setIntakeFeedState(Hopper.IntakeFeedState intakeFeedState);
+    public void setIntakeFeedSpeed(double speed);
 }

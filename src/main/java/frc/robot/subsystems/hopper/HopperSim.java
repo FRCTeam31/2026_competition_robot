@@ -1,5 +1,6 @@
 package frc.robot.subsystems.hopper;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.subsystems.hopper.Hopper.FeedState;
 import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
@@ -9,9 +10,9 @@ public class HopperSim implements IHopper {
 
     // Simulated state variables
     private Value hopperSolenoidState = Value.kOff;
-    private FeedState currentFeedState = FeedState.STOPPED;
-    private IntakeControlState currentIntakePosition = IntakeControlState.IN;
-    private IntakeFeedState currentIntakeFeedState = IntakeFeedState.STOPPED;
+    private double currentFeedSpeed = 0;
+    private DoubleSolenoid.Value currentIntakePosition = DoubleSolenoid.Value.kOff;
+    private double currentIntakeFeedSpeed = 0;
 
     // Simulated intake position (0.0 = fully in, 1.0 = fully out)
     private double intakePosition = 0.0;
@@ -53,28 +54,28 @@ public class HopperSim implements IHopper {
     }
 
     @Override
-    public void setFeedSpeed(FeedState feedState) {
-        currentFeedState = feedState;
+    public void setFeedSpeed(double speed) {
+        currentFeedSpeed = speed;
     }
 
     @Override
     public void feedStop() {
-        currentFeedState = FeedState.STOPPED;
+        currentFeedSpeed = 0;
     }
 
     @Override
     public void stopIntake() {
-        currentIntakePosition = IntakeControlState.IN;
+        currentIntakePosition = Value.kReverse;
     }
 
     @Override
-    public void setIntakePosition(IntakeControlState controlState) {
-        currentIntakePosition = controlState;
+    public void setIntakePosition(DoubleSolenoid.Value value) {
+        currentIntakePosition = value;
     }
 
     @Override
-    public void setIntakeFeedState(IntakeFeedState intakeFeedState) {
-        currentIntakeFeedState = intakeFeedState;
+    public void setIntakeFeedSpeed(double speed) {
+        currentIntakeFeedSpeed = speed;
     }
 
     /**
@@ -82,7 +83,7 @@ public class HopperSim implements IHopper {
      */
     private void updateIntakePosition() {
         switch (currentIntakePosition) {
-            case OUT:
+            case kForward:
                 if (!outLimitSwitch) {
                     intakePosition += INTAKE_MOVE_SPEED;
                     if (intakePosition > 1.0) {
@@ -90,7 +91,7 @@ public class HopperSim implements IHopper {
                     }
                 }
                 break;
-            case IN:
+            case kReverse:
             default:
                 if (!inLimitSwitch) {
                     intakePosition -= INTAKE_MOVE_SPEED;

@@ -37,9 +37,52 @@ public class Hopper extends SubsystemBase {
         _hopper = isReal ? new HopperReal() : new HopperSim();
     }
 
+    private void actOnState(HopperInputsAutoLogged inputs) {
+        // Feed motor control
+        switch (inputs.feedState) {
+            case INWARDS:
+                _hopper.setFeedSpeed(0.5);
+                break;
+            case OUTWARDS:
+                _hopper.setFeedSpeed(-0.5);
+                break;
+            case STOPPED:
+            default:
+                _hopper.setFeedSpeed(0);
+                break;
+        }
+
+        // Solenoid control
+        switch (inputs.intakeControlState) {
+            case OUT:
+                _hopper.setIntakePosition(DoubleSolenoid.Value.kForward);
+                break;
+            case IN:
+            default:
+                _hopper.setIntakePosition(DoubleSolenoid.Value.kReverse);
+                break;
+        }
+
+        // Intake feed motor control
+        switch (inputs.intakeFeedState) {
+            case INWARDS:
+                _hopper.setIntakeFeedSpeed(.5);
+                break;
+            case OUTWARDS:
+                _hopper.setIntakeFeedSpeed(-.5);
+                break;
+            case STOPPED:
+            default:
+                _hopper.stopIntake();
+                break;
+        }
+    }
+
     @Override
     public void periodic() {
         _hopper.updateInputs(SuperStructure.Hopper);
+
+        actOnState(SuperStructure.Hopper);
     }
 
     public Command setHopperOut() {
