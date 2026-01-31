@@ -1,11 +1,13 @@
 package frc.robot.subsystems.climb;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+
 public interface IClimb {
     public void updateInputs(ClimbInputsAutoLogged inputs);
 
-    public void controlClimb(Climb.ClimbState state);
+    public void controlClimb(double speed);
 
-    public void controlSupport(Climb.SupportState state);
+    public void controlSupport(DoubleSolenoid.Value value);
 
-    public void controlFrictionBrake(Climb.FrictionBrakeState state);
+    public void controlFrictionBrake(DoubleSolenoid.Value value);
 }

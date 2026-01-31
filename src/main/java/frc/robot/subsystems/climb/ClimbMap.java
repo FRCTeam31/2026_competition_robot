@@ -15,4 +15,10 @@ public class ClimbMap {
     // TODO: Set channels
     public static final int FrictionBrakeForwardChannel = 0;
     public static final int FrictionBrakeReverseChannel = 0;
+
+    public static final int SUPPORT_FORWARD_CHANNEL = 0;
+    public static final int SUPPORT_REVERSE_CHANNEL = 0;
+
+    public static final int UPPER_LIMIT_SWITCH_CHANNEL = 0;
+    public static final int LOWER_LIMIT_SWITCH_CHANNEL = 0;
 }
