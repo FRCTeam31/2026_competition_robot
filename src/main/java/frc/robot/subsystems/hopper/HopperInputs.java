@@ -2,11 +2,16 @@ package frc.robot.subsystems.hopper;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import frc.robot.subsystems.hopper.Hopper.FeedState;
+import frc.robot.subsystems.hopper.Hopper.HopperPosition;
+import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
+import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
+
 @AutoLog
 public class HopperInputs {
 
-    public Hopper.HopperPosition hopperPosition;
-    public Hopper.FeedState feedState;
-    public Hopper.IntakeControlState intakeControlState;
-    public Hopper.IntakeFeedState intakeFeedState;
+    public Hopper.HopperPosition hopperPosition = HopperPosition.IN;
+    public Hopper.FeedState feedState = FeedState.STOPPED;
+    public Hopper.IntakeControlState intakeControlState = IntakeControlState.IN;
+    public Hopper.IntakeFeedState intakeFeedState = IntakeFeedState.STOPPED;
 }

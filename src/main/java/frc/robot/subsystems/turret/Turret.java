@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -8,6 +9,8 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
 import frc.robot.SuperStructure;
@@ -36,6 +39,7 @@ public class Turret extends SubsystemBase {
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
 
     public Turret(boolean isReal) {
+        setName("Turret");
         _turret = isReal ? new TurretReal() : new TurretSim();
     }
 
@@ -132,9 +136,12 @@ public class Turret extends SubsystemBase {
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
+        Logger.processInputs(getName(), SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);
     }
 
-    // Commands go here
+    public Command stopTurret() {
+        return this.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.IDLE);
+    }
 }

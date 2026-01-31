@@ -96,5 +96,4 @@ public class ClimbReal implements IClimb {
         _frictionBrakeSolenoid.set(value);
     }
 
-
 }

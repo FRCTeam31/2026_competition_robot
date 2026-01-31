@@ -1,5 +1,7 @@
 package frc.robot.subsystems.climb;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SuperStructure;
@@ -24,6 +26,7 @@ public class Climb extends SubsystemBase {
     }
 
     public Climb(boolean isReal) {
+        setName("Climb");
         _climb = isReal ? new ClimbReal() : new ClimbSim();
     }
 
@@ -54,6 +57,7 @@ public class Climb extends SubsystemBase {
     @Override
     public void periodic() {
         _climb.updateInputs(SuperStructure.Climb);
+        Logger.processInputs(getName(), SuperStructure.Climb);
 
         actOnState(SuperStructure.Climb);
     }

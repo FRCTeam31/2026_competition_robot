@@ -5,6 +5,10 @@ import org.prime.control.HolonomicControlStyle;
 import org.prime.control.SupplierXboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.robot.subsystems.swerve.SwerveMap;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.Turret.TargetingState;
+import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.LimelightNameEnum;
 import frc.robot.subsystems.vision.Vision;
@@ -22,7 +26,7 @@ public class OperatorInterface {
                 OperatorController = new SupplierXboxController(Controls.OPERATOR_PORT);
         }
 
-        public void bindDriverControls(Swerve swerve, Vision vision) {
+        public void bindDriverControls(Swerve swerve, Vision vision, Turret turret, Climb climb, Hopper hopper) {
                 var controlProfile = DriverController.getSwerveControlProfile(
                                 OIMap.DefaultDriveControlStyle,
                                 SwerveMap.Control.DriveDeadband,
@@ -38,14 +42,13 @@ public class OperatorInterface {
                 // While holding POV up, auto-align the robot to the in-view apriltag target's rotation
                 DriverController.pov(Controls.up)
                                 .onTrue(swerve.disableAutoAlignCommand());
+        }
 
+        public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb, Hopper hopper) {
                 // Changes the vision mode for the rear limelight. 
                 OperatorController.start()
                                 .onTrue(vision.setLimelightPipeline(LimelightNameEnum.kRear, 1))
                                 .onFalse(vision.setLimelightPipeline(LimelightNameEnum.kRear, 0));
-        }
-
-        public void bindOperatorControls(Swerve swerveSubsystem, Vision visionSubsystem) {
 
         }
 

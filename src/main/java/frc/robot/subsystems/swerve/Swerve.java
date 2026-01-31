@@ -188,7 +188,7 @@ public class Swerve extends SubsystemBase {
    */
   private void evaluatePoseEstimation(LimelightInputs llInputs) {
     // If no tags in view, reject the update
-    if (llInputs.BotPoseEstimate.tagCount == 0)
+    if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;
 
     if (llInputs.BotPoseEstimate.tagCount == 1 && llInputs.BotPoseEstimate.rawFiducials.length == 1) {
@@ -218,7 +218,7 @@ public class Swerve extends SubsystemBase {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
     SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
-    // Logger.processInputs(getName(), SuperStructure.Swerve);
+    Logger.processInputs(getName(), SuperStructure.Swerve);
 
     processVisionEstimations();
     Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);

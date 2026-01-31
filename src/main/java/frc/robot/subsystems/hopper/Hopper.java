@@ -1,5 +1,7 @@
 package frc.robot.subsystems.hopper;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -34,6 +36,8 @@ public class Hopper extends SubsystemBase {
     }
 
     public Hopper(boolean isReal) {
+        setName("Hopper");
+
         _hopper = isReal ? new HopperReal() : new HopperSim();
     }
 
@@ -81,6 +85,7 @@ public class Hopper extends SubsystemBase {
     @Override
     public void periodic() {
         _hopper.updateInputs(SuperStructure.Hopper);
+        Logger.processInputs(getName(), SuperStructure.Hopper);
 
         actOnState(SuperStructure.Hopper);
     }
@@ -101,7 +106,7 @@ public class Hopper extends SubsystemBase {
 
     public Command pulseHopper() {
         return this.run(() -> _hopper.setHopper(DoubleSolenoid.Value.kReverse))
-                        .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay)
+                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay)
                         .andThen(Commands.runOnce(() -> _hopper.setHopper(DoubleSolenoid.Value.kForward)))
                         .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay)));
     }
