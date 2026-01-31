@@ -22,7 +22,6 @@ public class ClimbReal implements IClimb {
 
     public ClimbReal() {
         configureClimbMotor(ClimbMap.CLIMB_MOTOR_PID);
-//        configureSupportMotor(ClimbMap.SUPPORT_MOTOR_PID);
 
         _frictionBrakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FrictionBrakeForwardChannel,
@@ -75,10 +74,6 @@ public class ClimbReal implements IClimb {
         _climbMotor.getConfigurator().apply(config);
         _climbMotor.clearStickyFaults();
     }
-
-//    public void configureSupportMotor(ExtendedPIDConstants pid) {
-//        // TODO: Implement once CAD decides on the motor we're using
-//    }
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {

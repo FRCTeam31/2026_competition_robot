@@ -100,8 +100,9 @@ public class Hopper extends SubsystemBase {
     }
 
     public Command pulseHopper() {
-        return this.run(() -> _hopper.toggleHopper())
-                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
-                .finallyDo(() -> _hopper.setHopper(_lastHopperValue));
+        return this.run(() -> _hopper.setHopper(DoubleSolenoid.Value.kReverse))
+                        .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay)
+                        .andThen(Commands.runOnce(() -> _hopper.setHopper(DoubleSolenoid.Value.kForward)))
+                        .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay)));
     }
 }

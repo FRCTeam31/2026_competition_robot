@@ -7,8 +7,6 @@ public interface IHopper {
 
     public void setHopper(DoubleSolenoid.Value value);
 
-    public void toggleHopper();
-
     public void setFeedSpeed(double speed);
 
     public void feedStop();

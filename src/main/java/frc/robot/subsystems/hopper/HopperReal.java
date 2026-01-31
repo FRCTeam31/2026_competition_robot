@@ -33,11 +33,6 @@ public class HopperReal implements IHopper {
     }
 
     @Override
-    public void toggleHopper() {
-        _hopperSolenoid.toggle();
-    }
-
-    @Override
     public void setFeedSpeed(double speed) {
         _feedRollersSparkFlex.set(speed);
     }
