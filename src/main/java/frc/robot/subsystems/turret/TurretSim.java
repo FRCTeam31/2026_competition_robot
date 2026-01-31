@@ -1,6 +1,6 @@
 package frc.robot.subsystems.turret;
 
-import frc.robot.subsystems.turret.Turret.FlywheelStates;
+import frc.robot.subsystems.turret.Turret.TargetingState;
 import frc.robot.subsystems.turret.Turret.TargetingStates;
 
 public class TurretSim implements ITurret {
@@ -12,7 +12,7 @@ public class TurretSim implements ITurret {
     }
 
     @Override
-    public void controlFlywheel(FlywheelStates state, double manualTargetVelocityRPS) {
+    public void controlFlywheel(TargetingState state, double manualTargetVelocityRPS) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'controlFlywheel'");
     }

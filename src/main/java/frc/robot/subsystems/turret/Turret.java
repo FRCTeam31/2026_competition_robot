@@ -2,17 +2,20 @@ package frc.robot.subsystems.turret;
 
 import org.prime.util.MutVector;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Container;
+import frc.robot.FieldTargets;
 import frc.robot.SuperStructure;
 
 public class Turret extends SubsystemBase {
     private ITurret _turret;
 
-    public enum FlywheelStates {
+    public enum TargetingState {
         IDLE,
         SHOOT_MANUAL,
         SHOOT_AUTO,
@@ -20,49 +23,24 @@ public class Turret extends SubsystemBase {
         STOPPED
     }
 
-    public enum TargetingStates {
-        MANUAL_CONTROL,
-        AUTO_ASSISTED
-    }
-
-    public Turret(boolean isReal) {
-        _turret = isReal ? new TurretReal() : new TurretSim();
-    }
-
-    @Override
-    public void periodic() {
-        _turret.updateInputs(SuperStructure.Turret);
-    }
+    // CTRE Control Requests
+    private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
+    private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
+    private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
+    private double _manualFlywheelVelocityRPS;
+    private double _manualYawSpeed;
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
     private final MutVector _mutRobotVelocityVector = new MutVector();
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
 
-    public MutVector calculateTargetVector() {
-        var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
-        var deltaX = robotPose.getX() - TurretMap.HUB_GOAL_POSITION.getX();
-        var deltaY = robotPose.getY() - TurretMap.HUB_GOAL_POSITION.getY();
-
-        var yaw = Math.atan(deltaY / deltaX);
-
-        var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-
-        var hubHeight = TurretMap.HUB_GOAL_POSITION.getY();
-        var maxHeight = hubHeight + TurretMap.HUB_OVERSHOOT_HEIGHT;
-        var turretHeight = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
-
-        double pitch = Math.atan(
-                (2 * (maxHeight - turretHeight) + Math.sqrt((maxHeight - turretHeight) * (maxHeight - turretHeight)))
-                        / distance);
-        double velocity = Math.sqrt(2 * 9.81 * (hubHeight - turretHeight)) / Math.sin(pitch);
-
-        _mutNominalTargetVector.setPolar(velocity, pitch, yaw);
-        return _mutNominalTargetVector;
+    public Turret(boolean isReal) {
+        _turret = isReal ? new TurretReal() : new TurretSim();
     }
 
-    public MutVector calculateTurretAimVector() {
-        calculateTargetVector();
+    public MutVector calculateFinalTurretAimVector(Pose3d targetPose) {
+        calculateTargetVectorFromRobotPose(targetPose);
 
         if (TurretMap.AUTO_MOTION_COMPENSATION) {
             ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
@@ -83,4 +61,80 @@ public class Turret extends SubsystemBase {
             return _mutNominalTargetVector;
         }
     }
+
+    public MutVector calculateTargetVectorFromRobotPose(Pose3d targetPose) {
+        var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
+        var deltaX = robotPose.getX() - targetPose.getX();
+        var deltaY = robotPose.getY() - targetPose.getY();
+
+        var yaw = Math.atan(deltaY / deltaX);
+
+        var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+
+        var hubHeight = targetPose.getZ();
+        var maxHeight = hubHeight + TurretMap.HUB_OVERSHOOT_HEIGHT;
+        var turretHeight = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+
+        // TODO: double-check these equations
+        double pitch = Math.atan(
+                (2 * (maxHeight - turretHeight) + Math.sqrt((maxHeight - turretHeight) * (maxHeight - turretHeight)))
+                        / distance);
+        double velocity = Math.sqrt(2 * 9.81 * (hubHeight - turretHeight)) / Math.sin(pitch);
+
+        _mutNominalTargetVector.setPolar(velocity, pitch, yaw);
+        return _mutNominalTargetVector;
+    }
+
+    private void actOnState(TurretInputsAutoLogged inputs) {
+        // TODO: explain
+        switch (inputs.TargetingState) {
+            case SHOOT_MANUAL:
+                _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
+                _turret.controlYaw(_yawManualControl.withOutput(_manualYawSpeed));
+                break;
+            case SHOOT_AUTO:
+            case IDLE:
+                var target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
+                if (target == null) {
+                    // We are not in the neutral zone, target the hub.
+                    target = FieldTargets.GetHubPosition();
+                }
+                MutVector aimVector = calculateFinalTurretAimVector(target);
+
+                var yaw = aimVector.getYaw();
+                yaw += _manualYawSpeed * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+                _turret.controlYaw(_yawControl.withPosition(yaw));
+
+                // TODO: Implement pitch control once CAD finalizes turret
+                var pitch = aimVector.getPitch();
+                // <hood pitch implementation>
+
+                // control flywheel
+                if (inputs.TargetingState == TargetingState.IDLE) {
+                    // Low speed for flywheel
+                    _turret.controlFlywheel(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
+                } else {
+                    // Temp relation between flywheel speed and fuel velocity, will be replaced
+                    // with a more concrete relation after testing
+                    var targetVelocity = aimVector.getMagnitude();
+                    var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
+                    _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
+                }
+                break;
+            case STOPPED:
+            default:
+                _turret.controlFlywheel(_flywheelControl.withVelocity(0));
+                _turret.controlYaw(_yawManualControl.withOutput(0));
+                break;
+        }
+    }
+
+    @Override
+    public void periodic() {
+        _turret.updateInputs(SuperStructure.Turret);
+
+        actOnState(SuperStructure.Turret);
+    }
+
+    // Commands go here
 }

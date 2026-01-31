@@ -3,16 +3,11 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
-import org.prime.util.MutVector;
-
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -25,16 +20,13 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
-import frc.robot.Container;
-import frc.robot.subsystems.turret.Turret.FlywheelStates;
-import frc.robot.subsystems.turret.Turret.TargetingStates;
 
 public class TurretReal implements ITurret {
 
     private SparkFlex _sparkFeed;
+    private SparkFlex _sparkHood;
     private TalonFX _flywheelLeft;
     private TalonFX _flywheelRight;
     private TalonFX _turretRotator;
@@ -165,57 +157,19 @@ public class TurretReal implements ITurret {
         return RotationsPerSecond.mutable(averageVelocity);
     }
 
-    // CTRE Control Requests
-    private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
-    private final MotionMagicVoltage _rotatorControl = new MotionMagicVoltage(0);
-    private final DutyCycleOut _rotatorManualControl = new DutyCycleOut(0);
-
     @Override
-    public void controlFlywheel(FlywheelStates state, double manualTargetVelocityRPS) {
-        switch (state) {
-            case IDLE:
-                _flywheelLeft.setControl(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
-                break;
-            case SHOOT_MANUAL:
-                _flywheelLeft.setControl(_flywheelControl.withVelocity(manualTargetVelocityRPS));
-                break;
-            case SHOOT_AUTO:
-                // TODO: Calculate target velocity based on distance to target
-                break;
-            case STOPPED:
-            default:
-                _flywheelLeft.stopMotor();
-                break;
-        }
+    public void controlFlywheel(ControlRequest request) {
+        _flywheelLeft.setControl(request);
     }
 
     @Override
-    public void controlTargeting(TargetingStates state, double manualControlSpeed) {
-        switch (state) {
-            case MANUAL_CONTROL:
-                _turretRotator.setControl(_rotatorManualControl.withOutput(manualControlSpeed));
-                break;
-            case AUTO_ASSISTED:
-            default:
-                MutVector aimVector = Container.Turret.calculateTurretAimVector();
-                shootFromVector(aimVector);
-                break;
-        }
+    public void controlYaw(ControlRequest yawRequest) {
+        _turretRotator.setControl(yawRequest);
     }
 
-    public void shootFromVector(MutVector vector) {
-        var targetVelocity = vector.getMagnitude();
-        var yaw = vector.getYaw();
-        var pitch = vector.getPitch();
-
-        _turretRotator.setControl(_rotatorControl.withPosition(yaw));
-
-        // TODO: Implement pitch control once CAD finalizes turret
-
-        // Temp relation between flywheel speed and fuel velocity, will be replaced
-        // with a more concrete relation after testing
-        var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
-        _flywheelLeft.setControl(_flywheelControl.withVelocity(targetFlywheelOmega));
+    @Override
+    public void controlHood(double speed) {
+        _sparkHood.set(speed);
     }
 
     @Override

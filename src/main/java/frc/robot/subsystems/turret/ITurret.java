@@ -1,14 +1,15 @@
 package frc.robot.subsystems.turret;
 
-import frc.robot.subsystems.turret.Turret.FlywheelStates;
-import frc.robot.subsystems.turret.Turret.TargetingStates;
+import com.ctre.phoenix6.controls.ControlRequest;
 
 public interface ITurret {
     public void updateInputs(TurretInputsAutoLogged inputs);
 
-    public void controlFlywheel(FlywheelStates state, double manualTargetVelocityRPS);
+    public void controlFlywheel(ControlRequest controlRequest);
 
-    public void controlTargeting(TargetingStates state, double manualControlSpeed);
+    public void controlYaw(ControlRequest controlRequest);
+
+    public void controlHood(double speed);
 
     public void setFeederSpeed(double speed);
 

@@ -23,6 +23,7 @@ public class TurretMap {
     public static final boolean FEEDER_INVERTED = false;
     public static final double FEEDER_VELOCITY_CONVERSION_FACTOR = 1.0;
 
+    // Polar coordinates for easy vector math
     public static final double TURRET_DISTANCE_FROM_ROBOT_CENTER = 0;
     public static final Rotation2d TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT = new Rotation2d()
             .rotateBy(Rotation2d.kCCW_90deg);
@@ -32,5 +33,6 @@ public class TurretMap {
     public static final double HUB_OVERSHOOT_HEIGHT = 0;
 
     public static final boolean AUTO_MOTION_COMPENSATION = false;
+    public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
 
 }
