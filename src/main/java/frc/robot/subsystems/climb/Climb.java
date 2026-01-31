@@ -4,11 +4,18 @@ public class Climb {
     private IClimb _climb;
 
     public enum ClimbState {
-        // TODO: Determine climber states
+        Up,
+        Stopped,
+        Down
     }
 
     public enum SupportState {
         // TODO: Determine support states
+    }
+
+    public enum FrictionBrakeState {
+        Applied,
+        Released
     }
 
     public Climb(boolean isReal) {

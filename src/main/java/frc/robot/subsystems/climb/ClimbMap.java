@@ -11,4 +11,8 @@ public class ClimbMap {
 
     public static final int SUPPORT_MOTOR_CANID = 0;
     public static final ExtendedPIDConstants SUPPORT_MOTOR_PID = new ExtendedPIDConstants();
+
+    // TODO: Set channels
+    public static final int FrictionBrakeForwardChannel = 0;
+    public static final int FrictionBrakeReverseChannel = 0;
 }

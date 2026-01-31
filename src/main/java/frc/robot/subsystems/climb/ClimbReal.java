@@ -6,15 +6,22 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import frc.robot.Container;
 import org.prime.control.ExtendedPIDConstants;
 
 public class ClimbReal implements IClimb {
 
     private TalonFX _climbMotor;
+    private DoubleSolenoid _frictionBrakeSolenoid;
 
     public ClimbReal() {
         configureClimbMotor(ClimbMap.CLIMB_MOTOR_PID);
         configureSupportMotor(ClimbMap.SUPPORT_MOTOR_PID);
+
+        _frictionBrakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
+                Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FrictionBrakeForwardChannel,
+                ClimbMap.FrictionBrakeReverseChannel);
     }
 
     public void configureClimbMotor(ExtendedPIDConstants pid) {
@@ -63,16 +70,43 @@ public class ClimbReal implements IClimb {
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {
-
+        controlClimb(inputs.climbState);
+        controlFrictionBrake(inputs.frictionBrakeState);
     }
 
     @Override
     public void controlClimb(Climb.ClimbState state) {
-        // Control climber here based on state
+        switch (state) {
+            case Up:
+                _climbMotor.set(0.5);
+                break;
+            case Down:
+                _climbMotor.set(-0.5);
+                break;
+            case Stopped:
+            default:
+                _climbMotor.set(0);
+                break;
+        }
     }
 
     @Override
     public void controlSupport(Climb.SupportState state) {
         // Control support here based on state
     }
+
+    @Override
+    public void controlFrictionBrake(Climb.FrictionBrakeState state) {
+        switch (state) {
+            case Applied:
+                _frictionBrakeSolenoid.set(DoubleSolenoid.Value.kForward);
+                break;
+            case Released:
+            default:
+                _frictionBrakeSolenoid.set(DoubleSolenoid.Value.kReverse);
+                break;
+        }
+    }
+
+
 }

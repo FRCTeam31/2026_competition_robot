@@ -16,4 +16,11 @@ public class ClimbSim implements IClimb {
     public void controlSupport(Climb.SupportState state) {
 
     }
+
+    @Override
+    public void controlFrictionBrake(Climb.FrictionBrakeState state) {
+
+    }
+
+
 }

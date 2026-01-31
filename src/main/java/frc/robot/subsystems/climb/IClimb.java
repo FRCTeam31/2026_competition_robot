@@ -6,4 +6,6 @@ public interface IClimb {
     public void controlClimb(Climb.ClimbState state);
 
     public void controlSupport(Climb.SupportState state);
+
+    public void controlFrictionBrake(Climb.FrictionBrakeState state);
 }
