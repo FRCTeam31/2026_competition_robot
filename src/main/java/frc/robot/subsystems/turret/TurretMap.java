@@ -35,4 +35,21 @@ public class TurretMap {
     public static final boolean AUTO_MOTION_COMPENSATION = false;
     public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
 
+    // Limelight offset from turret rotation center (in meters)
+    // Positive X is forward, Y is left, Z is up from turret rotation center
+    public static double LIMELIGHT_OFFSET_X = 0.0; // Distance forward from turret center
+    public static double LIMELIGHT_OFFSET_Y = 0.0; // Distance right from turret center (negative for left)
+    public static double LIMELIGHT_OFFSET_Z = 0.0; // Distance above turret center
+
+    // Limelight fixed rotation relative to turret (in radians)
+    // This is the camera's POV angle when the turret is at 0 degrees
+    public static double LIMELIGHT_PITCH = 0.0; // Vertical tilt
+    public static double LIMELIGHT_YAW = 0.0; // Horizontal rotation (should typically be 0)
+    public static double LIMELIGHT_ROLL = 0.0; // Camera roll
+
+    // Turret rotation origin offset from robot center (in meters, XYZ from robot center on ground)
+    public static double TURRET_CENTER_OFFSET_X = 0.0; // Distance forward from robot center
+    public static double TURRET_CENTER_OFFSET_Y = 0.0; // Distance right from robot center (negative for left)
+    public static double TURRET_CENTER_OFFSET_Z = 0.0; // Height above ground
+
 }
