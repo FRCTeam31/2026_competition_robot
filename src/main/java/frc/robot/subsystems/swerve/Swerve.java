@@ -21,9 +21,9 @@ import frc.robot.Container;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
-import frc.robot.subsystems.vision.LimelightInputs;
-import frc.robot.subsystems.vision.LimelightNameEnum;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.LimelightCameraInputs;
+import frc.robot.subsystems.vision.LimelightVision;
+import frc.robot.subsystems.vision.VisionMap;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -179,20 +179,20 @@ public class Swerve extends SubsystemBase {
       return;
     }
 
-    evaluatePoseEstimation(SuperStructure.Limelights.get(LimelightNameEnum.kFront));
-    evaluatePoseEstimation(SuperStructure.Limelights.get(LimelightNameEnum.kRear));
+    evaluatePoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
   }
 
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluatePoseEstimation(LimelightInputs llInputs) {
+  private void evaluatePoseEstimation(LimelightCameraInputs llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;
 
     if (llInputs.BotPoseEstimate.tagCount == 1 && llInputs.BotPoseEstimate.rawFiducials.length == 1) {
-      boolean isValidTarget = Vision.isAprilTagIdValid(llInputs.BotPoseEstimate.rawFiducials[0].id);
+      var target = llInputs.BotPoseEstimate.rawFiducials[0].id;
+      boolean isValidTarget = target >= 1 && target <= 22;
       boolean tooAmbiguous = llInputs.BotPoseEstimate.rawFiducials[0].ambiguity > .7;
       boolean tooFar = llInputs.BotPoseEstimate.rawFiducials[0].distToCamera > 3;
 

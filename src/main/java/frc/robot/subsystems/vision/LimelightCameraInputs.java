@@ -7,7 +7,7 @@ import frc.robot.subsystems.vision.helpers.LimelightResults;
 import frc.robot.subsystems.vision.helpers.PoseEstimate;
 
 @AutoLog
-public class LimelightInputs {
+public class LimelightCameraInputs {
 
     /**
      * Horizontal Offset From Crosshair To Target 

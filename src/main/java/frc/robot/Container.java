@@ -20,7 +20,7 @@ import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.LimelightVision;
 
 public class Container {
   public static TeleopDashboardTab TeleopDashboardSection;
@@ -32,7 +32,7 @@ public class Container {
 
   public static PwmLEDs LEDs;
   public static Swerve Swerve;
-  public static Vision Vision;
+  public static LimelightVision Vision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
@@ -48,7 +48,7 @@ public class Container {
 
       // Create subsystems
       LEDs = new PwmLEDs();
-      Vision = new Vision();
+      Vision = new LimelightVision();
       Swerve = new Swerve(isReal);
       Pneumatics = new Pneumatics(isReal);
       Hopper = new Hopper(isReal);

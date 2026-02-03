@@ -21,8 +21,8 @@ import edu.wpi.first.wpilibj2.command.Command;
  * LED control, pipeline switching, and AprilTag validation.
  */
 class VisionTest {
-    private Vision vision;
-    private MockedConstruction<LimeLight> mockLimelightConstruction;
+    private LimelightVision vision;
+    private MockedConstruction<LimeLightCamera> mockLimelightConstruction;
 
     @BeforeEach
     void setUp() {
@@ -30,9 +30,9 @@ class VisionTest {
         assert HAL.initialize(500, 0);
 
         // Mock LimeLight construction to avoid network calls
-        mockLimelightConstruction = mockConstruction(LimeLight.class);
+        mockLimelightConstruction = mockConstruction(LimeLightCamera.class);
 
-        vision = new Vision();
+        vision = new LimelightVision();
     }
 
     @AfterEach
@@ -46,23 +46,21 @@ class VisionTest {
 
     @Test
     void testConstructorCreatesLimelights() {
-        // Verify that two Limelight instances were created
-        assertEquals(2, mockLimelightConstruction.constructed().size(),
-                "Vision should create two Limelight instances");
+        // Verify that one Limelight instance was created
+        assertEquals(1, mockLimelightConstruction.constructed().size(),
+                "Vision should create one Limelight instance");
 
-        // Verify the limelights were created with correct names
+        // Verify the limelight was created with correct name
         var constructedLimelights = mockLimelightConstruction.constructed();
-        var frontLL = constructedLimelights.get(0);
-        var rearLL = constructedLimelights.get(1);
+        var turretLL = constructedLimelights.get(0);
 
         // Verify construction arguments
-        verify(frontLL, never()).updateInputs(any());
-        verify(rearLL, never()).updateInputs(any());
+        verify(turretLL, never()).updateInputs(any());
     }
 
     @Test
     void testConstructorSetsSubsystemName() {
-        assertEquals("Vision", vision.getName(),
+        assertEquals("LimelightVision", vision.getName(),
                 "Vision subsystem should have correct name");
     }
 
@@ -71,28 +69,20 @@ class VisionTest {
     //#region LED Mode Tests
 
     @Test
-    void testSetLedModeFront() {
-        vision.setLedMode(LimelightNameEnum.kFront, 1);
+    void testSetLedModeTurret() {
+        vision.setLEDMode(VisionMap.LimelightTurretName, 1);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setLedMode(1);
-    }
-
-    @Test
-    void testSetLedModeRear() {
-        vision.setLedMode(LimelightNameEnum.kRear, 3);
-
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).setLedMode(3);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setLedMode(1);
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2, 3 })
     void testSetLedModeAllValidModes(int mode) {
-        vision.setLedMode(LimelightNameEnum.kFront, mode);
+        vision.setLEDMode(VisionMap.LimelightTurretName, mode);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setLedMode(mode);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setLedMode(mode);
     }
 
     //#endregion
@@ -100,19 +90,11 @@ class VisionTest {
     //#region Blink LED Tests
 
     @Test
-    void testBlinkLedFront() {
-        vision.blinkLed(LimelightNameEnum.kFront, 5);
+    void testBlinkLedTurret() {
+        vision.blinkLED(VisionMap.LimelightTurretName, 5);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).blinkLed(5);
-    }
-
-    @Test
-    void testBlinkLedRear() {
-        vision.blinkLed(LimelightNameEnum.kRear, 3);
-
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).blinkLed(3);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).blinkLed(5);
     }
 
     //#endregion
@@ -120,25 +102,17 @@ class VisionTest {
     //#region Pipeline Tests
 
     @Test
-    void testSetPipelineFront() {
-        vision.setPipeline(LimelightNameEnum.kFront, 2);
+    void testSetPipelineTurret() {
+        vision.setPipeline(VisionMap.LimelightTurretName, 2);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setPipeline(2);
-    }
-
-    @Test
-    void testSetPipelineRear() {
-        vision.setPipeline(LimelightNameEnum.kRear, 7);
-
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).setPipeline(7);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setPipeline(2);
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
     void testSetPipelineAllValidPipelines(int pipeline) {
-        vision.setPipeline(LimelightNameEnum.kFront, pipeline);
+        vision.setPipeline(VisionMap.LimelightTurretName, pipeline);
 
         var frontLL = mockLimelightConstruction.constructed().get(0);
         verify(frontLL, times(1)).setPipeline(pipeline);
@@ -149,28 +123,20 @@ class VisionTest {
     //#region Streaming Mode Tests
 
     @Test
-    void testSetPiPStreamingModeFront() {
-        vision.setPiPStreamingMode(LimelightNameEnum.kFront, 1);
+    void testSetPiPStreamingModeTurret() {
+        vision.setPiPStreamingMode(VisionMap.LimelightTurretName, 1);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setPiPStreamingMode(1);
-    }
-
-    @Test
-    void testSetPiPStreamingModeRear() {
-        vision.setPiPStreamingMode(LimelightNameEnum.kRear, 2);
-
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).setPiPStreamingMode(2);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setPiPStreamingMode(1);
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2 })
     void testSetPiPStreamingModeAllValidModes(int mode) {
-        vision.setPiPStreamingMode(LimelightNameEnum.kFront, mode);
+        vision.setPiPStreamingMode(VisionMap.LimelightTurretName, mode);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setPiPStreamingMode(mode);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setPiPStreamingMode(mode);
     }
 
     //#endregion
@@ -178,59 +144,21 @@ class VisionTest {
     //#region Camera Pose Tests
 
     @Test
-    void testSetCameraPoseFront() {
+    void testSetCameraPoseTurret() {
         Pose3d testPose = new Pose3d(1.0, 2.0, 3.0, new Rotation3d(0.1, 0.2, 0.3));
-        vision.setCameraPose(LimelightNameEnum.kFront, testPose);
+        vision.setCameraPose(VisionMap.LimelightTurretName, testPose);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setCameraPose(testPose);
-    }
-
-    @Test
-    void testSetCameraPoseRear() {
-        Pose3d testPose = new Pose3d(4.0, 5.0, 6.0, new Rotation3d(0.4, 0.5, 0.6));
-        vision.setCameraPose(LimelightNameEnum.kRear, testPose);
-
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).setCameraPose(testPose);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setCameraPose(testPose);
     }
 
     @Test
     void testSetCameraPoseZeroPose() {
         Pose3d zeroPose = new Pose3d();
-        vision.setCameraPose(LimelightNameEnum.kFront, zeroPose);
+        vision.setCameraPose(VisionMap.LimelightTurretName, zeroPose);
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setCameraPose(zeroPose);
-    }
-
-    //#endregion
-
-    //#region AprilTag Validation Tests
-
-    @ParameterizedTest
-    @ValueSource(ints = { 1, 2, 10, 15, 20, 21, 22 })
-    void testIsAprilTagIdValidForValidIds(int id) {
-        assertTrue(Vision.isAprilTagIdValid(id),
-                "AprilTag ID " + id + " should be valid");
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = { 0, -1, -10, 23, 24, 100, 1000 })
-    void testIsAprilTagIdValidForInvalidIds(int id) {
-        assertFalse(Vision.isAprilTagIdValid(id),
-                "AprilTag ID " + id + " should be invalid");
-    }
-
-    @Test
-    void testIsAprilTagIdValidBoundaries() {
-        // Test lower boundary
-        assertFalse(Vision.isAprilTagIdValid(0), "ID 0 should be invalid");
-        assertTrue(Vision.isAprilTagIdValid(1), "ID 1 should be valid");
-
-        // Test upper boundary
-        assertTrue(Vision.isAprilTagIdValid(22), "ID 22 should be valid");
-        assertFalse(Vision.isAprilTagIdValid(23), "ID 23 should be invalid");
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setCameraPose(zeroPose);
     }
 
     //#endregion
@@ -241,12 +169,10 @@ class VisionTest {
     void testPeriodicUpdatesLimelights() {
         vision.periodic();
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        var rearLL = mockLimelightConstruction.constructed().get(1);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
 
-        // Verify updateInputs was called on both limelights
-        verify(frontLL, times(1)).updateInputs(any());
-        verify(rearLL, times(1)).updateInputs(any());
+        // Verify updateInputs was called on the limelight
+        verify(turretLL, times(1)).updateInputs(any());
     }
 
     @Test
@@ -256,12 +182,10 @@ class VisionTest {
         vision.periodic();
         vision.periodic();
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        var rearLL = mockLimelightConstruction.constructed().get(1);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
 
         // Verify updateInputs was called correct number of times
-        verify(frontLL, times(3)).updateInputs(any());
-        verify(rearLL, times(3)).updateInputs(any());
+        verify(turretLL, times(3)).updateInputs(any());
     }
 
     //#endregion
@@ -270,33 +194,141 @@ class VisionTest {
 
     @Test
     void testSetLimelightPipelineCommandCreation() {
-        Command command = vision.setLimelightPipeline(LimelightNameEnum.kFront, 5);
+        Command command = vision.setProcessingPipeline(VisionMap.LimelightTurretName, 5);
 
         assertNotNull(command, "Command should not be null");
     }
 
     @Test
     void testSetLimelightPipelineCommandExecution() {
-        Command command = vision.setLimelightPipeline(LimelightNameEnum.kFront, 5);
+        Command command = vision.setProcessingPipeline(VisionMap.LimelightTurretName, 5);
 
         // Execute the command
         command.initialize();
         command.execute();
 
-        var frontLL = mockLimelightConstruction.constructed().get(0);
-        verify(frontLL, times(1)).setPipeline(5);
+        var turretLL = mockLimelightConstruction.constructed().get(0);
+        verify(turretLL, times(1)).setPipeline(5);
+    }
+
+    //#endregion
+
+    //#region Add/Remove Limelight Tests
+
+    @Test
+    void testAddLimelightSuccess() {
+        boolean result = vision.addCamera("limelight-front");
+
+        assertTrue(result, "Should return true when adding new limelight");
+        assertEquals(2, mockLimelightConstruction.constructed().size(),
+                "Should have two limelights after adding");
+        assertTrue(vision.hasCamera("limelight-front"),
+                "Should contain newly added limelight");
     }
 
     @Test
-    void testSetLimelightPipelineCommandForRear() {
-        Command command = vision.setLimelightPipeline(LimelightNameEnum.kRear, 3);
+    void testAddLimelightDuplicate() {
+        boolean firstAdd = vision.addCamera("limelight-test");
+        boolean secondAdd = vision.addCamera("limelight-test");
 
-        // Execute the command
-        command.initialize();
-        command.execute();
+        assertTrue(firstAdd, "First add should succeed");
+        assertFalse(secondAdd, "Second add with same name should fail");
+        assertEquals(2, mockLimelightConstruction.constructed().size(),
+                "Should only create one limelight instance");
+    }
 
-        var rearLL = mockLimelightConstruction.constructed().get(1);
-        verify(rearLL, times(1)).setPipeline(3);
+    @Test
+    void testAddMultipleLimelights() {
+        vision.addCamera("limelight-front");
+        vision.addCamera("limelight-rear");
+        vision.addCamera("limelight-intake");
+
+        assertEquals(4, mockLimelightConstruction.constructed().size(),
+                "Should have four limelights total");
+        assertTrue(vision.hasCamera("limelight-front"));
+        assertTrue(vision.hasCamera("limelight-rear"));
+        assertTrue(vision.hasCamera("limelight-intake"));
+        assertTrue(vision.hasCamera(VisionMap.LimelightTurretName));
+    }
+
+    @Test
+    void testRemoveLimelightSuccess() {
+        vision.addCamera("limelight-test");
+        boolean result = vision.removeCamera("limelight-test");
+
+        assertTrue(result, "Should return true when removing existing limelight");
+        assertFalse(vision.hasCamera("limelight-test"),
+                "Should not contain removed limelight");
+        assertEquals(1, vision.getCameraNames().size(),
+                "Should have one limelight remaining");
+    }
+
+    @Test
+    void testRemoveLimelightNonExistent() {
+        boolean result = vision.removeCamera("limelight-nonexistent");
+
+        assertFalse(result, "Should return false when removing non-existent limelight");
+    }
+
+    @Test
+    void testRemoveDefaultLimelight() {
+        boolean result = vision.removeCamera(VisionMap.LimelightTurretName);
+
+        assertTrue(result, "Should be able to remove default limelight");
+        assertFalse(vision.hasCamera(VisionMap.LimelightTurretName),
+                "Default limelight should be removed");
+    }
+
+    @Test
+    void testGetLimelightNames() {
+        var names = vision.getCameraNames();
+
+        assertNotNull(names, "Names set should not be null");
+        assertEquals(1, names.size(), "Should have one limelight by default");
+        assertTrue(names.contains(VisionMap.LimelightTurretName),
+                "Should contain default turret limelight");
+
+        vision.addCamera("limelight-test");
+        names = vision.getCameraNames();
+        assertEquals(2, names.size(), "Should have two limelights after adding");
+        assertTrue(names.contains("limelight-test"), "Should contain added limelight");
+    }
+
+    @Test
+    void testHasLimelight() {
+        assertTrue(vision.hasCamera(VisionMap.LimelightTurretName),
+                "Should have default turret limelight");
+        assertFalse(vision.hasCamera("limelight-nonexistent"),
+                "Should not have non-existent limelight");
+
+        vision.addCamera("limelight-test");
+        assertTrue(vision.hasCamera("limelight-test"),
+                "Should have newly added limelight");
+    }
+
+    @Test
+    void testSetLedModeNonExistentLimelight() {
+        // Should not throw exception when setting LED mode on non-existent limelight
+        assertDoesNotThrow(() -> vision.setLEDMode("limelight-nonexistent", 1),
+                "Should handle non-existent limelight gracefully");
+    }
+
+    @Test
+    void testSetPipelineNonExistentLimelight() {
+        // Should not throw exception when setting pipeline on non-existent limelight
+        assertDoesNotThrow(() -> vision.setPipeline("limelight-nonexistent", 1),
+                "Should handle non-existent limelight gracefully");
+    }
+
+    @Test
+    void testAddRemoveAddSameLimelight() {
+        vision.addCamera("limelight-test");
+        vision.removeCamera("limelight-test");
+        boolean result = vision.addCamera("limelight-test");
+
+        assertTrue(result, "Should be able to re-add removed limelight");
+        assertTrue(vision.hasCamera("limelight-test"),
+                "Re-added limelight should exist");
     }
 
     //#endregion
@@ -305,10 +337,8 @@ class VisionTest {
 
     @Test
     void testVisionMapConstants() {
-        assertEquals("limelight-front", Vision.VisionMap.LimelightFrontName,
-                "Front limelight name should be correct");
-        assertEquals("limelight-rear", Vision.VisionMap.LimelightRearName,
-                "Rear limelight name should be correct");
+        assertEquals("limelight-turret", VisionMap.LimelightTurretName,
+                "Turret limelight name should be correct");
     }
 
     //#endregion

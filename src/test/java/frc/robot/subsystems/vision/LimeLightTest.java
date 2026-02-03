@@ -3,6 +3,7 @@ package frc.robot.subsystems.vision;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.doubleThat;
+import static org.mockito.ArgumentMatchers.eq;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ import frc.robot.subsystems.vision.helpers.LimelightHelpers;
  * camera pose configuration, and targeting data retrieval.
  */
 class LimeLightTest {
-    private LimeLight limelight;
+    private LimeLightCamera limelight;
     private MockedStatic<LimelightHelpers> mockHelpers;
     private static final String TEST_LIMELIGHT_NAME = "test-limelight";
 
@@ -37,7 +38,7 @@ class LimeLightTest {
         // Mock LimelightHelpers static methods
         mockHelpers = mockStatic(LimelightHelpers.class);
 
-        limelight = new LimeLight(TEST_LIMELIGHT_NAME);
+        limelight = new LimeLightCamera(TEST_LIMELIGHT_NAME);
     }
 
     @AfterEach
@@ -54,14 +55,14 @@ class LimeLightTest {
 
     @Test
     void testConstructorWithValidName() {
-        LimeLight ll = new LimeLight("valid-name");
+        LimeLightCamera ll = new LimeLightCamera("valid-name");
         assertNotNull(ll, "LimeLight should be constructed successfully");
         ll.close();
     }
 
     @Test
     void testConstructorWithEmptyName() {
-        LimeLight ll = new LimeLight("");
+        LimeLightCamera ll = new LimeLightCamera("");
         assertNotNull(ll, "LimeLight should accept empty name");
         ll.close();
     }
@@ -411,7 +412,7 @@ class LimeLightTest {
 
     @Test
     void testUpdateInputsCallsHelpers() {
-        LimelightInputs inputs = new LimelightInputs();
+        LimelightCameraInputsAutoLogged inputs = new LimelightCameraInputsAutoLogged();
 
         mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME))
                 .thenReturn(5.0);
@@ -434,14 +435,14 @@ class LimeLightTest {
 
     @Test
     void testCloseDoesNotThrowException() {
-        LimeLight ll = new LimeLight("test");
+        LimeLightCamera ll = new LimeLightCamera("test");
         assertDoesNotThrow(() -> ll.close(),
                 "close() should not throw exception");
     }
 
     @Test
     void testMultipleCloseCallsDoNotThrowException() {
-        LimeLight ll = new LimeLight("test");
+        LimeLightCamera ll = new LimeLightCamera("test");
         assertDoesNotThrow(() -> {
             ll.close();
             ll.close();

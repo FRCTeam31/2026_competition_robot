@@ -8,15 +8,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.vision.helpers.LimelightHelpers;
 
-public class LimeLight implements AutoCloseable {
+public class LimeLightCamera implements AutoCloseable {
     private String _limelightName;
     private ExecutorService _executorService = Executors.newSingleThreadExecutor();
 
-    public LimeLight(String limelightName) {
+    public LimeLightCamera(String limelightName) {
         _limelightName = limelightName;
     }
 
-    public void updateInputs(LimelightInputs inputs) {
+    public void updateInputs(LimelightCameraInputsAutoLogged inputs) {
         inputs.TargetHorizontalOffset = getHorizontalOffsetFromTarget();
         inputs.TargetVerticalOffset = getVerticalOffsetFromTarget();
         inputs.BotPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(_limelightName);
