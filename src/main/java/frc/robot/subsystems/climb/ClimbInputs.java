@@ -8,9 +8,9 @@ import frc.robot.subsystems.climb.Climb.SupportState;
 
 @AutoLog
 public class ClimbInputs {
-    public Climb.ClimbState climbState = ClimbState.Stopped;
-    public Climb.SupportState supportState = SupportState.Raised;
-    public Climb.FrictionBrakeState frictionBrakeState = FrictionBrakeState.Released;
+    public Climb.ClimbState climbState = ClimbState.STOPPED;
+    public Climb.SupportState supportState = SupportState.RAISED;
+    public Climb.FrictionBrakeState frictionBrakeState = FrictionBrakeState.RELEASED;
     public boolean upperLimitSwitch = false;
     public boolean lowerLimitSwitch = true;
 }

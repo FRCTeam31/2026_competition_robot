@@ -57,8 +57,8 @@ public class Container {
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, Vision);
-      OperatorInterface.bindOperatorControls(Swerve, Vision);
+      OperatorInterface.bindDriverControls(Swerve, Vision, Turret, Climb, Hopper);
+      OperatorInterface.bindOperatorControls(Swerve, Vision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       NamedCommands.registerCommands(Swerve.getNamedCommands());

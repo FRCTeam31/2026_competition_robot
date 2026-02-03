@@ -6,7 +6,6 @@ import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
-import frc.robot.subsystems.turret.Turret.TargetingState;
 
 @AutoLog
 public class TurretInputs {
@@ -16,5 +15,6 @@ public class TurretInputs {
     public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
 
     //States
-    public TargetingState TargetingState = Turret.TargetingState.STOPPED;
+    public Turret.FlywheelState FlywheelState = Turret.FlywheelState.STOPPED;
+    public Turret.TargetingState TargetingState = Turret.TargetingState.AUTO;
 }
