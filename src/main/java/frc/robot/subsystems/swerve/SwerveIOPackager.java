@@ -1,7 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -106,7 +104,7 @@ public class SwerveIOPackager {
     swerveInputs.GyroAccelZ = _gyroInputs.AccelerationZ;
 
     var modulePositions = getModulePositions();
-    swerveInputs.EstimatedRobotPose = m_poseEstimator.update(swerveInputs.GyroAngle, modulePositions);
+    swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
 
     checkPreferences();
   }

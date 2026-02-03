@@ -2,6 +2,7 @@ package frc.robot.subsystems.turret;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
+import org.prime.util.PhysicsConstants;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -29,6 +30,15 @@ public class Turret extends SubsystemBase {
         STOPPED
     }
 
+    public enum LockOnState {
+        SHOT_CALCULATED,
+        SHOT_NOT_CALCULATED,
+        YAW_LOCKED_ON,
+        YAW_NOT_LOCKED_ON,
+        FLYWHEEL_AT_SPEED,
+        FLYWHEEL_NOT_AT_SPEED
+    }
+
     // CTRE Control Requests
     private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
     private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
@@ -46,50 +56,52 @@ public class Turret extends SubsystemBase {
         _turret = isReal ? new TurretReal() : new TurretSim();
     }
 
-    public MutVector calculateFinalTurretAimVector(Pose3d targetPose) {
-        calculateTargetVectorFromRobotPose(targetPose);
+    public MutVector calculateTurretVectorFromRobotPose(Pose3d targetPose) {
+        var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
 
-        if (TurretMap.AUTO_MOTION_COMPENSATION) {
-            ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
-
-            _mutRobotVelocityVector.setCartesian(
-                    chassisSpeeds.vxMetersPerSecond,
-                    chassisSpeeds.vyMetersPerSecond,
-                    0);
-
-            _mutTurretTangentVelocityVector.setPolar(
-                    chassisSpeeds.omegaRadiansPerSecond * TurretMap.TURRET_DISTANCE_FROM_ROBOT_CENTER,
-                    0,
-                    TurretMap.TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT.getDegrees());
-
-            return _mutNominalTargetVector
-                    .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
-        } else {
+        var targetDistance = targetPose.getTranslation().getDistance(robotPose.getTranslation());
+        if (targetDistance < TurretMap.MIN_SHOT_DISTANCE_METERS) {
+            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
             return _mutNominalTargetVector;
         }
-    }
 
-    public MutVector calculateTargetVectorFromRobotPose(Pose3d targetPose) {
-        var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
-        var deltaX = robotPose.getX() - targetPose.getX();
-        var deltaY = robotPose.getY() - targetPose.getY();
+        try {
+            _mutNominalTargetVector.setToTargetVector(robotPose,
+                    targetPose,
+                    TurretMap.HOOD_MIN_ANGLE_DEGREES,
+                    TurretMap.HOOD_MAX_ANGLE_DEGREES,
+                    TurretMap.FLYWHEEL_MIN_SPEED,
+                    TurretMap.FLYWHEEL_MAX_SPEED);
+            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_CALCULATED;
 
-        var yaw = Math.atan(deltaY / deltaX);
+            if (TurretMap.USE_SPEED_INTERPOLATION) {
+                var interpolatedFlywheelSpeed = TurretMap.DISTANCE_TO_FLYWHEEL_SPEED_MAP.get(targetDistance);
+                _mutNominalTargetVector.setMagnitude(interpolatedFlywheelSpeed);
+            }
 
-        var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+            if (TurretMap.AUTO_MOTION_COMPENSATION) {
+                var shotTimeToTarget = _mutNominalTargetVector.getTimeToTarget(targetDistance);
+                ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
 
-        var hubHeight = targetPose.getZ();
-        var maxHeight = hubHeight + TurretMap.HUB_OVERSHOOT_HEIGHT;
-        var turretHeight = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+                _mutRobotVelocityVector.setCartesian(
+                        chassisSpeeds.vxMetersPerSecond,
+                        chassisSpeeds.vyMetersPerSecond,
+                        0);
 
-        // TODO: double-check these equations
-        double pitch = Math.atan(
-                (2 * (maxHeight - turretHeight) + Math.sqrt((maxHeight - turretHeight) * (maxHeight - turretHeight)))
-                        / distance);
-        double velocity = Math.sqrt(2 * 9.81 * (hubHeight - turretHeight)) / Math.sin(pitch);
+                _mutTurretTangentVelocityVector.setPolar(
+                        chassisSpeeds.omegaRadiansPerSecond * TurretMap.TURRET_DISTANCE_FROM_ROBOT_CENTER,
+                        0,
+                        TurretMap.TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT.getDegrees());
 
-        _mutNominalTargetVector.setPolar(velocity, pitch, yaw);
-        return _mutNominalTargetVector;
+                return _mutNominalTargetVector
+                        .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
+            } else {
+                return _mutNominalTargetVector;
+            }
+        } catch (Exception e) {
+            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
+            return _mutNominalTargetVector;
+        }
     }
 
     private void actOnState(TurretInputsAutoLogged inputs) {
@@ -102,7 +114,7 @@ public class Turret extends SubsystemBase {
                 // We are not in the neutral zone, target the hub.
                 target = FieldTargets.GetHubPosition();
             }
-            aimVector = calculateFinalTurretAimVector(target);
+            aimVector = calculateTurretVectorFromRobotPose(target);
         }
 
         // TODO: explain
@@ -163,6 +175,7 @@ public class Turret extends SubsystemBase {
     public Command setFlywheelIdle() {
         return this.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE);
     }
+
     public Command stopFlywheel() {
         return this.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.STOPPED);
     }
