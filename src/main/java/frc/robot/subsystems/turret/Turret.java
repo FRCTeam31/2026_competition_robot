@@ -39,6 +39,12 @@ public class Turret extends SubsystemBase {
         FLYWHEEL_NOT_AT_SPEED
     }
 
+    public enum FeedState {
+        FORWARDS,
+        REVERSED,
+        STOPPED
+    }
+
     // CTRE Control Requests
     private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
     private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
@@ -158,6 +164,18 @@ public class Turret extends SubsystemBase {
                 }
                 break;
         }
+
+        // Turret Feed States
+        switch (inputs.FeedState) {
+            case FORWARDS:
+                _turret.setFeederSpeed(.5);
+                break;
+            case REVERSED:
+                _turret.setFeederSpeed(-.5);
+            case STOPPED:
+            default:
+                _turret.setFeederSpeed(0);
+        }
     }
 
     @Override
@@ -190,6 +208,18 @@ public class Turret extends SubsystemBase {
 
     public Command stopTargeting() {
         return this.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.STOPPED);
+    }
+
+    public Command setFeedForward() {
+        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.FORWARDS);
+    }
+
+    public Command setFeedReverse() {
+        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.REVERSED);
+    }
+
+    public Command stopFeed() {
+        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.STOPPED);
     }
 
 }
