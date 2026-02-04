@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
@@ -73,5 +74,76 @@ public class Container {
 
   //#region Commands
 
+  /**
+   * Enables the turret flywheel and sets its feed inwards
+   * @return Command
+   */
+  public Command startShooting() {
+    return Turret.setFlywheelShooting()
+        .andThen(Turret.setFeedForward());
+  }
+
+  /**
+   * Stop the turret flywheel and feed
+   * @return Command
+   */
+  public Command stopShooting() {
+    return Turret.stopFeed()
+        .andThen(Turret.setFlywheelIdle());
+  }
+
+  /**
+   * Command to set the hopper and intake into the correct positions
+   * when starting a match
+   * @return Command
+   */
+  public Command robotStartingCommand() {
+    return Hopper.setFeedInwards()
+        .andThen(Hopper.setHopperOut())
+        // Time for intake to fully extend
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Hopper.setIntakeOut())
+        .andThen(Hopper.setIntakeFeedInwards());
+  }
+
+  public Command setupClimb() {
+    return Hopper.setIntakeFeedOutwards()
+        .andThen(Hopper.setFeedOutwards())
+        .andThen(Turret.setFeedReverse())
+        .andThen(Climb.setBrakeReleased())
+        .andThen(Climb.setClimbUp())
+        // Time to dump all fuel
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Hopper.stopFeed())
+        .andThen(Hopper.stopIntakeFeed())
+        .andThen(Hopper.setIntakeIn())
+        // Time for intake to fully raise
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Hopper.setHopperIn())
+        // Time for hopper to fully reverse extension
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Climb.setSupportLowered());
+  }
+
+  public Command startClimbing() {
+    return Climb.setClimbDown()
+        // Time for climb to fully lower
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Climb.setBrakeApplied());
+  }
+
+  public Command stopClimbing() {
+    return Climb.setBrakeReleased()
+        // Time for brake to fully release
+        .andThen(Commands.waitSeconds(1))
+        .andThen(Climb.setClimbUp());
+  }
+
+  public Command endClimb() {
+    return Climb.setSupportRaised()
+        // Time for support to fully raise
+        .andThen(Commands.waitSeconds(1))
+        .andThen(robotStartingCommand());
+  }
   //#endregion
 }

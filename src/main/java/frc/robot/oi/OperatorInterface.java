@@ -6,6 +6,7 @@ import org.prime.control.SupplierXboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.robot.subsystems.swerve.SwerveMap;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.Container;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.Swerve;
@@ -43,12 +44,16 @@ public class OperatorInterface {
                                 .onTrue(swerve.disableAutoAlignCommand());
         }
 
-        public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb, Hopper hopper) {
+        public void bindOperatorControls(Container container, Swerve swerve, Vision vision, Turret turret, Climb climb,
+                        Hopper hopper) {
                 // Changes the vision mode for the rear limelight. 
                 OperatorController.start()
                                 .onTrue(vision.setLimelightPipeline(LimelightNameEnum.kRear, 1))
                                 .onFalse(vision.setLimelightPipeline(LimelightNameEnum.kRear, 0));
 
+                OperatorController.rightTrigger()
+                                .onTrue(container.startShooting())
+                                .onFalse(container.stopShooting());
 
         }
 

@@ -17,4 +17,5 @@ public class TurretInputs {
     //States
     public Turret.FlywheelState FlywheelState = Turret.FlywheelState.STOPPED;
     public Turret.TargetingState TargetingState = Turret.TargetingState.AUTO;
+    public Turret.FeedState FeedState = Turret.FeedState.STOPPED;
 }
