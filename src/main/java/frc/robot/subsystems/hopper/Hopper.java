@@ -3,9 +3,7 @@ package frc.robot.subsystems.hopper;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -14,17 +12,19 @@ import frc.robot.SuperStructure;
 public class Hopper extends SubsystemBase {
     private IHopper _hopper;
 
-    private Trigger _pulseHopperTrigger = new Trigger(() -> SuperStructure.Hopper.hopperState == HopperState.PULSING)
+    @SuppressWarnings("unused")
+    private Trigger _pulseHopperTrigger = new Trigger(
+            () -> SuperStructure.Hopper.ExtensionState == ExtensionState.PULSING)
             .whileTrue(pulseHopperPrivateCommand());
 
-    public enum HopperState { // For extending and retracting Hopper
+    public enum ExtensionState { // For extending and retracting Hopper
         IN,
         OUT,
         OFF,
         PULSING
     }
 
-    public enum FeedState { // For feeding in and out to the shooter
+    public enum TransferFeedState { // For feeding in and out to the shooter
         INWARDS,
         OUTWARDS,
         STOPPED
@@ -50,7 +50,7 @@ public class Hopper extends SubsystemBase {
 
     private void actOnState(HopperInputsAutoLogged inputs) {
         // Feed motor control
-        switch (inputs.feedState) {
+        switch (inputs.TransferFeedState) {
             case INWARDS:
                 _hopper.setFeedSpeed(0.5);
                 break;
@@ -64,7 +64,7 @@ public class Hopper extends SubsystemBase {
         }
 
         // Intake solenoid control
-        switch (inputs.intakeControlState) {
+        switch (inputs.IntakeControlState) {
             case IN:
             default:
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kReverse);
@@ -77,7 +77,7 @@ public class Hopper extends SubsystemBase {
         }
 
         // Intake feed motor control
-        switch (inputs.intakeFeedState) {
+        switch (inputs.IntakeFeedState) {
             case INWARDS:
                 _hopper.setIntakeFeedSpeed(.5);
                 break;
@@ -91,7 +91,7 @@ public class Hopper extends SubsystemBase {
         }
 
         // Hopper solenoid control
-        switch (inputs.hopperState) {
+        switch (inputs.ExtensionState) {
             case IN:
             default:
                 _hopper.setHopper(DoubleSolenoid.Value.kReverse);
@@ -113,70 +113,50 @@ public class Hopper extends SubsystemBase {
         actOnState(SuperStructure.Hopper);
     }
 
-    // Hopper Commands
+    // #region Commands
 
     private Command pulseHopperPrivateCommand() {
-        return this.run(() -> _hopper.setHopper(DoubleSolenoid.Value.kReverse))
+        return this.run(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.IN)
                 .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
-                .andThen(() -> _hopper.setHopper(DoubleSolenoid.Value.kForward))
+                .andThen(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.OUT)
                 .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay));
     }
 
-    public Command setHopperPulse() {
-        return this.runOnce(() -> SuperStructure.Hopper.hopperState = HopperState.PULSING);
+    /**
+     * Sets the hopper solenoid state
+     * @param state The desired hopper state (IN, OUT, OFF, PULSING)
+     * @return Command to set the state
+     */
+    public Command setHopper(ExtensionState state) {
+        return this.runOnce(() -> SuperStructure.Hopper.ExtensionState = state);
     }
 
-    public Command setHopperOut() {
-        return this.runOnce(() -> SuperStructure.Hopper.hopperState = HopperState.OUT);
+    /**
+     * Sets the transfer feed motor state
+     * @param state The desired feed state (INWARDS, OUTWARDS, STOPPED)
+     * @return Command to set the state
+     */
+    public Command setFeed(TransferFeedState state) {
+        return this.runOnce(() -> SuperStructure.Hopper.TransferFeedState = state);
     }
 
-    public Command setHopperIn() {
-        return this.runOnce(() -> SuperStructure.Hopper.hopperState = HopperState.IN);
+    /**
+     * Sets the intake feed motor state
+     * @param state The desired intake feed state (INWARDS, OUTWARDS, STOPPED)
+     * @return Command to set the state
+     */
+    public Command setIntakeFeed(IntakeFeedState state) {
+        return this.runOnce(() -> SuperStructure.Hopper.IntakeFeedState = state);
     }
 
-    public Command setHopperOff() {
-        return this.runOnce(() -> SuperStructure.Hopper.hopperState = HopperState.OFF);
+    /**
+     * Sets the intake solenoid control state
+     * @param state The desired intake control state (IN, OUT, OFF)
+     * @return Command to set the state
+     */
+    public Command setIntakeControl(IntakeControlState state) {
+        return this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = state);
     }
 
-    // Feed Commands
-
-    public Command setFeedInwards() {
-        return this.runOnce(() -> SuperStructure.Hopper.feedState = FeedState.INWARDS);
-    }
-
-    public Command setFeedOutwards() {
-        return this.runOnce(() -> SuperStructure.Hopper.feedState = FeedState.OUTWARDS);
-    }
-
-    public Command stopFeed() {
-        return this.runOnce(() -> SuperStructure.Hopper.feedState = FeedState.STOPPED);
-    }
-
-    // Intake Feed Commands
-
-    public Command setIntakeFeedInwards() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeFeedState = IntakeFeedState.INWARDS);
-    }
-
-    public Command setIntakeFeedOutwards() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeFeedState = IntakeFeedState.OUTWARDS);
-    }
-
-    public Command stopIntakeFeed() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeFeedState = IntakeFeedState.STOPPED);
-    }
-
-    // Intake Control State
-
-    public Command setIntakeIn() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeControlState = IntakeControlState.IN);
-    }
-
-    public Command setIntakeOut() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeControlState = IntakeControlState.OUT);
-    }
-
-    public Command setIntakeOff() {
-        return this.runOnce(() -> SuperStructure.Hopper.intakeControlState = IntakeControlState.OFF);
-    }
+    // #endregion
 }

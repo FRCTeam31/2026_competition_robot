@@ -103,7 +103,7 @@ public class SwerveIOPackager {
     swerveInputs.GyroAccelY = _gyroInputs.AccelerationY;
     swerveInputs.GyroAccelZ = _gyroInputs.AccelerationZ;
 
-    var modulePositions = getModulePositions();
+    // var modulePositions = getModulePositions();
     swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
 
     checkPreferences();

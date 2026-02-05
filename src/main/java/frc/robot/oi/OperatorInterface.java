@@ -44,7 +44,11 @@ public class OperatorInterface {
                                 .onTrue(swerve.disableAutoAlignCommand());
         }
 
-        public void bindOperatorControls(Container container, Swerve swerve, Vision vision, Turret turret, Climb climb,
+        public void bindOperatorControls(
+                        Swerve swerve,
+                        Vision vision,
+                        Turret turret,
+                        Climb climb,
                         Hopper hopper) {
                 // Changes the vision mode for the rear limelight. 
                 OperatorController.start()
@@ -52,8 +56,8 @@ public class OperatorInterface {
                                 .onFalse(vision.setLimelightPipeline(LimelightNameEnum.kRear, 0));
 
                 OperatorController.rightTrigger()
-                                .onTrue(container.startShooting())
-                                .onFalse(container.stopShooting());
+                                .onTrue(Container.startShooting())
+                                .onFalse(Container.stopShooting());
 
         }
 

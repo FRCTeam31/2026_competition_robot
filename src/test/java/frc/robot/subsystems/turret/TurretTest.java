@@ -12,6 +12,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.turret.Turret.FlywheelState;
+import frc.robot.subsystems.turret.Turret.TargetingState;
 
 /**
  * Test suite for the Turret subsystem.
@@ -56,13 +58,13 @@ public class TurretTest {
     public void testFlywheelStateTransitions() {
         SuperStructure.Turret.FlywheelState = Turret.FlywheelState.STOPPED;
 
-        turret.setFlywheelIdle().initialize();
+        turret.setFlywheel(FlywheelState.IDLE).initialize();
         Assertions.assertEquals(Turret.FlywheelState.IDLE, SuperStructure.Turret.FlywheelState);
 
-        turret.setFlywheelShooting().initialize();
+        turret.setFlywheel(FlywheelState.SHOOTING).initialize();
         Assertions.assertEquals(Turret.FlywheelState.SHOOTING, SuperStructure.Turret.FlywheelState);
 
-        turret.stopFlywheel().initialize();
+        turret.setFlywheel(FlywheelState.STOPPED).initialize();
         Assertions.assertEquals(Turret.FlywheelState.STOPPED, SuperStructure.Turret.FlywheelState);
     }
 
@@ -70,24 +72,24 @@ public class TurretTest {
     public void testTargetingStateTransitions() {
         SuperStructure.Turret.TargetingState = Turret.TargetingState.STOPPED;
 
-        turret.setTargetingAuto().initialize();
+        turret.setTargeting(TargetingState.AUTO).initialize();
         Assertions.assertEquals(Turret.TargetingState.AUTO, SuperStructure.Turret.TargetingState);
 
-        turret.setTargetingManual().initialize();
+        turret.setTargeting(TargetingState.MANUAL).initialize();
         Assertions.assertEquals(Turret.TargetingState.MANUAL, SuperStructure.Turret.TargetingState);
 
-        turret.stopTargeting().initialize();
+        turret.setTargeting(TargetingState.STOPPED).initialize();
         Assertions.assertEquals(Turret.TargetingState.STOPPED, SuperStructure.Turret.TargetingState);
     }
 
     @Test
     public void testCommandFactoriesReturnValidCommands() {
-        Assertions.assertNotNull(turret.setFlywheelShooting());
-        Assertions.assertNotNull(turret.setFlywheelIdle());
-        Assertions.assertNotNull(turret.stopFlywheel());
-        Assertions.assertNotNull(turret.setTargetingAuto());
-        Assertions.assertNotNull(turret.setTargetingManual());
-        Assertions.assertNotNull(turret.stopTargeting());
+        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.SHOOTING));
+        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.IDLE));
+        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.STOPPED));
+        Assertions.assertNotNull(turret.setTargeting(TargetingState.AUTO));
+        Assertions.assertNotNull(turret.setTargeting(TargetingState.MANUAL));
+        Assertions.assertNotNull(turret.setTargeting(TargetingState.STOPPED));
     }
 
     // ============================================

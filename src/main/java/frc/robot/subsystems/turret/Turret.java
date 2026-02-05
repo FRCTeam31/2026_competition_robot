@@ -2,7 +2,6 @@ package frc.robot.subsystems.turret;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
-import org.prime.util.PhysicsConstants;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -39,7 +38,7 @@ public class Turret extends SubsystemBase {
         FLYWHEEL_NOT_AT_SPEED
     }
 
-    public enum FeedState {
+    public enum UptakeState {
         FORWARDS,
         REVERSED,
         STOPPED
@@ -50,7 +49,7 @@ public class Turret extends SubsystemBase {
     private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
     private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
     private double _manualFlywheelVelocityRPS;
-    private double _manualYawSpeed;
+    private double _manualYawInput;
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
@@ -126,15 +125,15 @@ public class Turret extends SubsystemBase {
         // TODO: explain
         switch (inputs.TargetingState) {
             case MANUAL:
-                _turret.controlYaw(_yawManualControl.withOutput(_manualYawSpeed));
+                _turret.controlYaw(_yawManualControl.withOutput(_manualYawInput));
                 break;
             case AUTO:
                 var yaw = aimVector.getYaw();
-                yaw += _manualYawSpeed * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+                yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 _turret.controlYaw(_yawControl.withPosition(yaw));
 
-                // TODO: Implement pitch control once CAD finalizes turret
-                var pitch = aimVector.getPitch();
+                // // TODO: Implement pitch control once CAD finalizes turret
+                // var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
                 break;
             case STOPPED:
@@ -186,40 +185,28 @@ public class Turret extends SubsystemBase {
         actOnState(SuperStructure.Turret);
     }
 
-    public Command setFlywheelShooting() {
-        return this.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.SHOOTING);
+    public Command setFlywheel(FlywheelState state) {
+        return this.runOnce(() -> SuperStructure.Turret.FlywheelState = state);
     }
 
-    public Command setFlywheelIdle() {
-        return this.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE);
+    public Command setFlywheelManualSpeedRps(double rps) {
+        return this.runOnce(() -> _manualFlywheelVelocityRPS = rps);
     }
 
-    public Command stopFlywheel() {
-        return this.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.STOPPED);
+    public Command setTargeting(TargetingState state) {
+        return this.runOnce(() -> SuperStructure.Turret.TargetingState = state);
     }
 
-    public Command setTargetingAuto() {
-        return this.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.AUTO);
+    /**
+     * Sets the manual yaw input for turret control. This input is used as a trim multiplier in AUTO targeting mode and as direct control input in MANUAL targeting mode.
+     * @param input
+     * @return
+     */
+    public Command setTargetingManualYawInput(double input) {
+        return this.runOnce(() -> _manualYawInput = input);
     }
 
-    public Command setTargetingManual() {
-        return this.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.MANUAL);
+    public Command setFeed(UptakeState state) {
+        return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
     }
-
-    public Command stopTargeting() {
-        return this.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.STOPPED);
-    }
-
-    public Command setFeedForward() {
-        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.FORWARDS);
-    }
-
-    public Command setFeedReverse() {
-        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.REVERSED);
-    }
-
-    public Command stopFeed() {
-        return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.STOPPED);
-    }
-
 }

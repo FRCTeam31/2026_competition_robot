@@ -3,7 +3,6 @@ package frc.robot;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import frc.robot.subsystems.climb.ClimbInputsAutoLogged;
 import frc.robot.subsystems.hopper.HopperInputsAutoLogged;
 import frc.robot.subsystems.swerve.SwerveSubsystemInputsAutoLogged;

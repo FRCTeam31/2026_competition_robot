@@ -9,6 +9,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Robot;
 
+@SuppressWarnings("unused")
 public class TurretSim implements ITurret {
 
     // Flywheel state
