@@ -26,6 +26,7 @@ import frc.robot.subsystems.hopper.Hopper.ExtensionState;
 import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
+import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
@@ -131,28 +132,58 @@ public class Container {
         .andThen(Hopper.setHopper(ExtensionState.IN))
         // Time for hopper to fully reverse extension
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setSupport(SupportState.LOWERED));
+        .andThen(Climb.setSupport(SupportState.LOWERED))
+        .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
+  /**
+   * Command to run when the robot should start climbing
+   * 
+   * @return Command
+   */
   public static Command startClimbing() {
-    return Climb.setClimb(ClimbState.DOWN)
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
         // Time for climb to fully lower
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setBrake(FrictionBrakeState.APPLIED));
+        .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
+  /**
+   * Command to run when decending after a climb
+   * 
+   * @return Command
+   */
   public static Command stopClimbing() {
-    return Climb.setBrake(FrictionBrakeState.RELEASED)
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DOWN)
+        .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         // Time for brake to fully release
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setClimb(ClimbState.UP));
+        .andThen(Climb.setClimb(ClimbState.UP))
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DONE)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.HAS_CLIMBED)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
-  public static Command endClimb() {
-    return Climb.setSupport(SupportState.RAISED)
+  /**
+   * Resets the robot to the correct state following a climb
+   * 
+   * @return Command
+   */
+  public static Command resetRobotAfterClimb() {
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESETTING)
+        .andThen(Climb.setSupport(SupportState.RAISED))
         // Time for support to fully raise
         .andThen(Commands.waitSeconds(1))
-        .andThen(homeRobotCommand());
+        .andThen(homeRobotCommand())
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESET)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.CLIMBING_DONE ||
+            SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
   //#endregion
 }

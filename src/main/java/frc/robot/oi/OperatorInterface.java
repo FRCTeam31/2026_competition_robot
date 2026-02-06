@@ -6,9 +6,11 @@ import org.prime.control.SupplierXboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.robot.subsystems.swerve.SwerveMap;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.Turret.TargetingState;
 import frc.robot.Container;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.Hopper.ExtensionState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.LimelightNameEnum;
 import frc.robot.subsystems.vision.Vision;
@@ -42,13 +44,22 @@ public class OperatorInterface {
                 // While holding POV up, auto-align the robot to the in-view apriltag target's rotation
                 DriverController.pov(Controls.up)
                                 .onTrue(swerve.disableAutoAlignCommand());
+
+                // TODO: Add rumble and light feedback to different climb states
+                DriverController.start().and(DriverController.pov(Controls.up)).onTrue(Container.setupClimb());
+                DriverController.start().and(DriverController.pov(Controls.left)).onTrue(Container.startClimbing());
+                DriverController.start().and(DriverController.pov(Controls.down)).onTrue(Container.stopClimbing());
+                DriverController.start().and(DriverController.pov(Controls.right))
+                                .onTrue(Container.resetRobotAfterClimb());
+
+                DriverController.x().and(DriverController.pov(Controls.up))
+                                .onTrue(Container.Hopper.setHopper(ExtensionState.OUT));
+                DriverController.x().and(DriverController.pov(Controls.down))
+                                .onTrue(Container.Hopper.setHopper(ExtensionState.IN));
+
         }
 
-        public void bindOperatorControls(
-                        Swerve swerve,
-                        Vision vision,
-                        Turret turret,
-                        Climb climb,
+        public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb,
                         Hopper hopper) {
                 // Changes the vision mode for the rear limelight. 
                 OperatorController.start()
@@ -58,6 +69,15 @@ public class OperatorInterface {
                 OperatorController.rightTrigger()
                                 .onTrue(Container.startShooting())
                                 .onFalse(Container.stopShooting());
+                // Right joystick to aim turret, left joystick to move hood
+                Container._turret.setYawSupplier(OperatorController.getRightStickXSupplier(0.05));
+                Container._turret.setPitchSupplier(OperatorController.getLeftStickYSupplier(0.05));
+
+                // Controls to toggle auto and manual
+                OperatorController.start().and(OperatorController.pov(Controls.up))
+                                .onTrue(Container._turret.setTargeting(TargetingState.AUTO));
+                OperatorController.start().and(OperatorController.pov(Controls.down))
+                                .onTrue(Container._turret.setTargeting(TargetingState.MANUAL));
 
         }
 

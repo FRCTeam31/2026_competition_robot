@@ -1,5 +1,7 @@
 package frc.robot.subsystems.turret;
 
+import java.util.function.DoubleSupplier;
+
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
 
@@ -56,6 +58,10 @@ public class Turret extends SubsystemBase {
     private final MutVector _mutRobotVelocityVector = new MutVector();
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
 
+    // Manual Control Suppliers
+    private DoubleSupplier _yawSupplier;
+    private DoubleSupplier _pitchSupplier;
+
     public Turret(boolean isReal) {
         setName("Turret");
         _turret = isReal ? new TurretReal() : new TurretSim();
@@ -109,6 +115,14 @@ public class Turret extends SubsystemBase {
         }
     }
 
+    public void setYawSupplier(DoubleSupplier supplier) {
+        _yawSupplier = supplier;
+    }
+
+    public void setPitchSupplier(DoubleSupplier supplier) {
+        _pitchSupplier = supplier;
+    }
+
     private void actOnState(TurretInputsAutoLogged inputs) {
         var target = Pose3d.kZero;
         MutVector aimVector = null;
@@ -124,16 +138,20 @@ public class Turret extends SubsystemBase {
 
         // TODO: explain
         switch (inputs.TargetingState) {
+            // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
-                _turret.controlYaw(_yawManualControl.withOutput(_manualYawInput));
+                _turret.controlYaw(
+                        _yawManualControl.withOutput(TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble()));
+
+                // TODO: Limit hood motion based on current angle and max/min angle
+                _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
                 var yaw = aimVector.getYaw();
                 yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 _turret.controlYaw(_yawControl.withPosition(yaw));
 
-                // // TODO: Implement pitch control once CAD finalizes turret
-                // var pitch = aimVector.getPitch();
+                var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
                 break;
             case STOPPED:
