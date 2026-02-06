@@ -49,6 +49,10 @@ public class OperatorInterface {
                 DriverController.start().and(DriverController.pov(Controls.down)).onTrue(Container.stopClimbing());
                 DriverController.start().and(DriverController.pov(Controls.right))
                                 .onTrue(Container.resetRobotAfterClimb());
+
+                DriverController.x().and(DriverController.pov(Controls.up)).onTrue(Container.Hopper.setIntakeOut());
+                DriverController.x().and(DriverController.pov(Controls.down)).onTrue(Container.Hopper.setIntakeIn());
+
         }
 
         public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb,
@@ -61,6 +65,14 @@ public class OperatorInterface {
                 OperatorController.rightTrigger()
                                 .onTrue(Container.startShooting())
                                 .onFalse(Container.stopShooting());
+                // Right joystick to aim turret, left joystick to move hood
+                Container.Turret.setYawSupplier(OperatorController.getRightStickXSupplier(0.05));
+                Container.Turret.setPitchSupplier(OperatorController.getLeftStickYSupplier(0.05));
+                // Controls to toggle auto and manual
+                OperatorController.start().and(OperatorController.pov(Controls.up))
+                                .onTrue(Container.Turret.setTargetingAuto());
+                OperatorController.start().and(OperatorController.pov(Controls.down))
+                                .onTrue(Container.Turret.setTargetingManual());
 
         }
 

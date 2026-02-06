@@ -10,6 +10,7 @@ public class TurretMap {
     public static final int TURRET_ROTATOR_CANID = 0;
     public static final boolean TURRET_ROTATOR_INVERTED = false;
     public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
+    public static final double TURRET_MAX_SPEED = 1;
 
     public static final int FLYWHEEL_LEFT_CANID = 0;
     public static final int FLYWHEEL_RIGHT_CANID = 0;

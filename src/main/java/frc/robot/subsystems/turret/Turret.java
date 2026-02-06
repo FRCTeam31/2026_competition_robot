@@ -1,5 +1,8 @@
 package frc.robot.subsystems.turret;
 
+import java.util.function.DoubleSupplier;
+import java.util.stream.DoubleStream;
+
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
 
@@ -16,6 +19,9 @@ import frc.robot.SuperStructure;
 
 public class Turret extends SubsystemBase {
     private ITurret _turret;
+
+    private DoubleSupplier _yawSupplier;
+    private DoubleSupplier _pitchSupplier;
 
     public enum FlywheelState {
         IDLE,
@@ -98,6 +104,14 @@ public class Turret extends SubsystemBase {
         return _mutNominalTargetVector;
     }
 
+    public void setYawSupplier(DoubleSupplier supplier) {
+        _yawSupplier = supplier;
+    }
+
+    public void setPitchSupplier(DoubleSupplier supplier) {
+        _pitchSupplier = supplier;
+    }
+
     private void actOnState(TurretInputsAutoLogged inputs) {
         var target = Pose3d.kZero;
         MutVector aimVector = null;
@@ -113,15 +127,18 @@ public class Turret extends SubsystemBase {
 
         // TODO: explain
         switch (inputs.TargetingState) {
+            // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
-                _turret.controlYaw(_yawManualControl.withOutput(_manualYawSpeed));
+                _turret.controlYaw(
+                        _yawManualControl.withOutput(TurretMap.TURRET_MAX_SPEED * _yawSupplier.getAsDouble()));
+
+                _turret.controlHood(_pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
                 var yaw = aimVector.getYaw();
                 yaw += _manualYawSpeed * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 _turret.controlYaw(_yawControl.withPosition(yaw));
 
-                // TODO: Implement pitch control once CAD finalizes turret
                 var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
                 break;
@@ -209,5 +226,7 @@ public class Turret extends SubsystemBase {
     public Command stopFeed() {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.STOPPED);
     }
+
+    // These won't go down here
 
 }
