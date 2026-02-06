@@ -1,7 +1,6 @@
 package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
-import java.util.stream.DoubleStream;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
@@ -19,9 +18,6 @@ import frc.robot.SuperStructure;
 
 public class Turret extends SubsystemBase {
     private ITurret _turret;
-
-    private DoubleSupplier _yawSupplier;
-    private DoubleSupplier _pitchSupplier;
 
     public enum FlywheelState {
         IDLE,
@@ -52,6 +48,10 @@ public class Turret extends SubsystemBase {
     private final MutVector _mutNominalTargetVector = new MutVector();
     private final MutVector _mutRobotVelocityVector = new MutVector();
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
+
+    // Manual Control Suppliers
+    private DoubleSupplier _yawSupplier;
+    private DoubleSupplier _pitchSupplier;
 
     public Turret(boolean isReal) {
         setName("Turret");
@@ -130,9 +130,10 @@ public class Turret extends SubsystemBase {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
                 _turret.controlYaw(
-                        _yawManualControl.withOutput(TurretMap.TURRET_MAX_SPEED * _yawSupplier.getAsDouble()));
+                        _yawManualControl.withOutput(TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble()));
 
-                _turret.controlHood(_pitchSupplier.getAsDouble()); // <hood pitch implementation>
+                // TODO: Limit hood motion based on current angle and max/min angle
+                _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
                 var yaw = aimVector.getYaw();
@@ -226,7 +227,4 @@ public class Turret extends SubsystemBase {
     public Command stopFeed() {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = FeedState.STOPPED);
     }
-
-    // These won't go down here
-
 }
