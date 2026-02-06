@@ -26,6 +26,23 @@ public class Climb extends SubsystemBase {
         RELEASED
     }
 
+    /**
+     * Represents the current state in the
+     * climbing process used to restrict climb
+     * commands from running out of order or
+     * at the same time
+     */
+    public enum ClimbControlState {
+        RESET,
+        RESETTING,
+        SETUP_IN_PROGRESS,
+        SETUP_DONE,
+        CLIMBING_UP,
+        HAS_CLIMBED,
+        CLIMBING_DOWN,
+        CLIMBING_DONE
+    }
+
     public Climb(boolean isReal) {
         setName("Climb");
         _climb = isReal ? new ClimbReal() : new ClimbSim();

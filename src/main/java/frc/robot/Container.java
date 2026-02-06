@@ -12,13 +12,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
 import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.Hopper.HopperState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.Vision;
@@ -78,7 +81,7 @@ public class Container {
    * Enables the turret flywheel and sets its feed inwards
    * @return Command
    */
-  public Command startShooting() {
+  public static Command startShooting() {
     return Turret.setFlywheelShooting()
         .andThen(Turret.setFeedForward());
   }
@@ -87,7 +90,7 @@ public class Container {
    * Stop the turret flywheel and feed
    * @return Command
    */
-  public Command stopShooting() {
+  public static Command stopShooting() {
     return Turret.stopFeed()
         .andThen(Turret.setFlywheelIdle());
   }
@@ -97,7 +100,7 @@ public class Container {
    * when starting a match
    * @return Command
    */
-  public Command robotStartingCommand() {
+  public static Command robotStartingCommand() {
     return Hopper.setFeedInwards()
         .andThen(Hopper.setHopperOut())
         // Time for intake to fully extend
@@ -106,8 +109,14 @@ public class Container {
         .andThen(Hopper.setIntakeFeedInwards());
   }
 
-  public Command setupClimb() {
-    return Hopper.setIntakeFeedOutwards()
+  /**
+   * Get the robot in the correct state to begin climbing
+   * 
+   * @return Command
+   */
+  public static Command setupClimb() {
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
+        .andThen(Hopper.setIntakeFeedOutwards())
         .andThen(Hopper.setFeedOutwards())
         .andThen(Turret.setFeedReverse())
         .andThen(Climb.setBrakeReleased())
@@ -122,28 +131,58 @@ public class Container {
         .andThen(Hopper.setHopperIn())
         // Time for hopper to fully reverse extension
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setSupportLowered());
+        .andThen(Climb.setSupportLowered())
+        .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
-  public Command startClimbing() {
-    return Climb.setClimbDown()
+  /**
+   * Command to run when the robot should start climbing
+   * 
+   * @return Command
+   */
+  public static Command startClimbing() {
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
         // Time for climb to fully lower
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setBrakeApplied());
+        .andThen(Climb.setBrakeApplied())
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
-  public Command stopClimbing() {
-    return Climb.setBrakeReleased()
+  /**
+   * Command to run when decending after a climb
+   * 
+   * @return Command
+   */
+  public static Command stopClimbing() {
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DOWN)
+        .andThen(Climb.setBrakeReleased())
         // Time for brake to fully release
         .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setClimbUp());
+        .andThen(Climb.setClimbUp())
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DONE)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.HAS_CLIMBED)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
-  public Command endClimb() {
-    return Climb.setSupportRaised()
+  /**
+   * Resets the robot to the correct state following a climb
+   * 
+   * @return Command
+   */
+  public static Command resetRobotAfterClimb() {
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESETTING)
+        .andThen(Climb.setSupportRaised())
         // Time for support to fully raise
         .andThen(Commands.waitSeconds(1))
-        .andThen(robotStartingCommand());
+        .andThen(robotStartingCommand())
+        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESET)
+        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.CLIMBING_DONE ||
+            SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
   //#endregion
 }

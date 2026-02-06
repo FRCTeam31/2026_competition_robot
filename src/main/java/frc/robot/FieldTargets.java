@@ -24,10 +24,10 @@ public class FieldTargets {
     private static final Pose3d Blue_North_Passing_Position = new Pose3d(); // TODO: add proper coordinates
     private static final Pose3d Blue_South_Passing_Position = new Pose3d(); // TODO: add proper coordinates
 
-    private static final Rectangle2d Blue_Scoring_Zone = new Rectangle2d(null, null); // TODO: add proper coordinates
-    private static final Rectangle2d Red_Scoring_Zone = new Rectangle2d(null, null); // TODO: add proper coordinates
-    private static final Rectangle2d Neutral_North_Zone = new Rectangle2d(null, null); // TODO: add proper coordinates
-    private static final Rectangle2d Neutral_South_Zone = new Rectangle2d(null, null); // TODO: add proper coordinates
+    private static final Rectangle2d Blue_Scoring_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero); // TODO: add proper coordinates
+    private static final Rectangle2d Red_Scoring_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero); // TODO: add proper coordinates
+    private static final Rectangle2d Neutral_North_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero); // TODO: add proper coordinates
+    private static final Rectangle2d Neutral_South_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero); // TODO: add proper coordinates
     private static final Collection<Translation2d> Neutral_Zone_Centers = List.of(
             Neutral_North_Zone.getCenter().getTranslation(),
             Neutral_South_Zone.getCenter().getTranslation());

@@ -42,9 +42,16 @@ public class OperatorInterface {
                 // While holding POV up, auto-align the robot to the in-view apriltag target's rotation
                 DriverController.pov(Controls.up)
                                 .onTrue(swerve.disableAutoAlignCommand());
+
+                // TODO: Add rumble and light feedback to different climb states
+                DriverController.start().and(DriverController.pov(Controls.up)).onTrue(Container.setupClimb());
+                DriverController.start().and(DriverController.pov(Controls.left)).onTrue(Container.startClimbing());
+                DriverController.start().and(DriverController.pov(Controls.down)).onTrue(Container.stopClimbing());
+                DriverController.start().and(DriverController.pov(Controls.right))
+                                .onTrue(Container.resetRobotAfterClimb());
         }
 
-        public void bindOperatorControls(Container container, Swerve swerve, Vision vision, Turret turret, Climb climb,
+        public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb,
                         Hopper hopper) {
                 // Changes the vision mode for the rear limelight. 
                 OperatorController.start()
@@ -52,8 +59,8 @@ public class OperatorInterface {
                                 .onFalse(vision.setLimelightPipeline(LimelightNameEnum.kRear, 0));
 
                 OperatorController.rightTrigger()
-                                .onTrue(container.startShooting())
-                                .onFalse(container.stopShooting());
+                                .onTrue(Container.startShooting())
+                                .onFalse(Container.stopShooting());
 
         }
 
