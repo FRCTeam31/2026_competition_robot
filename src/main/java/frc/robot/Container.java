@@ -123,18 +123,20 @@ public class Container {
     if (state) {
       return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
-          .andThen(Turret.setFeed(UptakeState.FORWARDS));
+          .andThen(Turret.setFeed(UptakeState.FORWARDS))
+          .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
     } else {
       return Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-          .andThen(Turret.setFeed(UptakeState.REVERSED));
+          .andThen(Turret.setFeed(UptakeState.REVERSED))
+          .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
     }
 
   }
 
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(Container.setIntakeStates(false))
+        .andThen(setIntakeStates(false))
         // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
         // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
         // .andThen(Turret.setFeed(UptakeState.REVERSED))
