@@ -47,7 +47,7 @@ public class Container {
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
-  public static Turret _turret;
+  public static Turret Turret;
 
   public static void initialize(boolean isReal) {
     try {
@@ -64,12 +64,12 @@ public class Container {
       Pneumatics = new Pneumatics(isReal);
       Hopper = new Hopper(isReal);
       Climb = new Climb(isReal);
-      _turret = new Turret(isReal);
+      Turret = new Turret(isReal);
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, Vision, _turret, Climb, Hopper);
-      OperatorInterface.bindOperatorControls(Swerve, Vision, _turret, Climb, Hopper);
+      OperatorInterface.bindDriverControls(Swerve, Vision, Turret, Climb, Hopper);
+      OperatorInterface.bindOperatorControls(Swerve, Vision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       NamedCommands.registerCommands(Swerve.getNamedCommands());
@@ -89,8 +89,8 @@ public class Container {
    * @return Command
    */
   public static Command startShooting() {
-    return _turret.setFlywheel(FlywheelState.SHOOTING)
-        .andThen(_turret.setFeed(UptakeState.FORWARDS));
+    return Turret.setFlywheel(FlywheelState.SHOOTING)
+        .andThen(Turret.setFeed(UptakeState.FORWARDS));
   }
 
   /**
@@ -98,8 +98,8 @@ public class Container {
    * @return Command
    */
   public static Command stopShooting() {
-    return _turret.setFeed(UptakeState.STOPPED)
-        .andThen(_turret.setFlywheel(FlywheelState.IDLE));
+    return Turret.setFeed(UptakeState.STOPPED)
+        .andThen(Turret.setFlywheel(FlywheelState.IDLE));
   }
 
   /**
@@ -117,9 +117,10 @@ public class Container {
   }
 
   public static Command setupClimb() {
-    return Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
+        .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
         .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-        .andThen(_turret.setFeed(UptakeState.REVERSED))
+        .andThen(Turret.setFeed(UptakeState.REVERSED))
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         .andThen(Climb.setClimb(ClimbState.UP))
         // Time to dump all fuel
