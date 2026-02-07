@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 
 @AutoLog
@@ -21,4 +22,7 @@ public class TurretInputs {
     public Turret.LockOnState YawLockedOnState = Turret.LockOnState.YAW_NOT_LOCKED_ON;
     public Turret.LockOnState FlywheelSpeedState = Turret.LockOnState.FLYWHEEL_NOT_AT_SPEED;
     public Turret.UptakeState FeedState = Turret.UptakeState.STOPPED;
+
+    // Targets
+    public Translation3d targetVector = Translation3d.kZero;
 }

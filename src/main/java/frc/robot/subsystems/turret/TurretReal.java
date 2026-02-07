@@ -138,7 +138,6 @@ public class TurretReal implements ITurret {
         inputs.TurretRotation = getTurretRotation();
         inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
-
     }
 
     private Rotation2d getTurretRotation() {

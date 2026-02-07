@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -198,6 +199,10 @@ public class Turret extends SubsystemBase {
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
+        // TODO: Currently in field relative, possibly change later
+        SuperStructure.Turret.targetVector = _mutNominalTargetVector.getTranslation3d()
+                .plus(new Translation3d(SuperStructure.Swerve.EstimatedRobotPose.getTranslation()));
+
         Logger.processInputs(getName(), SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);

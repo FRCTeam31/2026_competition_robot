@@ -1,6 +1,7 @@
 package org.prime.util;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Time;
 import frc.robot.subsystems.turret.TurretMap;
@@ -239,5 +240,10 @@ public class MutVector {
         }
 
         return Units.Seconds.of(distanceToTarget / horizontalVelocity);
+    }
+
+    // TODO: Add unit tests
+    public Translation3d getTranslation3d() {
+        return new Translation3d(_x, _y, _z);
     }
 }

@@ -4,6 +4,8 @@ import org.prime.control.Controls;
 import org.prime.control.HolonomicControlStyle;
 import org.prime.control.SupplierXboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveMap;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.TargetingState;
@@ -46,11 +48,16 @@ public class OperatorInterface {
                                 .onTrue(swerve.disableAutoAlignCommand());
 
                 // TODO: Add rumble and light feedback to different climb states
-                DriverController.start().and(DriverController.pov(Controls.up)).onTrue(Container.setupClimb());
-                DriverController.start().and(DriverController.pov(Controls.left)).onTrue(Container.startClimbing());
-                DriverController.start().and(DriverController.pov(Controls.down)).onTrue(Container.stopClimbing());
+                // TODO: Figure out why the rumble is not working
+                DriverController.start().and(DriverController.pov(Controls.up))
+                                .onTrue(Container.setupClimb().andThen(rumbleControllerShort(DriverController)));
+                DriverController.start().and(DriverController.pov(Controls.left))
+                                .onTrue(Container.startClimbing().andThen(rumbleControllerShort(DriverController)));
+                DriverController.start().and(DriverController.pov(Controls.down))
+                                .onTrue(Container.stopClimbing().andThen(rumbleControllerShort(DriverController)));
                 DriverController.start().and(DriverController.pov(Controls.right))
-                                .onTrue(Container.resetRobotAfterClimb());
+                                .onTrue(Container.resetRobotAfterClimb()
+                                                .andThen(rumbleControllerShort(DriverController)));
 
                 DriverController.x().and(DriverController.pov(Controls.up))
                                 .onTrue(Container.Hopper.setHopper(ExtensionState.OUT));
@@ -81,8 +88,14 @@ public class OperatorInterface {
 
         }
 
-        public void setDriverRumbleIntensity(double intensity) {
+        public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {
                 DriverController.setRumble(RumbleType.kBothRumble, intensity);
+        }
+
+        public Command rumbleControllerShort(SupplierXboxController controller) {
+                return Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 1))
+                                .andThen(Commands.waitSeconds(0.2))
+                                .andThen(Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 0)));
         }
 
 }

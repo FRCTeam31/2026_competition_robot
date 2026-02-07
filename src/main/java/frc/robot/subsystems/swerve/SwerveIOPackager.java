@@ -104,6 +104,8 @@ public class SwerveIOPackager {
     swerveInputs.GyroAccelZ = _gyroInputs.AccelerationZ;
 
     // var modulePositions = getModulePositions();
+    // Update pose estimator and set logged pose
+    m_poseEstimator.update(_gyroInputs.Rotation, getModulePositions());
     swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
 
     checkPreferences();
