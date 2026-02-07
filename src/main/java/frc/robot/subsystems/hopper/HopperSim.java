@@ -2,6 +2,7 @@ package frc.robot.subsystems.hopper;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
+@SuppressWarnings("unused")
 public class HopperSim implements IHopper {
 
     private DoubleSolenoid.Value _hopperState = DoubleSolenoid.Value.kOff;
@@ -10,7 +11,8 @@ public class HopperSim implements IHopper {
     private double _feedRollersSpeed = 0;
     private double _intakeFeedSpeed = 0;
 
-    public HopperSim() {}
+    public HopperSim() {
+    }
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {

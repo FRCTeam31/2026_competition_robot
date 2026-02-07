@@ -3,12 +3,8 @@ package frc.robot.dashboard;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
-
 import frc.robot.Robot;
 
 import java.util.ArrayList;
@@ -25,7 +21,7 @@ public class TeleopDashboardTab extends DashboardSection {
         private BooleanEvent _frontPoseEstimationEvent = null;
         private final String _rearPoseEstimationSwitchName = "R Pose Est.";
         private BooleanEvent _rearPoseEstimationEvent = null;
-        
+
         public TeleopDashboardTab() {
                 super("Driver");
 
@@ -38,7 +34,6 @@ public class TeleopDashboardTab extends DashboardSection {
                 _fieldWidget = new Field2d();
                 putData(_fieldName, _fieldWidget);
         }
-
 
         public void setFieldRobotPose(Pose2d pose) {
                 _fieldWidget.setRobotPose(pose);

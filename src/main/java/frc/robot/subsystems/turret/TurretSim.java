@@ -7,9 +7,9 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.measure.MutAngularVelocity;
 import frc.robot.Robot;
 
+@SuppressWarnings("unused")
 public class TurretSim implements ITurret {
 
     // Flywheel state
@@ -29,7 +29,8 @@ public class TurretSim implements ITurret {
     private static final double TURRET_CRUISE_VELOCITY_RPS = 100.0 / TurretMap.TURRET_GEAR_RATIO;
     private static final double TURRET_ACCELERATION_RPS2 = 200.0 / TurretMap.TURRET_GEAR_RATIO;
 
-    public TurretSim() {}
+    public TurretSim() {
+    }
 
     /**
      * Call this each cycle from simulationPeriodic to advance turret position.

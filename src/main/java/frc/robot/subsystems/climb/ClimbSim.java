@@ -12,13 +12,15 @@ public class ClimbSim implements IClimb {
     private boolean _lowerLimitSwitch = false;
 
     private DoubleSolenoid.Value _frictionBrakeState = DoubleSolenoid.Value.kOff;
+    @SuppressWarnings("unused")
     private DoubleSolenoid.Value _supportState = DoubleSolenoid.Value.kOff;
 
     // Simulate position bounds for limit switches
     private static final double MAX_POSITION = 1.0; // Adjust to match physical range
     private static final double MIN_POSITION = 0.0;
 
-    public ClimbSim() {}
+    public ClimbSim() {
+    }
 
     /**
      * Call this in your sim loop (e.g. from the subsystem's simulationPeriodic).

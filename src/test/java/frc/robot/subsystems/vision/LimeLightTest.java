@@ -13,7 +13,6 @@ import org.mockito.MockedStatic;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -120,21 +119,10 @@ class LimeLightTest {
     //#region Blink LED Tests
 
     @Test
-    void testBlinkLedDoesNotThrowException() {
-        assertDoesNotThrow(() -> limelight.blinkLed(3),
-                "blinkLed should not throw exception");
-    }
-
-    @Test
-    void testBlinkLedZeroCount() {
-        assertDoesNotThrow(() -> limelight.blinkLed(0),
-                "blinkLed with 0 count should not throw exception");
-    }
-
-    @Test
-    void testBlinkLedLargeCount() {
-        assertDoesNotThrow(() -> limelight.blinkLed(100),
-                "blinkLed with large count should not throw exception");
+    void testBlinkLed_HandlesVariousCounts() {
+        assertDoesNotThrow(() -> limelight.blinkLed(0), "blinkLed with 0 count should not throw");
+        assertDoesNotThrow(() -> limelight.blinkLed(3), "blinkLed with normal count should not throw");
+        assertDoesNotThrow(() -> limelight.blinkLed(100), "blinkLed with large count should not throw");
     }
 
     //#endregion
@@ -289,120 +277,53 @@ class LimeLightTest {
     //#region Targeting Data Tests
 
     @Test
-    void testGetHorizontalOffsetFromTarget() {
-        double expectedDegrees = 15.5;
-        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedDegrees);
+    void testGetHorizontalOffsetFromTarget_HandlesVariousValues() {
+        // Test positive value
+        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME)).thenReturn(15.5);
+        assertEquals(15.5, limelight.getHorizontalOffsetFromTarget().getDegrees(), 0.001);
 
-        Rotation2d result = limelight.getHorizontalOffsetFromTarget();
+        // Test negative value
+        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME)).thenReturn(-20.3);
+        assertEquals(-20.3, limelight.getHorizontalOffsetFromTarget().getDegrees(), 0.001);
 
-        assertEquals(expectedDegrees, result.getDegrees(), 0.001,
-                "Horizontal offset should match mocked value");
+        // Test zero
+        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME)).thenReturn(0.0);
+        assertEquals(0.0, limelight.getHorizontalOffsetFromTarget().getDegrees(), 0.001);
     }
 
     @Test
-    void testGetHorizontalOffsetFromTargetNegative() {
-        double expectedDegrees = -20.3;
-        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedDegrees);
+    void testGetVerticalOffsetFromTarget_HandlesVariousValues() {
+        // Test positive value
+        mockHelpers.when(() -> LimelightHelpers.getTY(TEST_LIMELIGHT_NAME)).thenReturn(10.7);
+        assertEquals(10.7, limelight.getVerticalOffsetFromTarget().getDegrees(), 0.001);
 
-        Rotation2d result = limelight.getHorizontalOffsetFromTarget();
-
-        assertEquals(expectedDegrees, result.getDegrees(), 0.001,
-                "Horizontal offset should handle negative values");
+        // Test negative value
+        mockHelpers.when(() -> LimelightHelpers.getTY(TEST_LIMELIGHT_NAME)).thenReturn(-15.2);
+        assertEquals(-15.2, limelight.getVerticalOffsetFromTarget().getDegrees(), 0.001);
     }
 
     @Test
-    void testGetHorizontalOffsetFromTargetZero() {
-        mockHelpers.when(() -> LimelightHelpers.getTX(TEST_LIMELIGHT_NAME))
-                .thenReturn(0.0);
+    void testGetTargetArea_HandlesVariousValues() {
+        // Normal value
+        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME)).thenReturn(25.5);
+        assertEquals(25.5, limelight.getTargetArea(), 0.001);
 
-        Rotation2d result = limelight.getHorizontalOffsetFromTarget();
+        // Zero (no target)
+        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME)).thenReturn(0.0);
+        assertEquals(0.0, limelight.getTargetArea(), 0.001);
 
-        assertEquals(0.0, result.getDegrees(), 0.001,
-                "Horizontal offset should handle zero");
+        // Maximum
+        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME)).thenReturn(100.0);
+        assertEquals(100.0, limelight.getTargetArea(), 0.001);
     }
 
     @Test
-    void testGetVerticalOffsetFromTarget() {
-        double expectedDegrees = 10.7;
-        mockHelpers.when(() -> LimelightHelpers.getTY(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedDegrees);
+    void testGetLatencies() {
+        mockHelpers.when(() -> LimelightHelpers.getLatency_Pipeline(TEST_LIMELIGHT_NAME)).thenReturn(11.5);
+        assertEquals(11.5, limelight.getPipelineLatencyMs(), 0.001);
 
-        Rotation2d result = limelight.getVerticalOffsetFromTarget();
-
-        assertEquals(expectedDegrees, result.getDegrees(), 0.001,
-                "Vertical offset should match mocked value");
-    }
-
-    @Test
-    void testGetVerticalOffsetFromTargetNegative() {
-        double expectedDegrees = -15.2;
-        mockHelpers.when(() -> LimelightHelpers.getTY(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedDegrees);
-
-        Rotation2d result = limelight.getVerticalOffsetFromTarget();
-
-        assertEquals(expectedDegrees, result.getDegrees(), 0.001,
-                "Vertical offset should handle negative values");
-    }
-
-    @Test
-    void testGetTargetArea() {
-        double expectedArea = 25.5;
-        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedArea);
-
-        double result = limelight.getTargetArea();
-
-        assertEquals(expectedArea, result, 0.001,
-                "Target area should match mocked value");
-    }
-
-    @Test
-    void testGetTargetAreaZero() {
-        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME))
-                .thenReturn(0.0);
-
-        double result = limelight.getTargetArea();
-
-        assertEquals(0.0, result, 0.001,
-                "Target area should handle zero (no target)");
-    }
-
-    @Test
-    void testGetTargetAreaMaximum() {
-        mockHelpers.when(() -> LimelightHelpers.getTA(TEST_LIMELIGHT_NAME))
-                .thenReturn(100.0);
-
-        double result = limelight.getTargetArea();
-
-        assertEquals(100.0, result, 0.001,
-                "Target area should handle maximum value");
-    }
-
-    @Test
-    void testGetPipelineLatencyMs() {
-        double expectedLatency = 11.5;
-        mockHelpers.when(() -> LimelightHelpers.getLatency_Pipeline(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedLatency);
-
-        double result = limelight.getPipelineLatencyMs();
-
-        assertEquals(expectedLatency, result, 0.001,
-                "Pipeline latency should match mocked value");
-    }
-
-    @Test
-    void testGetCapturePipelineLatencyMs() {
-        double expectedLatency = 5.3;
-        mockHelpers.when(() -> LimelightHelpers.getLatency_Capture(TEST_LIMELIGHT_NAME))
-                .thenReturn(expectedLatency);
-
-        double result = limelight.getCapturePipelineLatencyMs();
-
-        assertEquals(expectedLatency, result, 0.001,
-                "Capture latency should match mocked value");
+        mockHelpers.when(() -> LimelightHelpers.getLatency_Capture(TEST_LIMELIGHT_NAME)).thenReturn(5.3);
+        assertEquals(5.3, limelight.getCapturePipelineLatencyMs(), 0.001);
     }
 
     //#endregion
@@ -433,14 +354,7 @@ class LimeLightTest {
     //#region Resource Management Tests
 
     @Test
-    void testCloseDoesNotThrowException() {
-        LimeLight ll = new LimeLight("test");
-        assertDoesNotThrow(() -> ll.close(),
-                "close() should not throw exception");
-    }
-
-    @Test
-    void testMultipleCloseCallsDoNotThrowException() {
+    void testClose_HandlesMultipleCalls() {
         LimeLight ll = new LimeLight("test");
         assertDoesNotThrow(() -> {
             ll.close();

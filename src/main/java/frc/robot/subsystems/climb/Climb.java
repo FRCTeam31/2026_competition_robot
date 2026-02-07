@@ -80,37 +80,34 @@ public class Climb extends SubsystemBase {
         actOnState(SuperStructure.Climb);
     }
 
-    // Climb Commands
+    // #region Commands
 
-    public Command setClimbUp() {
-        return this.runOnce(() -> SuperStructure.Climb.climbState = ClimbState.UP);
+    /**
+     * Sets the climb motor state
+     * @param state The desired climb state (UP, DOWN, STOPPED)
+     * @return Command to set the state
+     */
+    public Command setClimb(ClimbState state) {
+        return this.runOnce(() -> SuperStructure.Climb.climbState = state);
     }
 
-    public Command setClimbDown() {
-        return this.runOnce(() -> SuperStructure.Climb.climbState = ClimbState.DOWN);
+    /**
+     * Sets the support solenoid state
+     * @param state The desired support state (RAISED, LOWERED)
+     * @return Command to set the state
+     */
+    public Command setSupport(SupportState state) {
+        return this.runOnce(() -> SuperStructure.Climb.supportState = state);
     }
 
-    public Command stopClimb() {
-        return this.runOnce(() -> SuperStructure.Climb.climbState = ClimbState.STOPPED);
+    /**
+     * Sets the friction brake state
+     * @param state The desired brake state (APPLIED, RELEASED)
+     * @return Command to set the state
+     */
+    public Command setBrake(FrictionBrakeState state) {
+        return this.runOnce(() -> SuperStructure.Climb.frictionBrakeState = state);
     }
 
-    // Support Commands
-
-    public Command setSupportRaised() {
-        return this.runOnce(() -> SuperStructure.Climb.supportState = SupportState.RAISED);
-    }
-
-    public Command setSupportLowered() {
-        return this.runOnce(() -> SuperStructure.Climb.supportState = SupportState.LOWERED);
-    }
-
-    // Friction Brake Commands
-
-    public Command setBrakeApplied() {
-        return this.runOnce(() -> SuperStructure.Climb.frictionBrakeState = FrictionBrakeState.APPLIED);
-    }
-
-    public Command setBrakeReleased() {
-        return this.runOnce(() -> SuperStructure.Climb.frictionBrakeState = FrictionBrakeState.RELEASED);
-    }
+    // #endregion
 }
