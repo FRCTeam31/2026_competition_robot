@@ -48,7 +48,7 @@ public class OperatorInterface {
                                 .onTrue(swerve.disableAutoAlignCommand());
 
                 // TODO: Add rumble and light feedback to different climb states
-                // TODO: Figure out why the rumble is not working
+                // TODO: Figure out why the rumble is not WORKING
                 DriverController.start().and(DriverController.pov(Controls.up))
                                 .onTrue(Container.setupClimb().andThen(rumbleControllerShort(DriverController)));
                 DriverController.start().and(DriverController.pov(Controls.left))
@@ -63,6 +63,9 @@ public class OperatorInterface {
                                 .onTrue(Container.Hopper.setHopper(ExtensionState.OUT));
                 DriverController.x().and(DriverController.pov(Controls.down))
                                 .onTrue(Container.Hopper.setHopper(ExtensionState.IN));
+
+                DriverController.start().and(DriverController.rightBumper()).and(DriverController.leftBumper())
+                                .onTrue(Container.setIntakeStates(false)).onFalse(Container.setIntakeStates(true));
 
         }
 

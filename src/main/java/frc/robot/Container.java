@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.text.BreakIterator;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -116,11 +118,26 @@ public class Container {
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
   }
 
+  public static Command setIntakeStates(Boolean state) {
+
+    if (state) {
+      return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
+          .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
+          .andThen(Turret.setFeed(UptakeState.FORWARDS));
+    } else {
+      return Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+          .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
+          .andThen(Turret.setFeed(UptakeState.REVERSED));
+    }
+
+  }
+
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
-        .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-        .andThen(Turret.setFeed(UptakeState.REVERSED))
+        .andThen(Container.setIntakeStates(false))
+        // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
+        // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
+        // .andThen(Turret.setFeed(UptakeState.REVERSED))
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         .andThen(Climb.setClimb(ClimbState.UP))
         // Time to dump all fuel
