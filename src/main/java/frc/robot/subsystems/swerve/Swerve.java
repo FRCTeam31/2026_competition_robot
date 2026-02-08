@@ -248,7 +248,8 @@ public class Swerve extends SubsystemBase {
         SuperStructure.Swerve.GyroAccelZ,
         SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond,
         SwerveMap.Chassis.MaxSpeedMetersPerSecond);
-    Container.OperatorInterface.setDriverRumbleIntensity(_rumbleHelper.getRumbleIntensity());
+    Container.OperatorInterface.setControllerRumbleIntensity(Container.OperatorInterface.DriverController,
+        _rumbleHelper.getRumbleIntensity());
   }
 
   // #region Commands

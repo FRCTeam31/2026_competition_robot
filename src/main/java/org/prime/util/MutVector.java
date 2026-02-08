@@ -1,5 +1,11 @@
 package org.prime.util;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Time;
+import frc.robot.subsystems.turret.TurretMap;
+
 /**
  * Vector object that permanently changes with addition and subtraction.
  * Can be fully set to a new vector with a single call.
@@ -85,10 +91,13 @@ public class MutVector {
 
     /**
      * Gets the pitch of the Vector
-     * @return The pitch 
+     * @return The pitch (0 for zero-magnitude vectors)
      */
     public double getPitch() {
-        return _x == 0 && _y == 0 ? 0 : Math.toDegrees(Math.atan(_z / Math.sqrt(Math.pow(_x, 2) + Math.pow(_y, 2))));
+        double magnitude = getMagnitude();
+        if (magnitude == 0)
+            return 0; // Undefined for zero vector, return 0
+        return Math.toDegrees(Math.acos(_z / magnitude));
     }
 
     /**
@@ -96,7 +105,7 @@ public class MutVector {
      * @return The yaw 
      */
     public double getYaw() {
-        return _x == 0 ? 0 : Math.toDegrees(Math.atan(_y / _x));
+        return Math.toDegrees(Math.atan2(_y, _x));
     }
 
     /**
@@ -181,4 +190,60 @@ public class MutVector {
         return this.fromCartesian(x, y, z);
     }
 
+    /**
+     * Sets the vector to shoot from a source pose to a target pose
+     * @param sourcePose The source pose
+     * @param targetPose The target pose
+     * @param minAngle The minimum angle of the projectile
+     * @param maxAngle The maximum angle of the projectile
+     * @param minSpeed The minimum speed of the projectile
+     * @param maxSpeed The maximum speed of the projectile
+     * @throws Exception If no valid shot solution is found
+     */
+    public void setToTargetVector(Pose3d sourcePose, Pose3d targetPose, double minAngle, double maxAngle,
+            double minSpeed, double maxSpeed) throws Exception {
+        var deltaX = targetPose.getX() - sourcePose.getX();
+        var deltaY = targetPose.getY() - sourcePose.getY();
+
+        var yaw = Math.toDegrees(Math.atan2(deltaY, deltaX));
+
+        var distance = Math.hypot(deltaX, deltaY);
+        var deltaH = (targetPose.getZ() + TurretMap.HUB_OVERSHOOT_HEIGHT) - TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+
+        var foundSolution = false;
+        for (double angle = maxAngle; angle >= minAngle; angle -= 0.5) {
+            double angleRad = Math.toRadians(angle);
+            double vSquared = (PhysicsConstants.GRAVITY * 2d) /
+                    (2 * (distance * Math.sin(angleRad) * Math.cos(angleRad)
+                            - deltaH * Math.cos(angleRad) * Math.cos(angleRad)));
+
+            if (vSquared > 0) {
+                double v = Math.sqrt(vSquared);
+                if (v <= maxSpeed && v >= minSpeed) {
+                    foundSolution = true;
+                    setPolar(v, angle, yaw);
+                    break;
+                }
+            }
+        }
+
+        if (!foundSolution) {
+            throw new Exception("No valid shot solution found");
+        }
+    }
+
+    public Time getTimeToTarget(double distanceToTarget) {
+        double horizontalVelocity = Math.sqrt(Math.pow(_x, 2) + Math.pow(_y, 2));
+
+        if (horizontalVelocity == 0) {
+            return Units.Seconds.of(-1);
+        }
+
+        return Units.Seconds.of(distanceToTarget / horizontalVelocity);
+    }
+
+    // TODO: Add unit tests
+    public Translation3d getTranslation3d() {
+        return new Translation3d(_x, _y, _z);
+    }
 }
