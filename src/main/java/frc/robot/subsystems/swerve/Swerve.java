@@ -24,6 +24,7 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.photon.PhotonVision;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -180,13 +181,14 @@ public class Swerve extends SubsystemBase {
       return;
     }
 
-    evaluatePoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(PhotonVision.DefaultCameraName));
   }
 
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluatePoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
+  private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;

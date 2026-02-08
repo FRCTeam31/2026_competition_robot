@@ -13,6 +13,7 @@ import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
 
 public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
+    public static final String DefaultCameraName = "PhotonVision";
     private Map<String, PhotonVisionCamera> _cameras = new HashMap<>();
 
     public PhotonVision() {
