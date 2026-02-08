@@ -17,7 +17,9 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.vision.helpers.LimelightHelpers;
+import frc.robot.subsystems.vision.limelight.LimeLightCamera;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers;
 
 /**
  * Unit tests for the LimeLight class.

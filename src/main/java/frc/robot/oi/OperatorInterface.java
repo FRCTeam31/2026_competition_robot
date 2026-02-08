@@ -14,8 +14,8 @@ import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.ExtensionState;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.vision.LimelightVision;
 import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightVision;
 
 public class OperatorInterface {
         public static class OIMap {

@@ -1,10 +1,10 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.limelight;
 
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.subsystems.vision.helpers.LimelightResults;
-import frc.robot.subsystems.vision.helpers.PoseEstimate;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightResults;
+import frc.robot.subsystems.vision.limelight.helpers.PoseEstimate;
 
 @AutoLog
 public class LimelightCameraInputs {

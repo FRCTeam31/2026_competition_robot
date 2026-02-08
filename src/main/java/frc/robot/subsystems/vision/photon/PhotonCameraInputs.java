@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.photon;
 
 import org.littletonrobotics.junction.AutoLog;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -11,6 +11,7 @@ public class PhotonCameraInputs {
 
     public PhotonPipelineResult LatestResult = new PhotonPipelineResult();
 
+    public int TargetCount = 0;
     /**
      * Target pitch and yaw angles (pitch, yaw, roll format)
      */

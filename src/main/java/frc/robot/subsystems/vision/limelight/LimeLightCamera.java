@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.limelight;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.vision.helpers.LimelightHelpers;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers;
 
 public class LimeLightCamera implements AutoCloseable {
     private String _limelightName;

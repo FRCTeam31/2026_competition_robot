@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.photon;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.vision.IVisionSubsystem;
 
 public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
     private Map<String, PhotonVisionCamera> _cameras = new HashMap<>();

@@ -20,8 +20,10 @@ import frc.robot.Container;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
-import frc.robot.subsystems.vision.LimelightCameraInputs;
 import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -169,9 +171,9 @@ public class Swerve extends SubsystemBase {
     var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond);
     var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond);
 
-    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60))
-        && currentXVelocity.lt(MetersPerSecond.of(2))
-        && currentYVelocity.lt(MetersPerSecond.of(2));
+    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60)) &&
+        currentXVelocity.lt(MetersPerSecond.of(2)) &&
+        currentYVelocity.lt(MetersPerSecond.of(2));
 
     Logger.recordOutput(getName() + "/withinPoseEstimationVelocity", withinPoseEstimationVelocity);
     if (!withinPoseEstimationVelocity) {
@@ -184,7 +186,7 @@ public class Swerve extends SubsystemBase {
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluatePoseEstimation(LimelightCameraInputs llInputs) {
+  private void evaluatePoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;
@@ -207,6 +209,17 @@ public class Swerve extends SubsystemBase {
         VecBuilder.fill(.5, .5, 9999999));
   }
 
+  private void evaluatePhotonPoseEstimation(PhotonCameraInputsAutoLogged photonInputs) {
+    // If no targets in view, reject the update
+    if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
+      return;
+
+    _swervePackager.addPoseEstimatorVisionMeasurement(
+        photonInputs.BotPoseEstimate,
+        photonInputs.TimestampSeconds,
+        VecBuilder.fill(.5, .5, 9999999));
+  }
+
   // #endregion
 
   /**
@@ -221,6 +234,7 @@ public class Swerve extends SubsystemBase {
 
     processVisionEstimations();
     Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
+    Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
 
     // Update LEDs
     Logger.recordOutput(getName() + "/autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
@@ -231,11 +245,7 @@ public class Swerve extends SubsystemBase {
       Logger.recordOutput(getName() + "/pp-translation-error", _primeHolonomicController.getTranslationError());
     }
 
-    // Update shuffleboard
-    if (DriverStation.isEnabled()) {
-      Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-      Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
-    }
+    // Update dashboard
     Logger.recordOutput(getName() + "/estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
     _drivetrainDashboardSection.setAutoAlignEnabled(SuperStructure.Swerve.UseAutoAlign);
     _drivetrainDashboardSection.setAutoAlignTarget(_autoAlign.getSetpoint());

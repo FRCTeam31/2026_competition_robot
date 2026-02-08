@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.photon;
 
 import java.util.Optional;
 
@@ -27,6 +27,7 @@ public class PhotonVisionCamera {
         inputs.LatestResult = _cam.getLatestResult();
 
         if (inputs.LatestResult.hasTargets()) {
+            inputs.TargetCount = inputs.LatestResult.getTargets().size();
             var target = inputs.LatestResult.getBestTarget();
             inputs.TargetPitch = target.getPitch();
             inputs.TargetYaw = target.getYaw();
@@ -36,8 +37,10 @@ public class PhotonVisionCamera {
                 visionEst = _photonEstimator.estimateLowestAmbiguityPose(inputs.LatestResult);
             }
 
-            visionEst.ifPresent(e -> {
+            visionEst.ifPresentOrElse(e -> {
                 inputs.BotPoseEstimate = e.estimatedPose.toPose2d();
+            }, () -> {
+                inputs.BotPoseEstimate = null;
             });
 
             inputs.TimestampSeconds = inputs.LatestResult.getTimestampSeconds();

@@ -7,8 +7,8 @@ import frc.robot.subsystems.climb.ClimbInputsAutoLogged;
 import frc.robot.subsystems.hopper.HopperInputsAutoLogged;
 import frc.robot.subsystems.swerve.SwerveSubsystemInputsAutoLogged;
 import frc.robot.subsystems.turret.TurretInputsAutoLogged;
-import frc.robot.subsystems.vision.LimelightCameraInputsAutoLogged;
-import frc.robot.subsystems.vision.PhotonCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 public class SuperStructure {
     public static SwerveSubsystemInputsAutoLogged Swerve = new SwerveSubsystemInputsAutoLogged();

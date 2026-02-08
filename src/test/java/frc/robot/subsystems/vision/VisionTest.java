@@ -14,6 +14,8 @@ import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.vision.limelight.LimeLightCamera;
+import frc.robot.subsystems.vision.limelight.LimelightVision;
 
 /**
  * Unit tests for the Vision subsystem.

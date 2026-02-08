@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision.helpers;
+package frc.robot.subsystems.vision.limelight.helpers;
 
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
