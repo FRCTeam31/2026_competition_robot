@@ -3,6 +3,10 @@ package frc.robot.subsystems;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.prime.dashboard.Elastic;
+import org.prime.dashboard.Elastic.Notification;
+import org.prime.dashboard.Elastic.NotificationLevel;
+
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -15,7 +19,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Elastic;
 
 public class PwmLEDs extends SubsystemBase {
     public static class LEDMap {
@@ -83,7 +86,8 @@ public class PwmLEDs extends SubsystemBase {
     private void updateLedStrip() {
         // If we've failed too many times, stop the loop and alert the user
         if (_loopErrorCounter > LEDMap.MaxLoopErrorsBeforeShutdown) {
-            Elastic.sendError("LEDs Failed", "Update loop has failed 3 times. Stopping loop.");
+            Elastic.sendNotification(new Notification(NotificationLevel.ERROR, "LEDs Failed",
+                    "Update loop has failed 3 times. Stopping loop."));
             stopUpdateLoop();
         }
 

@@ -17,8 +17,8 @@ public class SuperStructure {
 
     public static TurretInputsAutoLogged Turret = new TurretInputsAutoLogged();
 
+    public static ClimbInputsAutoLogged Climb = new ClimbInputsAutoLogged();
+
     public static Map<String, LimelightCameraInputsAutoLogged> VisionLimelights = new HashMap<>();
     public static Map<String, PhotonCameraInputsAutoLogged> VisionPhotons = new HashMap<>();
-
-    public static ClimbInputsAutoLogged Climb = new ClimbInputsAutoLogged();
 }

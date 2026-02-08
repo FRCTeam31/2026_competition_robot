@@ -10,6 +10,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.prime.dashboard.Elastic;
 import org.prime.util.BuildConstants;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
