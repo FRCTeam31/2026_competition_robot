@@ -146,7 +146,8 @@ public class Container {
    */
   public static Command startClimbing() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
-        // Time for climb to fully lower
+        .andThen(Climb.setClimb(ClimbState.DOWN))
+         // Time for climb to fully lower
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
         .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
@@ -177,6 +178,7 @@ public class Container {
    */
   public static Command resetRobotAfterClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESETTING)
+        .andThen(Climb.setClimb(ClimbState.DOWN))
         .andThen(Climb.setSupport(SupportState.RAISED))
         // Time for support to fully raise
         .andThen(Commands.waitSeconds(1))

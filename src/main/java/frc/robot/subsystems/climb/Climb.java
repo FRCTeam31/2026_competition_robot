@@ -1,5 +1,8 @@
 package frc.robot.subsystems.climb;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.littletonrobotics.junction.Logger;
 
@@ -7,8 +10,13 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SuperStructure;
 
+import org.prime.util.SubsystemMechanism;
+
 public class Climb extends SubsystemBase {
     private IClimb _climb;
+    private SubsystemMechanism _mechanism = new SubsystemMechanism(
+            () -> new Pose3d(SuperStructure.Swerve.EstimatedRobotPose)
+    );
 
     public enum ClimbState {
         UP,
@@ -46,6 +54,27 @@ public class Climb extends SubsystemBase {
     public Climb(boolean isReal) {
         setName("Climb");
         _climb = isReal ? new ClimbReal() : new ClimbSim();
+
+        initMechanism();
+    }
+
+    private void initMechanism() {
+        _mechanism.createMechanism(2,3);
+        _mechanism.createRoot("ClimbRoot", 0, 0);
+
+        _mechanism.appendLigament(
+                "Climb",
+                0.8,
+                0,
+                () -> {
+                    if (SuperStructure.Climb.climbState == ClimbState.UP) {
+                        return new Translation3d(0, 0, 0.5);
+                    } else {
+                        return Translation3d.kZero;
+                    }
+                },
+                () -> Rotation3d.kZero
+        );
     }
 
     private void actOnState(ClimbInputsAutoLogged inputs) {
@@ -74,6 +103,11 @@ public class Climb extends SubsystemBase {
 
     @Override
     public void periodic() {
+        _mechanism.updateMechanism();
+        Logger.recordOutput("Climb/ClimbMechanism", _mechanism.getMechanism());
+        Logger.recordOutput("Climb/ClimbMechanismPose", _mechanism.getFieldRelativePose("Climb"));
+        Logger.recordOutput("Climb/ClimbMechanismPoseGenerated", _mechanism.getMechanism().generate3dMechanism().getFirst());
+
         _climb.updateInputs(SuperStructure.Climb);
         Logger.processInputs(getName(), SuperStructure.Climb);
 
