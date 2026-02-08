@@ -10,6 +10,8 @@ import frc.robot.Robot;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.prime.dashboard.DashboardSection;
+
 public class TeleopDashboardTab extends DashboardSection {
         private final String _fieldName = "Field";
         private final Field2d _fieldWidget;
