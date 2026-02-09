@@ -24,7 +24,8 @@ public class HopperReal implements IHopper {
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
-
+        inputs.intakeFeedPosition = _intakeFeedSparkFlex.getEncoder().getPosition();
+        inputs.hopperFeedPosition = _feedRollersSparkFlex.getEncoder().getPosition() / HopperMap.HOPPER_FEED_GEAR_RATIO;
     }
 
     @Override

@@ -50,14 +50,13 @@ public class OperatorInterface {
                 // TODO: Add rumble and light feedback to different climb states
                 // TODO: Figure out why the rumble is not working
                 DriverController.start().and(DriverController.pov(Controls.up))
-                                .onTrue(Container.setupClimb().andThen(rumbleControllerShort(DriverController)));
+                                .onTrue(Container.setupClimb());
                 DriverController.start().and(DriverController.pov(Controls.left))
-                                .onTrue(Container.startClimbing().andThen(rumbleControllerShort(DriverController)));
+                                .onTrue(Container.startClimbing());
                 DriverController.start().and(DriverController.pov(Controls.down))
-                                .onTrue(Container.stopClimbing().andThen(rumbleControllerShort(DriverController)));
+                                .onTrue(Container.stopClimbing());
                 DriverController.start().and(DriverController.pov(Controls.right))
-                                .onTrue(Container.resetRobotAfterClimb()
-                                                .andThen(rumbleControllerShort(DriverController)));
+                                .onTrue(Container.resetRobotAfterClimb());
 
                 DriverController.x().and(DriverController.pov(Controls.up))
                                 .onTrue(Container.Hopper.setHopper(ExtensionState.OUT));

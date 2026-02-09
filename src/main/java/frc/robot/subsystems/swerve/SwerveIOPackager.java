@@ -19,6 +19,8 @@ import frc.robot.subsystems.swerve.module.SwerveModuleInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.SwerveModuleReal;
 import frc.robot.subsystems.swerve.module.SwerveModuleSim;
 
+import static edu.wpi.first.units.Units.Radians;
+
 /**
  * A class that controls the swerve modules and gyro
  */
@@ -102,6 +104,13 @@ public class SwerveIOPackager {
     swerveInputs.GyroAccelX = _gyroInputs.AccelerationX;
     swerveInputs.GyroAccelY = _gyroInputs.AccelerationY;
     swerveInputs.GyroAccelZ = _gyroInputs.AccelerationZ;
+
+    swerveInputs.WheelPositionsRadians = new double[] {
+            m_moduleInputs[0].WheelPosition.in(Radians),
+            m_moduleInputs[1].WheelPosition.in(Radians),
+            m_moduleInputs[2].WheelPosition.in(Radians),
+            m_moduleInputs[3].WheelPosition.in(Radians)
+    };
 
     // var modulePositions = getModulePositions();
     // Update pose estimator and set logged pose

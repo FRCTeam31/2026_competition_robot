@@ -1,6 +1,7 @@
 package frc.robot.subsystems.hopper;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import frc.robot.Robot;
 
 @SuppressWarnings("unused")
 public class HopperSim implements IHopper {
@@ -16,7 +17,9 @@ public class HopperSim implements IHopper {
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
-        // Mirror any logged inputs here if fields are added to HopperInputsAutoLogged
+        inputs.hopperFeedPosition += (_feedRollersSpeed * 6784 / 60) * Robot.defaultPeriodSecs;
+        inputs.intakeFeedPosition += (_intakeFeedSpeed * 6784 / 60) * Robot.defaultPeriodSecs
+                / HopperMap.HOPPER_FEED_GEAR_RATIO;
     }
 
     @Override

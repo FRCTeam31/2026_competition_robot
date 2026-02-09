@@ -1,22 +1,31 @@
 package frc.robot.subsystems.climb;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SuperStructure;
-
-import org.prime.util.SubsystemMechanism;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 public class Climb extends SubsystemBase {
     private IClimb _climb;
-    private SubsystemMechanism _mechanism = new SubsystemMechanism(
-            () -> new Pose3d(SuperStructure.Swerve.EstimatedRobotPose)
-    );
+
+    // Climb Mechanism
+    private LoggedMechanism2d _climbMechanism;
+    private LoggedMechanismRoot2d _climbRoot;
+    private LoggedMechanismLigament2d _climbExtensionLigament;
+    private LoggedMechanismLigament2d _climbStaticLigament;
+
+    // Support Mechanism
+    private LoggedMechanism2d _supportMechanism;
+    private LoggedMechanismRoot2d _supportRoot;
+    private LoggedMechanismLigament2d _supportLigament;
 
     public enum ClimbState {
         UP,
@@ -55,26 +64,21 @@ public class Climb extends SubsystemBase {
         setName("Climb");
         _climb = isReal ? new ClimbReal() : new ClimbSim();
 
-        initMechanism();
+        initMechanisms();
     }
 
-    private void initMechanism() {
-        _mechanism.createMechanism(2,3);
-        _mechanism.createRoot("ClimbRoot", 0, 0);
+    private void initMechanisms() {
+        _climbMechanism = new LoggedMechanism2d(3, 3);
+        _climbRoot = _climbMechanism.getRoot("ClimbRoot", 0, 0);
+        _climbExtensionLigament = new LoggedMechanismLigament2d("ClimbExtensionLigament", 0, 90, 9, new Color8Bit(Color.kDarkGray));
+        _climbRoot.append(_climbExtensionLigament);
+        _climbStaticLigament = new LoggedMechanismLigament2d("ClimbStaticLigament", 0.4191, 0, 8, new Color8Bit(Color.kLightBlue));
+        _climbExtensionLigament.append(_climbStaticLigament);
 
-        _mechanism.appendLigament(
-                "Climb",
-                0.8,
-                0,
-                () -> {
-                    if (SuperStructure.Climb.climbState == ClimbState.UP) {
-                        return new Translation3d(0, 0, 0.5);
-                    } else {
-                        return Translation3d.kZero;
-                    }
-                },
-                () -> Rotation3d.kZero
-        );
+        _supportMechanism = new LoggedMechanism2d(1,1);
+        _supportRoot = _supportMechanism.getRoot("SupportRoot", 0, 0);
+        _supportLigament = new LoggedMechanismLigament2d("SupportLigament", 0.2286, 90, 5, new Color8Bit(Color.kDarkBlue));
+        _supportRoot.append(_supportLigament);
     }
 
     private void actOnState(ClimbInputsAutoLogged inputs) {
@@ -103,12 +107,30 @@ public class Climb extends SubsystemBase {
 
     @Override
     public void periodic() {
-        _mechanism.updateMechanism();
-        Logger.recordOutput("Climb/ClimbMechanism", _mechanism.getMechanism());
-        Logger.recordOutput("Climb/ClimbMechanismPose", _mechanism.getFieldRelativePose("Climb"));
-        Logger.recordOutput("Climb/ClimbMechanismPoseGenerated", _mechanism.getMechanism().generate3dMechanism().getFirst());
-
         _climb.updateInputs(SuperStructure.Climb);
+
+        _climbExtensionLigament.setLength(SuperStructure.Climb.climbExtension);
+        _supportLigament.setAngle(SuperStructure.Climb.supportAngle);
+
+        Pose3d climbComponent = _climbMechanism.generate3dMechanism().get(1);
+        Pose3d supportComponent = _supportMechanism.generate3dMechanism().get(0);
+
+        Pose3d robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
+        Translation3d robotTranslation = robotPose.getTranslation();
+        Rotation3d robotRotation = robotPose.getRotation();
+
+        SuperStructure.Climb.climbComponentPose = new Pose3d(
+                climbComponent.getTranslation().plus(ClimbMap.CLIMB_ROOT_POSITION).plus(robotTranslation),
+                climbComponent.getRotation()
+        ).rotateAround(robotTranslation, robotRotation);
+        SuperStructure.Climb.supportComponentPose = new Pose3d(
+                supportComponent.getTranslation().plus(ClimbMap.SUPPORT_ROOT_POSITION).plus(robotTranslation),
+                supportComponent.getRotation()
+        ).rotateAround(robotTranslation, robotRotation);
+
+        Logger.recordOutput("Climb/ClimbMechanism", _climbMechanism);
+        Logger.recordOutput("Climb/SupportMechanism", _supportMechanism);
+
         Logger.processInputs(getName(), SuperStructure.Climb);
 
         actOnState(SuperStructure.Climb);

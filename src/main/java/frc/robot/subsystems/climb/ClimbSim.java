@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climb;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Robot;
 
@@ -54,6 +55,13 @@ public class ClimbSim implements IClimb {
 
         inputs.upperLimitSwitch = _upperLimitSwitch;
         inputs.lowerLimitSwitch = _lowerLimitSwitch;
+
+        inputs.climbExtension = inputs.climbState == Climb.ClimbState.UP
+                ? 0.2794
+                : 0;
+        inputs.supportAngle = inputs.supportState == Climb.SupportState.LOWERED
+                ? Rotation2d.k180deg
+                : Rotation2d.kCCW_90deg;
     }
 
     @Override
