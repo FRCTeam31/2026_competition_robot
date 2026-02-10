@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -29,6 +31,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.util.LocalADStarADK;
 
+import java.util.Map;
+
 public class Robot extends LoggedRobot {
 
   public static enum Mode {
@@ -41,6 +45,9 @@ public class Robot extends LoggedRobot {
     /** Replaying from a log file. */
     REPLAY
   }
+
+  // TODO: Move to a different location
+  private static final boolean USE_MAPLESIM = true;
 
   public static EventLoop EventLoop = new EventLoop();
   private Command _autonomousCommand;
@@ -55,7 +62,7 @@ public class Robot extends LoggedRobot {
     DriverStation.silenceJoystickConnectionWarning(true);
 
     // Initialize the robot container
-    Container.initialize(isReal());
+    Container.initialize(isReal(), USE_MAPLESIM);
 
     // Set up the dashboard
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath()); // Start the web server for downloading elastic layout from robot
@@ -147,6 +154,21 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     EventLoop.poll();
+
+    // Update MapleSim simulation
+    if (isSimulation() && USE_MAPLESIM) {
+      var simulatedArenaInstance = SimulatedArena.getInstance();
+
+      simulatedArenaInstance.simulationPeriodic();
+
+      Pose3d[] fuelPoses = simulatedArenaInstance.getGamePiecesArrayByType("Fuel");
+      int redScore = simulatedArenaInstance.getScore(Alliance.Red);
+      int blueScore = simulatedArenaInstance.getScore(Alliance.Blue);
+
+      Logger.recordOutput("MapleSim/FuelPositions", fuelPoses);
+      Logger.recordOutput("MapleSim/RedScore", redScore);
+      Logger.recordOutput("MapleSim/BlueScore", blueScore);
+    }
   }
 
   /**

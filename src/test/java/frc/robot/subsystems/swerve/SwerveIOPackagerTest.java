@@ -23,7 +23,7 @@ class SwerveIOPackagerTest {
     @BeforeEach
     void setUp() {
         assert HAL.initialize(500, 0);
-        packager = new SwerveIOPackager(false); // Use sim mode
+        packager = new SwerveIOPackager(false, false, null); // Use sim mode
         inputs = new SwerveSubsystemInputsAutoLogged();
     }
 
@@ -31,8 +31,9 @@ class SwerveIOPackagerTest {
 
     @Test
     void testConstructor_InitializesBothModes() {
-        assertDoesNotThrow(() -> new SwerveIOPackager(false), "Constructor should initialize in sim mode");
-        assertDoesNotThrow(() -> new SwerveIOPackager(true), "Constructor should initialize in real mode");
+        // TODO: Create unit tests for MapleSim
+        assertDoesNotThrow(() -> new SwerveIOPackager(false, false, null), "Constructor should initialize in sim mode");
+        assertDoesNotThrow(() -> new SwerveIOPackager(true, false, null), "Constructor should initialize in real mode");
         assertNotNull(packager.Kinematics, "Kinematics should be initialized");
     }
 

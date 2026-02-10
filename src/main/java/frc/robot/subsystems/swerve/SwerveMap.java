@@ -2,6 +2,9 @@ package frc.robot.subsystems.swerve;
 
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
@@ -25,6 +28,9 @@ public class SwerveMap {
                 public static final double DriveDeadband = 0.15;
                 public static final double DeadbandCurveWeight = 0.5;
         }
+
+        // Simulation
+        public static final Pose2d RobotInitialPosition = new Pose2d(3, 3, new Rotation2d());
 
         // PID Constants
         public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.0075, 0, 0.000, 0.0, 0.099, 0.12,

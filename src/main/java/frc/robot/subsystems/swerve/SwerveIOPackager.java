@@ -8,16 +8,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Preferences;
 import frc.robot.Robot;
-import frc.robot.subsystems.swerve.gyro.GyroReal;
-import frc.robot.subsystems.swerve.gyro.GyroInputsAutoLogged;
-import frc.robot.subsystems.swerve.gyro.GyroSim;
-import frc.robot.subsystems.swerve.gyro.IGyro;
-import frc.robot.subsystems.swerve.module.ISwerveModule;
-import frc.robot.subsystems.swerve.module.SwerveModuleInputsAutoLogged;
-import frc.robot.subsystems.swerve.module.SwerveModuleReal;
-import frc.robot.subsystems.swerve.module.SwerveModuleSim;
+import frc.robot.subsystems.swerve.gyro.*;
+import frc.robot.subsystems.swerve.module.*;
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 
 /**
  * A class that controls the swerve modules and gyro
@@ -39,7 +36,7 @@ public class SwerveIOPackager {
       new SwerveModuleInputsAutoLogged()
   };
 
-  public SwerveIOPackager(boolean isReal) {
+  public SwerveIOPackager(boolean isReal, boolean useMapleSim, SwerveDriveSimulation mapleSimDrivetrain) {
     // Create kinematics in order FL, FR, RL, RR
     Kinematics = new SwerveDriveKinematics(SwerveMap.FrontLeftSwerveModule.ModuleLocation,
         SwerveMap.FrontRightSwerveModule.ModuleLocation,
@@ -48,25 +45,35 @@ public class SwerveIOPackager {
 
     _gyro = isReal
         ? new GyroReal()
-        : new GyroSim(0);
+        : useMapleSim
+            ? new GyroMapleSim(mapleSimDrivetrain.getGyroSimulation())
+            : new GyroSim(0);
     _gyro.updateInputs(_gyroInputs, 0);
 
     _frontLeftModule = isReal
         ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule)
-        : new SwerveModuleSim("FrontLeftModule", SwerveMap.FrontLeftSwerveModule);
+        : useMapleSim
+            ? new SwerveModuleMapleSim("FrontLeftModule", mapleSimDrivetrain.getModules()[0])
+            : new SwerveModuleSim("FrontLeftModule", SwerveMap.FrontLeftSwerveModule);
     _frontRightModule = isReal
         ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule)
-        : new SwerveModuleSim("FrontRightModule", SwerveMap.FrontRightSwerveModule);
+        : useMapleSim
+            ? new SwerveModuleMapleSim("FrontRightModule", mapleSimDrivetrain.getModules()[1])
+            : new SwerveModuleSim("FrontRightModule", SwerveMap.FrontRightSwerveModule);
     _rearLeftModule = isReal
         ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule)
-        : new SwerveModuleSim("RearLeftModule", SwerveMap.RearLeftSwerveModule);
+        : useMapleSim
+            ? new SwerveModuleMapleSim("RearLeftModule", mapleSimDrivetrain.getModules()[2])
+            : new SwerveModuleSim("RearLeftModule", SwerveMap.RearLeftSwerveModule);
     _rearRightModule = isReal
         ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule)
-        : new SwerveModuleSim("RearRightModule", SwerveMap.RearRightSwerveModule);
+        : useMapleSim
+            ? new SwerveModuleMapleSim("RearRightModule", mapleSimDrivetrain.getModules()[3])
+            : new SwerveModuleSim("RearRightModule", SwerveMap.RearRightSwerveModule);
 
     // Create pose estimator
     m_poseEstimator = new SwerveDrivePoseEstimator(Kinematics, _gyroInputs.Rotation,
-        getModulePositions(), new Pose2d());
+        getModulePositions(), SwerveMap.RobotInitialPosition);
 
     // Store current Drive and Steering PID values in Preferences
     Preferences.initDouble("DriveKp", SwerveMap.DrivePID.kP);

@@ -11,6 +11,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -25,16 +27,18 @@ import frc.robot.subsystems.vision.LimelightInputs;
 import frc.robot.subsystems.vision.LimelightNameEnum;
 import frc.robot.subsystems.vision.Vision;
 
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
+
+import static edu.wpi.first.units.Units.*;
 
 public class Swerve extends SubsystemBase {
 
@@ -52,16 +56,46 @@ public class Swerve extends SubsystemBase {
   private PrimeHolonomicDriveController _primeHolonomicController;
   private RobotConfig _pathplannerRobotConfig;
 
+  // MapleSim Drivetrain
+  private final SwerveDriveSimulation _mapleSimSwerve;
+  private final boolean _usingMapleSim;
+
   /**
    * Creates a new Drivetrain.
    */
-  public Swerve(boolean isReal) {
+  public Swerve(boolean isReal, boolean useMapleSim) {
     setName("Swerve");
 
     _rumbleHelper = new ImpactRumbleHelper();
 
+    // Configure MapleSim Swerve
+    final DriveTrainSimulationConfig mapleSimSwerveConfig = DriveTrainSimulationConfig.Default()
+            .withGyro(COTS.ofPigeon2())
+            .withSwerveModule(COTS.ofMark4n(
+                    DCMotor.getKrakenX60(1),
+                    DCMotor.getKrakenX44(1),
+                    COTS.WHEELS.COLSONS.cof,
+                    2
+            ))
+            .withTrackLengthTrackWidth(
+                    Distance.ofBaseUnits(SwerveMap.Chassis.WheelBaseMeters, Meters),
+                    Distance.ofBaseUnits(SwerveMap.Chassis.TrackWidthMeters, Meters)
+            )
+            .withBumperSize(
+                    Distance.ofBaseUnits(SwerveMap.Chassis.BumperWidthMeters, Meters),
+                    Distance.ofBaseUnits(SwerveMap.Chassis.BumperWidthMeters, Meters)
+            );
+
+    _mapleSimSwerve = new SwerveDriveSimulation(
+            mapleSimSwerveConfig,
+            SwerveMap.RobotInitialPosition
+    );
+    _usingMapleSim = useMapleSim;
+
+    SimulatedArena.getInstance().addDriveTrainSimulation(_mapleSimSwerve);
+
     // Create swerve controller
-    _swervePackager = new SwerveIOPackager(isReal);
+    _swervePackager = new SwerveIOPackager(isReal, useMapleSim, _mapleSimSwerve);
     _swervePackager.updateInputs(SuperStructure.Swerve);
 
     // Configure AutoAlign
@@ -250,6 +284,11 @@ public class Swerve extends SubsystemBase {
         SwerveMap.Chassis.MaxSpeedMetersPerSecond);
     Container.OperatorInterface.setControllerRumbleIntensity(Container.OperatorInterface.DriverController,
         _rumbleHelper.getRumbleIntensity());
+
+    // TODO: Stop pose estimator from running instead of just overriding it, this may be causing issues
+    if (_usingMapleSim) {
+      SuperStructure.Swerve.EstimatedRobotPose = _mapleSimSwerve.getSimulatedDriveTrainPose();
+    }
   }
 
   // #region Commands

@@ -51,7 +51,7 @@ public class Container {
   public static Climb Climb;
   public static Turret Turret;
 
-  public static void initialize(boolean isReal) {
+  public static void initialize(boolean isReal, boolean useMapleSim) {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
@@ -62,11 +62,11 @@ public class Container {
       // Create subsystems
       LEDs = new PwmLEDs();
       Vision = new Vision();
-      Swerve = new Swerve(isReal);
+      Swerve = new Swerve(isReal, useMapleSim); // MapleSim for drivetrain simulation
       Pneumatics = new Pneumatics(isReal);
-      Hopper = new Hopper(isReal);
+      Hopper = new Hopper(isReal); // MapleSim for intake simulation
       Climb = new Climb(isReal);
-      Turret = new Turret(isReal);
+      Turret = new Turret(isReal); // MapleSim for fuel launching simulation
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
