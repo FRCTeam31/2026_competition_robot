@@ -12,7 +12,7 @@ import frc.robot.subsystems.turret.Turret.TargetingState;
 import frc.robot.Container;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.hopper.Hopper.ExtensionState;
+import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.LimelightNameEnum;
 import frc.robot.subsystems.vision.Vision;
@@ -59,9 +59,9 @@ public class OperatorInterface {
                                 .onTrue(Container.resetRobotAfterClimb()); //.andThen(rumbleControllerShort(DriverController)));
 
                 DriverController.x().and(DriverController.pov(Controls.up))
-                                .onTrue(Container.Hopper.setHopper(ExtensionState.OUT));
+                                .onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
                 DriverController.x().and(DriverController.pov(Controls.down))
-                                .onTrue(Container.Hopper.setHopper(ExtensionState.IN));
+                                .onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
 
                 DriverController.start().and(DriverController.rightBumper()).and(DriverController.leftBumper())
                                 .onTrue(Container.setIntakeStates(false)).onFalse(Container.setIntakeStates(true));
