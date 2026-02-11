@@ -153,7 +153,7 @@ public class Turret extends SubsystemBase {
                 yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 _turret.controlYaw(_yawControl.withPosition(yaw));
 
-                var pitch = aimVector.getPitch();
+                // var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
                 break;
             case STOPPED:
