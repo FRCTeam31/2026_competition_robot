@@ -18,6 +18,8 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
 
     public PhotonVision() {
         setName("PhotonVision");
+
+        // Add default camera(s) here
     }
 
     /**
@@ -26,12 +28,12 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
      * @return true if the camera was added, false if it already exists
      */
     @Override
-    public boolean addCamera(String name) {
+    public boolean addCamera(String name, Transform3d robotCameraTransform) {
         if (_cameras.containsKey(name)) {
             return false;
         }
 
-        _cameras.put(name, new PhotonVisionCamera(name));
+        _cameras.put(name, new PhotonVisionCamera(name, robotCameraTransform));
         SuperStructure.VisionPhotons.put(name, new PhotonCameraInputsAutoLogged());
         return true;
     }

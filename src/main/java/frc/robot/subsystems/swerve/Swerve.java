@@ -21,7 +21,6 @@ import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
 import frc.robot.subsystems.vision.VisionMap;
-import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonVision;

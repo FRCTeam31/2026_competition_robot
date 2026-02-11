@@ -8,6 +8,7 @@ import org.photonvision.PhotonPoseEstimator;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 
 public class PhotonVisionCamera {
@@ -17,10 +18,10 @@ public class PhotonVisionCamera {
     private PhotonPoseEstimator _photonEstimator;
     private static final AprilTagFieldLayout _tagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
-    public PhotonVisionCamera(String photonName) {
+    public PhotonVisionCamera(String photonName, Transform3d robotCameraTransform) {
         _photonName = photonName;
         _cam = new PhotonCamera(_photonName);
-        _photonEstimator = new PhotonPoseEstimator(_tagLayout, new Transform3d());
+        _photonEstimator = new PhotonPoseEstimator(_tagLayout, robotCameraTransform);
     }
 
     public void updateInputs(PhotonCameraInputsAutoLogged inputs) {
@@ -29,8 +30,8 @@ public class PhotonVisionCamera {
         if (inputs.LatestResult.hasTargets()) {
             inputs.TargetCount = inputs.LatestResult.getTargets().size();
             var target = inputs.LatestResult.getBestTarget();
-            inputs.TargetPitch = target.getPitch();
-            inputs.TargetYaw = target.getYaw();
+            inputs.PrimaryTargetId = target.getFiducialId();
+            inputs.PrimaryTargetRotation2d = new Rotation3d(0, target.getPitch(), target.getYaw());
 
             visionEst = _photonEstimator.estimateCoprocMultiTagPose(inputs.LatestResult);
             if (visionEst.isEmpty()) {
@@ -42,8 +43,6 @@ public class PhotonVisionCamera {
             }, () -> {
                 inputs.BotPoseEstimate = null;
             });
-
-            inputs.TimestampSeconds = inputs.LatestResult.getTimestampSeconds();
         }
     }
 

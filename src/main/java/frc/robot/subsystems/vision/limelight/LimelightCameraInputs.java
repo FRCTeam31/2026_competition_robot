@@ -10,6 +10,11 @@ import frc.robot.subsystems.vision.limelight.helpers.PoseEstimate;
 public class LimelightCameraInputs {
 
     /**
+     * The JSON dump from this limelight.
+     */
+    public LimelightResults CurrentResults = new LimelightResults();
+
+    /**
      * Horizontal Offset From Crosshair To Target 
      * (LL1: -27 degrees to 27 degrees / LL2: -29.8 to 29.8 degrees)
      */
@@ -30,9 +35,4 @@ public class LimelightCameraInputs {
      * The robot's MT2 pose in field space.
      */
     public PoseEstimate BotPoseEstimateMT2 = new PoseEstimate();
-
-    /**
-     * The JSON dump from this limelight.
-     */
-    public LimelightResults CurrentResults = new LimelightResults();
 }

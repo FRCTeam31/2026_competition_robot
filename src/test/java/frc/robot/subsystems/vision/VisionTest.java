@@ -13,6 +13,7 @@ import org.mockito.MockedConstruction;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.vision.limelight.LimeLightCamera;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
@@ -219,7 +220,7 @@ class VisionTest {
 
     @Test
     void testAddLimelightSuccess() {
-        boolean result = vision.addCamera("limelight-front");
+        boolean result = vision.addCamera("limelight-front", new Transform3d());
 
         assertTrue(result, "Should return true when adding new limelight");
         assertEquals(2, mockLimelightConstruction.constructed().size(),
@@ -230,8 +231,8 @@ class VisionTest {
 
     @Test
     void testAddLimelightDuplicate() {
-        boolean firstAdd = vision.addCamera("limelight-test");
-        boolean secondAdd = vision.addCamera("limelight-test");
+        boolean firstAdd = vision.addCamera("limelight-test", new Transform3d());
+        boolean secondAdd = vision.addCamera("limelight-test", new Transform3d());
 
         assertTrue(firstAdd, "First add should succeed");
         assertFalse(secondAdd, "Second add with same name should fail");
@@ -241,9 +242,9 @@ class VisionTest {
 
     @Test
     void testAddMultipleLimelights() {
-        vision.addCamera("limelight-front");
-        vision.addCamera("limelight-rear");
-        vision.addCamera("limelight-intake");
+        vision.addCamera("limelight-front", new Transform3d());
+        vision.addCamera("limelight-rear", new Transform3d());
+        vision.addCamera("limelight-intake", new Transform3d());
 
         assertEquals(4, mockLimelightConstruction.constructed().size(),
                 "Should have four limelights total");
@@ -255,7 +256,7 @@ class VisionTest {
 
     @Test
     void testRemoveLimelightSuccess() {
-        vision.addCamera("limelight-test");
+        vision.addCamera("limelight-test", new Transform3d());
         boolean result = vision.removeCamera("limelight-test");
 
         assertTrue(result, "Should return true when removing existing limelight");
@@ -290,7 +291,7 @@ class VisionTest {
         assertTrue(names.contains(VisionMap.LimelightTurretName),
                 "Should contain default turret limelight");
 
-        vision.addCamera("limelight-test");
+        vision.addCamera("limelight-test", new Transform3d());
         names = vision.getCameraNames();
         assertEquals(2, names.size(), "Should have two limelights after adding");
         assertTrue(names.contains("limelight-test"), "Should contain added limelight");
@@ -303,7 +304,7 @@ class VisionTest {
         assertFalse(vision.hasCamera("limelight-nonexistent"),
                 "Should not have non-existent limelight");
 
-        vision.addCamera("limelight-test");
+        vision.addCamera("limelight-test", new Transform3d());
         assertTrue(vision.hasCamera("limelight-test"),
                 "Should have newly added limelight");
     }
@@ -324,9 +325,9 @@ class VisionTest {
 
     @Test
     void testAddRemoveAddSameLimelight() {
-        vision.addCamera("limelight-test");
+        vision.addCamera("limelight-test", new Transform3d());
         vision.removeCamera("limelight-test");
-        boolean result = vision.addCamera("limelight-test");
+        boolean result = vision.addCamera("limelight-test", new Transform3d());
 
         assertTrue(result, "Should be able to re-add removed limelight");
         assertTrue(vision.hasCamera("limelight-test"),

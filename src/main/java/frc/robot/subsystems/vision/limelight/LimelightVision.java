@@ -1,6 +1,7 @@
 package frc.robot.subsystems.vision.limelight;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,7 +20,7 @@ public class LimelightVision extends SubsystemBase implements IVisionSubsystem {
         setName("LimelightVision");
 
         // Add default turret limelight
-        addCamera(VisionMap.LimelightTurretName);
+        addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
     }
 
     /**
@@ -27,13 +28,15 @@ public class LimelightVision extends SubsystemBase implements IVisionSubsystem {
      * @param name The network table name of the limelight
      * @return true if the limelight was added, false if it already exists
      */
-    public boolean addCamera(String name) {
+    public boolean addCamera(String name, Transform3d robotCameraTransform) {
         if (_limelights.containsKey(name)) {
             return false;
         }
 
         _limelights.put(name, new LimeLightCamera(name));
         SuperStructure.VisionLimelights.put(name, new LimelightCameraInputsAutoLogged());
+        var robotCameraPose = new Pose3d(robotCameraTransform.getTranslation(), robotCameraTransform.getRotation());
+        setCameraPose(name, robotCameraPose);
         return true;
     }
 

@@ -32,6 +32,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
+import frc.robot.subsystems.vision.photon.PhotonVision;
 import frc.robot.subsystems.turret.Turret.FlywheelState;
 
 public class Container {
@@ -44,7 +45,8 @@ public class Container {
 
   public static PwmLEDs LEDs;
   public static Swerve Swerve;
-  public static LimelightVision Vision;
+  public static LimelightVision LimelightVision;
+  public static PhotonVision PhotonVision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
@@ -60,7 +62,8 @@ public class Container {
 
       // Create subsystems
       LEDs = new PwmLEDs();
-      Vision = new LimelightVision();
+      LimelightVision = new LimelightVision();
+      PhotonVision = new PhotonVision();
       Swerve = new Swerve(isReal);
       Pneumatics = new Pneumatics(isReal);
       Hopper = new Hopper(isReal);
@@ -69,8 +72,8 @@ public class Container {
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, Vision, Turret, Climb, Hopper);
-      OperatorInterface.bindOperatorControls(Swerve, Vision, Turret, Climb, Hopper);
+      OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);
+      OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       NamedCommands.registerCommands(Swerve.getNamedCommands());
