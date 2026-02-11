@@ -49,8 +49,8 @@ class SwerveIOPackagerTest {
         assertNotNull(inputs.EstimatedRobotPose, "Estimated robot pose should not be null");
 
         // Initial pose should be origin
-        assertEquals(0.0, inputs.EstimatedRobotPose.getX(), EPSILON, "Initial X position should be 0");
-        assertEquals(0.0, inputs.EstimatedRobotPose.getY(), EPSILON, "Initial Y position should be 0");
+        assertEquals(SwerveMap.RobotInitialPosition.getX(), inputs.EstimatedRobotPose.getX(), EPSILON, "Initial X position should be " + SwerveMap.RobotInitialPosition.getX());
+        assertEquals(SwerveMap.RobotInitialPosition.getY(), inputs.EstimatedRobotPose.getY(), EPSILON, "Initial Y position should be " + SwerveMap.RobotInitialPosition.getY());
     }
 
     // ==================== Module States & Positions Tests ====================

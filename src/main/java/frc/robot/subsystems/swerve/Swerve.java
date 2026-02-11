@@ -251,7 +251,7 @@ public class Swerve extends SubsystemBase {
   public void periodic() {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
-    SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
+//    SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
     Logger.processInputs(getName(), SuperStructure.Swerve);
 
     processVisionEstimations();

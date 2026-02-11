@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve.module;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -34,7 +35,10 @@ public class SwerveModuleMapleSim implements ISwerveModule {
 
     private PIDController _drivingPidController;
     private SimpleMotorFeedforward _driveFeedForward;
-    private Rotation2d _currentHeading = new Rotation2d();
+
+    private PIDController _steeringPidController;
+
+    private SlewRateLimiter _steeringRateLimiter;
 
     public SwerveModuleMapleSim(String name, SwerveModuleSimulation moduleSim) {
         _name = name;
@@ -49,9 +53,14 @@ public class SwerveModuleMapleSim implements ISwerveModule {
                 .useGenericControllerForSteer()
                 .withCurrentLimit(Amps.of(20));
 
-        var pid = SwerveMap.DrivePID;
-        _drivingPidController = pid.createPIDController(0.02);
-        _driveFeedForward = new SimpleMotorFeedforward(pid.kS, pid.kV, pid.kA);
+        var drivePID = SwerveMap.DrivePID;
+        _drivingPidController = drivePID.createPIDController(0.02);
+        _driveFeedForward = new SimpleMotorFeedforward(drivePID.kS, drivePID.kV, drivePID.kA);
+
+        var steerPID  = SwerveMap.SteeringPID;
+        _steeringPidController = steerPID.createPIDController(0.02);
+        _steeringPidController.enableContinuousInput(-Math.PI, Math.PI);
+        _steeringRateLimiter = new SlewRateLimiter(10);
     }
 
     @Override
@@ -59,9 +68,9 @@ public class SwerveModuleMapleSim implements ISwerveModule {
         var speedMps = _moduleSim.getDriveWheelFinalSpeed().in(Units.RotationsPerSecond)
                 * SwerveMap.DriveWheelCircumferenceMeters;
 
-        inputs.ModuleState.angle = _currentHeading;
+        inputs.ModuleState.angle = _moduleSim.getSteerAbsoluteFacing();
         inputs.ModuleState.speedMetersPerSecond = speedMps;
-        inputs.ModulePosition.angle = _currentHeading;
+        inputs.ModulePosition.angle = _moduleSim.getSteerAbsoluteFacing();
         inputs.ModulePosition.distanceMeters = _moduleSim.getDriveWheelFinalPosition().in(Rotations)
                 * SwerveMap.DriveWheelCircumferenceMeters;
         Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage", _drive.getAppliedVoltage());
@@ -73,33 +82,41 @@ public class SwerveModuleMapleSim implements ISwerveModule {
         var optimize = _dashboardSection.getBoolean(_optimizeModuleKey, true);
         Logger.recordOutput("Swerve/Modules/" + _name + "/Optimized", optimize);
         if (optimize) {
-            desiredState = SwerveUtil.optimize(desiredState, _currentHeading);
+            desiredState = SwerveUtil.optimize(desiredState, _moduleSim.getSteerAbsoluteFacing());
         }
 
         Logger.recordOutput("Swerve/Modules/" + _name + "/SteeringMotorOutputSpeed", 0);
-        _currentHeading = desiredState.angle;
 
         // Set the drive motor to the desired speed
         // Calculate target data to voltage data
-        var desiredSpeedRotationsPerSecond = (desiredState.speedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
-                * SwerveMap.DriveGearRatio;
+//        var desiredSpeedRotationsPerSecond = (desiredState.speedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters)
+//                * SwerveMap.DriveGearRatio;
+        var desiredSpeedRotationsPerSecond = desiredState.speedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters;
 
         var ff = _driveFeedForward.calculate(desiredSpeedRotationsPerSecond);
 
         var currentSpeedRotationsPerSecond = _moduleSim.getDriveWheelFinalSpeed().in(RadiansPerSecond) / (2 * Math.PI);
-        var pid = _drivingPidController.calculate(currentSpeedRotationsPerSecond, desiredSpeedRotationsPerSecond);
-        var driveOutput = MathUtil.clamp(ff + pid, -12.0, 12.0);
+        var drivePID = _drivingPidController.calculate(currentSpeedRotationsPerSecond, desiredSpeedRotationsPerSecond);
+        var driveOutput = MathUtil.clamp(ff + drivePID, -12.0, 12.0);
 
-        Logger.recordOutput("Swerve/Modules/" + _name + "/DrivePID", pid);
+        var currentHeading = _moduleSim.getSteerAbsoluteFacing();
+        var setpoint = _steeringRateLimiter.calculate(desiredState.angle.getRadians());
+        var steerPID = _steeringPidController.calculate(currentHeading.getRadians(), setpoint);
+        var steerOutput = MathUtil.clamp(steerPID, -12, 12);
+
+        Logger.recordOutput("Swerve/Modules/" + _name + "/DrivePID", drivePID);
         Logger.recordOutput("Swerve/Modules/" + _name + "/DriveFF", ff);
         Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorOutputVoltage", driveOutput);
         _drive.requestVoltage(Voltage.ofBaseUnits(driveOutput, Volts));
+
+        Logger.recordOutput("Swerve/Modules/" + _name + "/SteerPID", steerPID);
+        Logger.recordOutput("Swerve/Modules/" + _name + "/SteerMotorOutputVoltage", steerOutput);
+        _steer.requestVoltage(Voltage.ofBaseUnits(steerOutput, Volts));
     }
 
     @Override
     public void setDriveVoltage(double voltage, Rotation2d moduleAngle) {
         _drive.requestVoltage(Voltage.ofBaseUnits(voltage, Volts));
-        _currentHeading = moduleAngle;
     }
 
     @Override
@@ -119,6 +136,9 @@ public class SwerveModuleMapleSim implements ISwerveModule {
 
     @Override
     public void setSteeringPID(ExtendedPIDConstants steeringPID) {
-        // Not implemented
+        var currentSetpoint = _steeringPidController.getSetpoint();
+        _steeringPidController = steeringPID.createPIDController(0.02);
+        _steeringPidController.enableContinuousInput(-Math.PI, Math.PI);
+        _steeringPidController.setSetpoint(currentSetpoint);
     }
 }

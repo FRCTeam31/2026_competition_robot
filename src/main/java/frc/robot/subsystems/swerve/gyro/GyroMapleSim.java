@@ -12,13 +12,6 @@ public class GyroMapleSim implements IGyro {
 
     @Override
     public void updateInputs(GyroInputsAutoLogged inputs, double omegaRadiansPerSecond) {
-        // discretize rotational speed
-        var delta = omegaRadiansPerSecond * 0.02;
-        var currentAngle = _gyro.getGyroReading();
-        var newGyroAngle = Rotation2d.fromRadians(currentAngle.getRadians() + delta);
-
-        _gyro.setRotation(newGyroAngle);
-
         inputs.Rotation = _gyro.getGyroReading();
         inputs.AccelerationX = 0;
         inputs.AccelerationY = 0;

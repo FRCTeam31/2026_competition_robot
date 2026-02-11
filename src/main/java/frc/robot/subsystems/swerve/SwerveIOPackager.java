@@ -112,10 +112,10 @@ public class SwerveIOPackager {
 
     // var modulePositions = getModulePositions();
     // Update pose estimator and set logged pose
-    m_poseEstimator.update(_gyroInputs.Rotation, getModulePositions());
-    swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
+//    m_poseEstimator.update(_gyroInputs.Rotation, getModulePositions());
+//    swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
 
-    checkPreferences();
+//    checkPreferences();
   }
 
   /**
