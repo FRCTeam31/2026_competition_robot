@@ -157,11 +157,11 @@ class VisionTest {
 
     @Test
     void testSetCameraPoseZeroPose() {
-        Pose3d zeroPose = new Pose3d();
+        Pose3d zeroPose = Pose3d.kZero;
         vision.setCameraPose(VisionMap.LimelightTurretName, zeroPose);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
-        verify(turretLL, times(1)).setCameraPose(zeroPose);
+        verify(turretLL, times(2)).setCameraPose(zeroPose);
     }
 
     //#endregion

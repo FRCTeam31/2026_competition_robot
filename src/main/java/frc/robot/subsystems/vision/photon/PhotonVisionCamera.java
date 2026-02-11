@@ -25,7 +25,22 @@ public class PhotonVisionCamera {
     }
 
     public void updateInputs(PhotonCameraInputsAutoLogged inputs) {
-        inputs.LatestResult = _cam.getLatestResult();
+        var results = _cam.getAllUnreadResults();
+        if (results.isEmpty()) {
+            inputs.LatestResult = null;
+            inputs.TargetCount = 0;
+            inputs.PrimaryTargetId = -1;
+            inputs.PrimaryTargetRotation2d = new Rotation3d();
+            inputs.BotPoseEstimate = null;
+            inputs.TimestampSeconds = -1;
+            return;
+        }
+
+        // Take the latest result from the list
+        for (var result : results) {
+            if (result.getTimestampSeconds() > inputs.LatestResult.getTimestampSeconds())
+                inputs.LatestResult = result;
+        }
 
         if (inputs.LatestResult.hasTargets()) {
             inputs.TargetCount = inputs.LatestResult.getTargets().size();
