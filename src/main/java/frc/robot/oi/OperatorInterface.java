@@ -10,6 +10,7 @@ import frc.robot.subsystems.swerve.SwerveMap;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.TargetingState;
 import frc.robot.Container;
+import frc.robot.Container.IntakeCombinedState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
@@ -64,7 +65,8 @@ public class OperatorInterface {
                                 .onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
 
                 DriverController.start().and(DriverController.rightBumper()).and(DriverController.leftBumper())
-                                .onTrue(Container.setIntakeStates(false)).onFalse(Container.setIntakeStates(true));
+                                .onTrue(Container.setIntakeStates(IntakeCombinedState.OUTWARDS))
+                                .onFalse(Container.setIntakeStates(IntakeCombinedState.INWARDS));
 
         }
 

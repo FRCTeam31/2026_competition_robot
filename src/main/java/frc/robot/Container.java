@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.text.BreakIterator;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -49,6 +47,11 @@ public class Container {
   public static Hopper Hopper;
   public static Climb Climb;
   public static Turret Turret;
+
+  public enum IntakeCombinedState {
+    INWARDS,
+    OUTWARDS
+  }
 
   public static void initialize(boolean isReal) {
     try {
@@ -116,9 +119,8 @@ public class Container {
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
   }
 
-  public static Command setIntakeStates(Boolean state) {
-
-    if (state) {
+  public static Command setIntakeStates(IntakeCombinedState state) {
+    if (state == IntakeCombinedState.INWARDS) {
       return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
           .andThen(Turret.setFeed(UptakeState.FORWARDS))
@@ -134,7 +136,7 @@ public class Container {
 
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(setIntakeStates(false))
+        .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
         // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
         // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
         // .andThen(Turret.setFeed(UptakeState.REVERSED))
@@ -151,6 +153,7 @@ public class Container {
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setSupport(SupportState.LOWERED))
         .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .andThen(OperatorInterface.rumbleControllerShort(OperatorInterface.DriverController))
         .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }

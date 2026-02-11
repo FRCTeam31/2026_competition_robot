@@ -213,18 +213,31 @@ public class MutVector {
         var foundSolution = false;
         for (double angle = maxAngle; angle >= minAngle; angle -= 0.5) {
             double angleRad = Math.toRadians(angle);
-            double vSquared = (PhysicsConstants.GRAVITY * 2d) /
-                    (2 * (distance * Math.sin(angleRad) * Math.cos(angleRad)
-                            - deltaH * Math.cos(angleRad) * Math.cos(angleRad)));
+            // double vSquared = (PhysicsConstants.GRAVITY * 2d) /
+            //         (2 * (distance * Math.sin(angleRad) * Math.cos(angleRad)
+            //                 - deltaH * Math.cos(angleRad) * Math.cos(angleRad)));
 
-            if (vSquared > 0) {
-                double v = Math.sqrt(vSquared);
-                if (v <= maxSpeed && v >= minSpeed) {
-                    foundSolution = true;
-                    setPolar(v, angle, yaw);
-                    break;
+            // TODO: Check this
+            // ----- AI CODE -----
+            double cos = Math.cos(angleRad);
+            double tan = Math.tan(angleRad);
+
+            double denominator = 2 * cos * cos * (distance * tan - deltaH);
+
+            if (denominator > 0) {
+                double vSquared = PhysicsConstants.GRAVITY * distance * distance / denominator;
+
+                if (vSquared > 0) {
+                    double v = Math.sqrt(vSquared);
+                    if (v <= maxSpeed && v >= minSpeed) {
+                        foundSolution = true;
+                        setPolar(v, angle, yaw);
+                        break;
+                    }
                 }
             }
+
+            // ----- AI CODE END -----
         }
 
         if (!foundSolution) {
