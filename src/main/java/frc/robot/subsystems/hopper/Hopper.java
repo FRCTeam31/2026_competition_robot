@@ -13,16 +13,6 @@ public class Hopper extends SubsystemBase {
     private IHopper _hopper;
 
     @SuppressWarnings("unused")
-    private Trigger _pulseHopperTrigger = new Trigger(
-            () -> SuperStructure.Hopper.ExtensionState == ExtensionState.PULSING)
-            .whileTrue(pulseHopperPrivateCommand());
-
-    public enum ExtensionState { // For extending and retracting Hopper
-        IN,
-        OUT,
-        OFF,
-        PULSING
-    }
 
     public enum TransferFeedState { // For feeding in and out to the shooter
         INWARDS,
@@ -36,7 +26,7 @@ public class Hopper extends SubsystemBase {
         STOPPED
     }
 
-    public enum IntakeControlState { // For intake rotation
+    public enum HopperIntakeState { // For intake rotation
         IN,
         OUT,
         OFF
@@ -63,16 +53,19 @@ public class Hopper extends SubsystemBase {
                 break;
         }
 
-        // Intake solenoid control
+        // Intake and Hopper solenoid control
         switch (inputs.IntakeControlState) {
             case IN:
             default:
+                _hopper.setHopper(DoubleSolenoid.Value.kReverse);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kReverse);
                 break;
             case OUT:
+                _hopper.setHopper(DoubleSolenoid.Value.kForward);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kForward);
                 break;
             case OFF:
+                _hopper.setHopper(DoubleSolenoid.Value.kOff);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kOff);
         }
 
@@ -90,19 +83,6 @@ public class Hopper extends SubsystemBase {
                 break;
         }
 
-        // Hopper solenoid control
-        switch (inputs.ExtensionState) {
-            case IN:
-            default:
-                _hopper.setHopper(DoubleSolenoid.Value.kReverse);
-                break;
-            case OUT:
-                _hopper.setHopper(DoubleSolenoid.Value.kForward);
-                break;
-            case OFF:
-                _hopper.setHopper(DoubleSolenoid.Value.kOff);
-                break;
-        }
     }
 
     @Override
@@ -115,21 +95,18 @@ public class Hopper extends SubsystemBase {
 
     // #region Commands
 
-    private Command pulseHopperPrivateCommand() {
-        return this.run(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.IN)
-                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
-                .andThen(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.OUT)
-                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay));
-    }
+    // private Command pulseHopperPrivateCommand() {
+    //     return this.run(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.IN)
+    //             .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
+    //             .andThen(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.OUT)
+    //             .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay));
+    // }
 
     /**
      * Sets the hopper solenoid state
      * @param state The desired hopper state (IN, OUT, OFF, PULSING)
      * @return Command to set the state
      */
-    public Command setHopper(ExtensionState state) {
-        return this.runOnce(() -> SuperStructure.Hopper.ExtensionState = state);
-    }
 
     /**
      * Sets the transfer feed motor state
@@ -154,7 +131,7 @@ public class Hopper extends SubsystemBase {
      * @param state The desired intake control state (IN, OUT, OFF)
      * @return Command to set the state
      */
-    public Command setIntakeControl(IntakeControlState state) {
+    public Command setHopperIntakeControl(HopperIntakeState state) {
         return this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = state);
     }
 

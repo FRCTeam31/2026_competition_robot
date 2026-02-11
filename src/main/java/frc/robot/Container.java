@@ -23,8 +23,7 @@ import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
 import frc.robot.subsystems.climb.Climb.SupportState;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.hopper.Hopper.ExtensionState;
-import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
+import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.climb.Climb.ClimbControlState;
@@ -51,6 +50,11 @@ public class Container {
   public static Hopper Hopper;
   public static Climb Climb;
   public static Turret Turret;
+
+  public enum IntakeCombinedState {
+    INWARDS,
+    OUTWARDS
+  }
 
   public static void initialize(boolean isReal) {
     try {
@@ -113,16 +117,14 @@ public class Container {
    */
   public static Command homeRobotCommand() {
     return Hopper.setFeed(TransferFeedState.INWARDS)
-        .andThen(Hopper.setHopper(ExtensionState.OUT))
+        .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.OUT))
         // Time for intake to fully extend
         .andThen(Commands.waitSeconds(1))
-        .andThen(Hopper.setIntakeControl(IntakeControlState.OUT))
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
   }
 
-  public static Command setIntakeStates(Boolean state) {
-
-    if (state) {
+  public static Command setIntakeStates(IntakeCombinedState state) {
+    if (state == IntakeCombinedState.INWARDS) {
       return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
           .andThen(Turret.setFeed(UptakeState.FORWARDS))
@@ -138,7 +140,7 @@ public class Container {
 
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(setIntakeStates(false))
+        .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
         // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
         // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
         // .andThen(Turret.setFeed(UptakeState.REVERSED))
@@ -148,14 +150,14 @@ public class Container {
         .andThen(Commands.waitSeconds(1))
         .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-        .andThen(Hopper.setIntakeControl(IntakeControlState.IN))
+        .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.IN))
         // Time for intake to fully raise
         .andThen(Commands.waitSeconds(1))
-        .andThen(Hopper.setHopper(ExtensionState.IN))
         // Time for hopper to fully reverse extension
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setSupport(SupportState.LOWERED))
         .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .andThen(OperatorInterface.rumbleControllerShort(OperatorInterface.DriverController))
         .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
