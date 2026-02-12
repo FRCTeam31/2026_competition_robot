@@ -19,11 +19,11 @@ import frc.robot.subsystems.vision.limelight.LimeLightCamera;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 
 /**
- * Unit tests for the Vision subsystem.
+ * Unit tests for the LimelightVision subsystem.
  * Tests core functionality including limelight management,
  * LED control, pipeline switching, and AprilTag validation.
  */
-class VisionTest {
+class LimelightVisionTest {
     private LimelightVision vision;
     private MockedConstruction<LimeLightCamera> mockLimelightConstruction;
 
