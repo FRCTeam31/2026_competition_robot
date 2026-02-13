@@ -50,7 +50,7 @@ class TurretTest {
         originalTurretCenterOffsetZ = TurretMap.TURRET_CENTER_OFFSET_Z;
 
         // Create turret in simulation mode
-        turret = new Turret(false);
+        turret = new Turret();
     }
 
     @AfterEach

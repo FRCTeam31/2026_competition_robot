@@ -23,7 +23,7 @@ class SwerveIOPackagerTest {
     @BeforeEach
     void setUp() {
         assert HAL.initialize(500, 0);
-        packager = new SwerveIOPackager(false); // Use sim mode
+        packager = new SwerveIOPackager();
         inputs = new SwerveSubsystemInputsAutoLogged();
     }
 
@@ -31,8 +31,7 @@ class SwerveIOPackagerTest {
 
     @Test
     void testConstructor_InitializesBothModes() {
-        assertDoesNotThrow(() -> new SwerveIOPackager(false), "Constructor should initialize in sim mode");
-        assertDoesNotThrow(() -> new SwerveIOPackager(true), "Constructor should initialize in real mode");
+        assertDoesNotThrow(() -> new SwerveIOPackager(), "Constructor should initialize without errors");
         assertNotNull(packager.Kinematics, "Kinematics should be initialized");
     }
 

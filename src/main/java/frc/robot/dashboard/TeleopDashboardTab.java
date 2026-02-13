@@ -49,6 +49,14 @@ public class TeleopDashboardTab extends DashboardSection {
                 getFieldTargetPose().setPose(pose);
         }
 
+        public FieldObject2d getFieldVisionEstimationPose() {
+                return _fieldWidget.getObject("VisionEstimation");
+        }
+
+        public void setFieldVisionEstimationPose(Pose2d pose) {
+                getFieldVisionEstimationPose().setPose(pose);
+        }
+
         public FieldObject2d getFieldPath() {
                 return _fieldWidget.getObject("path");
         }

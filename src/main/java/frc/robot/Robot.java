@@ -56,7 +56,7 @@ public class Robot extends LoggedRobot {
     DriverStation.silenceJoystickConnectionWarning(true);
 
     // Initialize the robot container
-    Container.initialize(isReal());
+    Container.initialize();
 
     // Set up the dashboard
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath()); // Start the web server for downloading elastic layout from robot

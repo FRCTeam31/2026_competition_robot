@@ -4,11 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.photonvision.simulation.VisionSystemSim;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Container;
+import frc.robot.FieldTargets;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
 
@@ -16,8 +21,15 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
     public static final String DefaultCameraName = "PhotonVision";
     private Map<String, PhotonVisionCamera> _cameras = new HashMap<>();
 
+    private VisionSystemSim _visionSim;
+
     public PhotonVision() {
         setName("PhotonVision");
+
+        if (Robot.isSimulation()) {
+            _visionSim = new VisionSystemSim("main");
+            _visionSim.addAprilTags(FieldTargets.FieldTagLayout);
+        }
 
         // Add default camera(s) here
     }
@@ -33,8 +45,14 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
             return false;
         }
 
-        _cameras.put(name, new PhotonVisionCamera(name, robotCameraTransform));
+        var cam = new PhotonVisionCamera(name, robotCameraTransform);
+        _cameras.put(name, cam);
         SuperStructure.VisionPhotons.put(name, new PhotonCameraInputsAutoLogged());
+
+        if (Robot.isSimulation()) {
+            _visionSim.addCamera(cam.Sim, robotCameraTransform);
+        }
+
         return true;
     }
 
@@ -102,6 +120,20 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
         // Update superstructure
         for (var name : _cameras.keySet()) {
             _cameras.get(name).updateInputs(SuperStructure.VisionPhotons.get(name));
+        }
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        // Update with the simulated drivetrain pose. This should be called every loop in simulation.
+        _visionSim.update(SuperStructure.Swerve.EstimatedRobotPose);
+
+        for (var name : _cameras.keySet()) {
+            var inputs = SuperStructure.VisionPhotons.get(name);
+            if (inputs.BotPoseEstimate == null)
+                continue;
+
+            Container.TeleopDashboardSection.setFieldVisionEstimationPose(inputs.BotPoseEstimate);
         }
     }
 
