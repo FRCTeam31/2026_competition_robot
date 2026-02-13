@@ -23,12 +23,12 @@ public class TurretMap {
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants();
         public static final double FLYWHEEL_IDLE_VELOCITY_RPS = 5.0;
         public static final double FLYWHEEL_RADIUS = 0.0505;
-        public static final double FLYWHEEL_MAX_SPEED = 20;
+        public static final double FLYWHEEL_MAX_SPEED = 5;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
-//        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
-//        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
-public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-//        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
+        //        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
+        //        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
+        public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
+        //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
 
         public static final int FEEDER_CANID = 0;
@@ -42,7 +42,7 @@ public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracte
         public static final double TURRET_HEIGHT_ABOVE_GROUND = 0.45;
 
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
-        public static final double HUB_OVERSHOOT_HEIGHT = 0;
+        public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
         public static final double MIN_SHOT_DISTANCE_METERS = 0;
 
         public static final boolean AUTO_MOTION_COMPENSATION = false;

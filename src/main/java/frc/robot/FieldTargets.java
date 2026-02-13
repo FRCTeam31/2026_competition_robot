@@ -22,12 +22,13 @@ public class FieldTargets {
     public static final double FIELD_LEFT = 0; // meters
     public static final double FIELD_RIGHT = 16.561; // meters
     public static final double HUB_HEIGHT = 1.8288; // meters (72")
+    //public static final double HUB_HEIGHT = 1.6764; // meters (66")
 
     private static final Pose3d Blue_Hub_Position = new Pose3d(
             new Translation3d(4.618, 4.035, 1.8288), // 1.8288m (72") is the height of the top rim
             Rotation3d.kZero);
     private static final Pose3d Red_Hub_Position = new Pose3d(
-            new Translation3d(11.919, 4.035, 1.8288),
+            new Translation3d(11.919, 4.035, 1.6764),
             Rotation3d.kZero);
 
     public static Pose3d GetHubPosition() {
