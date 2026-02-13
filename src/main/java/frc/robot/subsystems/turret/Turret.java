@@ -2,6 +2,10 @@ package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.units.TimeUnit;
+import edu.wpi.first.units.Units;
+import frc.robot.subsystems.swerve.Swerve;
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
 
@@ -9,13 +13,13 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
 import frc.robot.SuperStructure;
+
+import static org.prime.util.PhysicsConstants.GRAVITY;
 
 public class Turret extends SubsystemBase {
     private ITurret _turret;
@@ -134,6 +138,58 @@ public class Turret extends SubsystemBase {
                 // We are not in the neutral zone, target the hub.
                 target = FieldTargets.GetHubPosition();
             }
+
+            double velocityX = _mutNominalTargetVector.getX();
+            double velocityY = _mutNominalTargetVector.getY();
+            double velocityZ = _mutNominalTargetVector.getZ();
+
+            double initialX = SuperStructure.Swerve.EstimatedRobotPose.getX();
+            double initialY = SuperStructure.Swerve.EstimatedRobotPose.getY();
+            double initialZ = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+
+            var deltaX = target.getX() - SuperStructure.Swerve.EstimatedRobotPose.getX();
+            var deltaY = target.getY() - SuperStructure.Swerve.EstimatedRobotPose.getY();
+            var distance = Math.hypot(deltaX, deltaY);
+
+//            var totalTime = 0.0;
+//
+//            if (_mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds) != -1) {
+//                totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
+//            }
+
+            var totalTime = 10;
+
+            var timeStep = 0.05;
+
+            int numPoints = (int)(totalTime / timeStep) + 1;
+            Pose3d[] trajectory = new Pose3d[numPoints];
+
+            for (int i = 0; i < numPoints; i++) {
+                double t = i * timeStep;
+
+                // Projectile motion equations
+                double x = initialX + velocityX * t;
+                double y = initialY + velocityY * t;
+                double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
+
+                // Calculate velocity direction for orientation
+                double vx = velocityX;
+                double vy = velocityY;
+                double vz = velocityZ - GRAVITY * t;
+
+                // Create rotation based on velocity direction
+                double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
+                double yaw = Math.atan2(vy, vx);
+
+                trajectory[i] = new Pose3d(
+                        new Translation3d(x, y, z),
+                        new Rotation3d(0, pitch, yaw)
+                );
+            }
+
+                Logger.recordOutput("Optimal Fuel Trajectory", trajectory);
+            Logger.recordOutput("Target Pose", target);
+
             aimVector = calculateTurretVectorFromRobotPose(target);
         }
 
@@ -190,9 +246,11 @@ public class Turret extends SubsystemBase {
                 break;
             case REVERSED:
                 _turret.setFeederSpeed(-.5);
+                break;
             case STOPPED:
             default:
                 _turret.setFeederSpeed(0);
+                break;
         }
     }
 
@@ -200,12 +258,13 @@ public class Turret extends SubsystemBase {
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
         // TODO: Currently in field relative, possibly change later
-        SuperStructure.Turret.targetVector = _mutNominalTargetVector.getTranslation3d()
-                .plus(new Translation3d(SuperStructure.Swerve.EstimatedRobotPose.getTranslation()));
 
         Logger.processInputs(getName(), SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);
+
+        SuperStructure.Turret.targetVector = _mutNominalTargetVector.getTranslation3d()
+                .plus(new Translation3d(SuperStructure.Swerve.EstimatedRobotPose.getTranslation()));
     }
 
     public Command setFlywheel(FlywheelState state) {
