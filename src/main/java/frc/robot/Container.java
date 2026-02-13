@@ -56,7 +56,7 @@ public class Container {
     OUTWARDS
   }
 
-  public static void initialize(boolean isReal) {
+  public static void initialize() {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
@@ -68,12 +68,11 @@ public class Container {
       LEDs = new PwmLEDs();
       LimelightVision = new LimelightVision();
       PhotonVision = new PhotonVision();
-      Swerve = new Swerve(isReal);
-      Pneumatics = new Pneumatics(isReal);
-      Hopper = new Hopper(isReal);
-      Climb = new Climb(isReal);
-      Turret = new Turret(isReal);
-
+      Swerve = new Swerve();
+      Pneumatics = new Pneumatics();
+      Hopper = new Hopper();
+      Climb = new Climb();
+      Turret = new Turret();
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
       OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);

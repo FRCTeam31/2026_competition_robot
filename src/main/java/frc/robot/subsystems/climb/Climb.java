@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
 public class Climb extends SubsystemBase {
@@ -43,9 +44,11 @@ public class Climb extends SubsystemBase {
         CLIMBING_DONE
     }
 
-    public Climb(boolean isReal) {
+    public Climb() {
         setName("Climb");
-        _climb = isReal ? new ClimbReal() : new ClimbSim();
+        _climb = Robot.isReal()
+                ? new ClimbReal()
+                : new ClimbSim();
     }
 
     private void actOnState(ClimbInputsAutoLogged inputs) {

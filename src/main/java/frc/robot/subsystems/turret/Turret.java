@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
 public class Turret extends SubsystemBase {
@@ -64,9 +65,11 @@ public class Turret extends SubsystemBase {
     private DoubleSupplier _yawSupplier;
     private DoubleSupplier _pitchSupplier;
 
-    public Turret(boolean isReal) {
+    public Turret() {
         setName("Turret");
-        _turret = isReal ? new TurretReal() : new TurretSim();
+        _turret = Robot.isReal()
+                ? new TurretReal()
+                : new TurretSim();
     }
 
     public MutVector calculateTurretVectorFromRobotPose(Pose3d targetPose) {

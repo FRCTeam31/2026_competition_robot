@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
 public class Hopper extends SubsystemBase {
@@ -30,10 +31,12 @@ public class Hopper extends SubsystemBase {
         OFF
     }
 
-    public Hopper(boolean isReal) {
+    public Hopper() {
         setName("Hopper");
 
-        _hopper = isReal ? new HopperReal() : new HopperSim();
+        _hopper = Robot.isReal()
+                ? new HopperReal()
+                : new HopperSim();
     }
 
     private void actOnState(HopperInputsAutoLogged inputs) {

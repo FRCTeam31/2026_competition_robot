@@ -56,13 +56,13 @@ public class Swerve extends SubsystemBase {
   /**
    * Creates a new Drivetrain.
    */
-  public Swerve(boolean isReal) {
+  public Swerve() {
     setName("Swerve");
 
     _rumbleHelper = new ImpactRumbleHelper();
 
     // Create swerve controller
-    _swervePackager = new SwerveIOPackager(isReal);
+    _swervePackager = new SwerveIOPackager();
     _swervePackager.updateInputs(SuperStructure.Swerve);
 
     // Configure AutoAlign
