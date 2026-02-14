@@ -12,6 +12,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -148,9 +149,11 @@ public class Turret extends LoggedSubsystem {
         }
 
         try {
+            var turretPose = getTurretPose();
+            recordOutput("Turret Pose", turretPose);
             calculateAimVector(
                     _mutNominalTargetVector,
-                    robotPose,
+                    turretPose,
                     targetPose,
                     TurretMap.HOOD_MIN_ANGLE_DEGREES,
                     TurretMap.HOOD_MAX_ANGLE_DEGREES,
@@ -188,6 +191,16 @@ public class Turret extends LoggedSubsystem {
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
             return _mutNominalTargetVector;
         }
+    }
+
+    private Pose3d getTurretPose() {
+        var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
+
+        var turretTransform = new Transform3d(
+                TurretMap.TURRET_ROBOT_ORIGIN,
+                Rotation3d.kZero);
+
+        return robotPose.plus(turretTransform);
     }
 
     public void setYawSupplier(DoubleSupplier supplier) {
@@ -228,12 +241,12 @@ public class Turret extends LoggedSubsystem {
         double velocityY = _mutNominalTargetVector.getY();
         double velocityZ = _mutNominalTargetVector.getZ();
 
-        double initialX = SuperStructure.Swerve.EstimatedRobotPose.getX();
-        double initialY = SuperStructure.Swerve.EstimatedRobotPose.getY();
-        double initialZ = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+        double initialX = getTurretPose().getX();
+        double initialY = getTurretPose().getY();
+        double initialZ = getTurretPose().getZ();
 
-        var deltaX = target.getX() - SuperStructure.Swerve.EstimatedRobotPose.getX();
-        var deltaY = target.getY() - SuperStructure.Swerve.EstimatedRobotPose.getY();
+        var deltaX = target.getX() - initialX;
+        var deltaY = target.getY() - initialY;
         var distance = Math.hypot(deltaX, deltaY);
 
         //            var totalTime = 0.0;
@@ -420,10 +433,6 @@ public class Turret extends LoggedSubsystem {
         double turretRotationRadians = SuperStructure.Turret.TurretRotation.getRadians();
 
         // Step 1: Calculate turret rotation center position from robot center
-        Translation3d turretCenterFromRobotCenter = new Translation3d(
-                TurretMap.TURRET_CENTER_OFFSET_X,
-                TurretMap.TURRET_CENTER_OFFSET_Y,
-                TurretMap.TURRET_CENTER_OFFSET_Z);
 
         // Step 2: Calculate limelight offset from turret center, accounting for turret rotation
         // The limelight offset rotates with the turret around the Z-axis (yaw)
@@ -439,7 +448,7 @@ public class Turret extends LoggedSubsystem {
         );
 
         // Step 3: Combine to get total limelight position from robot center
-        Translation3d limelightPositionFromRobotCenter = turretCenterFromRobotCenter
+        Translation3d limelightPositionFromRobotCenter = TurretMap.TURRET_ROBOT_ORIGIN
                 .plus(limelightOffsetFromTurretCenter);
 
         // Step 4: Calculate limelight rotation

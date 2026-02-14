@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.SuperStructure;
 
 /**
@@ -29,9 +30,7 @@ class TurretTest {
     private double originalLimelightPitch;
     private double originalLimelightYaw;
     private double originalLimelightRoll;
-    private double originalTurretCenterOffsetX;
-    private double originalTurretCenterOffsetY;
-    private double originalTurretCenterOffsetZ;
+    private Translation3d originalTurretRobotOrigin;
 
     @BeforeEach
     void setUp() {
@@ -45,10 +44,7 @@ class TurretTest {
         originalLimelightPitch = TurretMap.LIMELIGHT_PITCH;
         originalLimelightYaw = TurretMap.LIMELIGHT_YAW;
         originalLimelightRoll = TurretMap.LIMELIGHT_ROLL;
-        originalTurretCenterOffsetX = TurretMap.TURRET_CENTER_OFFSET_X;
-        originalTurretCenterOffsetY = TurretMap.TURRET_CENTER_OFFSET_Y;
-        originalTurretCenterOffsetZ = TurretMap.TURRET_CENTER_OFFSET_Z;
-
+        originalTurretRobotOrigin = TurretMap.TURRET_ROBOT_ORIGIN;
         // Create turret in simulation mode
         turret = new Turret();
     }
@@ -62,9 +58,7 @@ class TurretTest {
         setStaticField(TurretMap.class, "LIMELIGHT_PITCH", originalLimelightPitch);
         setStaticField(TurretMap.class, "LIMELIGHT_YAW", originalLimelightYaw);
         setStaticField(TurretMap.class, "LIMELIGHT_ROLL", originalLimelightRoll);
-        setStaticField(TurretMap.class, "TURRET_CENTER_OFFSET_X", originalTurretCenterOffsetX);
-        setStaticField(TurretMap.class, "TURRET_CENTER_OFFSET_Y", originalTurretCenterOffsetY);
-        setStaticField(TurretMap.class, "TURRET_CENTER_OFFSET_Z", originalTurretCenterOffsetZ);
+        setStaticField(TurretMap.class, "TURRET_ROBOT_ORIGIN", originalTurretRobotOrigin);
     }
 
     //#region Helper Methods

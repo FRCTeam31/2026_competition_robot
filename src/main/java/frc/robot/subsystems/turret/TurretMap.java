@@ -6,7 +6,9 @@ import org.prime.control.ExtendedPIDConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 
 public class TurretMap {
         public static final double TURRET_GEAR_RATIO = 10;
@@ -73,7 +75,8 @@ public class TurretMap {
         public static double LIMELIGHT_ROLL = 0.0; // Camera roll
 
         // Turret rotation origin offset from robot center (in meters, XYZ from robot center on ground)
-        public static double TURRET_CENTER_OFFSET_X = 0.0; // Distance forward from robot center
-        public static double TURRET_CENTER_OFFSET_Y = 0.0; // Distance right from robot center (negative for left)
-        public static double TURRET_CENTER_OFFSET_Z = 0.0; // Height above ground
+        public static Translation3d TURRET_ROBOT_ORIGIN = new Translation3d(
+                        Units.inchesToMeters(8.25),
+                        Units.inchesToMeters(5.75),
+                        Units.inchesToMeters(15.894));
 }
