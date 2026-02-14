@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -194,7 +195,7 @@ public class Turret extends LoggedSubsystem {
 
         var turretTransform = new Transform3d(
                 TurretMap.TURRET_ROBOT_ORIGIN,
-                Rotation3d.kZero);
+                new Rotation3d(SuperStructure.Turret.TurretRotation));
 
         return robotPose.plus(turretTransform);
     }
@@ -302,7 +303,7 @@ public class Turret extends LoggedSubsystem {
             case AUTO:
                 var yaw = aimVector.getYaw();
                 yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
-                _turret.controlYaw(_yawControl.withPosition(yaw));
+                _turret.controlYaw(_yawControl.withPosition(yaw / 360));
 
                 // var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
