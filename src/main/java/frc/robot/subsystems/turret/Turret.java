@@ -159,7 +159,7 @@ public class Turret extends LoggedSubsystem {
             //                totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
             //            }
 
-            var totalTime = 10;
+            var totalTime = 3;
 
             var timeStep = 0.05;
 
@@ -188,8 +188,8 @@ public class Turret extends LoggedSubsystem {
                         new Rotation3d(0, pitch, yaw));
             }
 
-            Logger.recordOutput("Optimal Fuel Trajectory", trajectory);
-            Logger.recordOutput("Target Pose", target);
+            recordOutput("Optimal Fuel Trajectory", trajectory);
+            recordOutput("Target Pose", target);
 
             aimVector = calculateTurretVectorFromRobotPose(target);
         }

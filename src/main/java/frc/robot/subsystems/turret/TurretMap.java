@@ -23,7 +23,7 @@ public class TurretMap {
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants();
         public static final double FLYWHEEL_IDLE_VELOCITY_RPS = 5.0;
         public static final double FLYWHEEL_RADIUS = 0.0505;
-        public static final double FLYWHEEL_MAX_SPEED = 5;
+        public static final double FLYWHEEL_MAX_SPEED = 50;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
         //        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
         //        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended

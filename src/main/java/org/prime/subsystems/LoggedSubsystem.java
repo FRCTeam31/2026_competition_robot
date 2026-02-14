@@ -50,6 +50,11 @@ public class LoggedSubsystem extends SubsystemBase {
         Logger.recordOutput(getName() + "/" + keyName, value);
     }
 
+    @SuppressWarnings("unchecked")
+    protected <T extends StructSerializable> void recordOutput(String keyName, T... value) {
+        Logger.recordOutput(getName() + "/" + keyName, value);
+    }
+
     protected <T extends Record> void recordOutput(String keyName, T value) {
         Logger.recordOutput(getName() + "/" + keyName, value);
     }
