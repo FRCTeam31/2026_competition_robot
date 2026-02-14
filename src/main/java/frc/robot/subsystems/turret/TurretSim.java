@@ -20,6 +20,7 @@ public class TurretSim implements ITurret {
     private double _turretTargetPositionRotations = 0;
     private double _turretManualSpeed = 0;
     private double _turretVelocityRPS = 0;
+    private boolean _isManualControl = false;
 
     // Hood and feeder state
     private double _hoodSpeed = 0;
@@ -37,7 +38,16 @@ public class TurretSim implements ITurret {
      * @param timestepSeconds the simulation timestep (typically 0.02s)
      */
     public void updateSimulation(double timestepSeconds) {
-        // Simple trapezoidal-ish motion toward the target position
+        if (_isManualControl) {
+            // In manual (DutyCycleOut) mode, apply manual speed directly as velocity
+            _turretVelocityRPS = _turretManualSpeed * TURRET_CRUISE_VELOCITY_RPS;
+            _turretPositionRotations += _turretVelocityRPS * timestepSeconds;
+            // Keep target in sync so switching to position mode doesn't cause a jump
+            _turretTargetPositionRotations = _turretPositionRotations;
+            return;
+        }
+
+        // Position (MotionMagic) mode: trapezoidal motion toward the target position
         double error = _turretTargetPositionRotations - _turretPositionRotations;
 
         // Wrap error to [-0.5, 0.5] rotations for continuous wrap behavior
@@ -99,8 +109,10 @@ public class TurretSim implements ITurret {
         // Extract the target position from known position control request types.
         if (request instanceof MotionMagicVoltage motionMagicRequest) {
             _turretTargetPositionRotations = motionMagicRequest.Position;
+            _isManualControl = false;
         } else if (request instanceof DutyCycleOut dutyCycleRequest) {
             _turretManualSpeed = dutyCycleRequest.Output;
+            _isManualControl = true;
         }
     }
 

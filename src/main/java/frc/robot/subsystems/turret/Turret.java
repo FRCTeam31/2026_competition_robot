@@ -301,9 +301,13 @@ public class Turret extends LoggedSubsystem {
                 _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
-                var yaw = aimVector.getYaw();
-                yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
-                _turret.controlYaw(_yawControl.withPosition(yaw / 360));
+                // aimVector.getYaw() is field-relative (degrees), but the turret motor
+                // position is robot-relative. Subtract the robot's heading to convert.
+                var fieldYawDeg = aimVector.getYaw();
+                fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+                var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
+                var robotRelativeYawRotations = (fieldYawDeg - robotHeadingDeg) / 360.0;
+                _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
 
                 // var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
