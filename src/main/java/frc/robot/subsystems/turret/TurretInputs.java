@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.MutAngularVelocity;
@@ -14,6 +15,7 @@ public class TurretInputs {
     public Rotation2d TurretRotation = Rotation2d.kZero;
     public boolean TurretRotationResetSwitch = true;
     public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
+    public Pose3d LimelightPoseFromRobotCenter = Pose3d.kZero;
 
     //States
     public Turret.FlywheelState FlywheelState = Turret.FlywheelState.STOPPED;

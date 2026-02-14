@@ -2,11 +2,8 @@ package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.units.TimeUnit;
-import edu.wpi.first.units.Units;
-import frc.robot.subsystems.swerve.Swerve;
 import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -18,14 +15,13 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
-public class Turret extends SubsystemBase {
+public class Turret extends LoggedSubsystem {
     private ITurret _turret;
 
     public enum FlywheelState {
@@ -310,60 +306,10 @@ public class Turret extends SubsystemBase {
         return new Pose3d(limelightPositionFromRobotCenter, limelightRotation);
     }
 
-    /**
-     * Calculates the limelight's 3D pose (position and rotation) relative to the robot's centerpoint on the ground.
-     * 
-     * This method accounts for:
-     * - The turret's rotation origin offset from the robot center
-     * - The current turret rotation angle
-     * - The limelight's fixed offset from the turret rotation center
-     * - The limelight's fixed POV angle relative to the turret
-     * 
-     * @return Pose3d representing the limelight's position (XYZ) and rotation (pitch, yaw, roll) 
-     *         from the robot's centerpoint on the ground
-     */
-    public Pose3d getLimelightPose3dFromRobotCenter() {
-        // Get current turret rotation from inputs
-        double turretRotationRadians = SuperStructure.Turret.TurretRotation.getRadians();
-
-        // Step 1: Calculate turret rotation center position from robot center
-        Translation3d turretCenterFromRobotCenter = new Translation3d(
-                TurretMap.TURRET_CENTER_OFFSET_X,
-                TurretMap.TURRET_CENTER_OFFSET_Y,
-                TurretMap.TURRET_CENTER_OFFSET_Z);
-
-        // Step 2: Calculate limelight offset from turret center, accounting for turret rotation
-        // The limelight offset rotates with the turret around the Z-axis (yaw)
-        double rotatedLimelightX = TurretMap.LIMELIGHT_OFFSET_X * Math.cos(turretRotationRadians)
-                - TurretMap.LIMELIGHT_OFFSET_Y * Math.sin(turretRotationRadians);
-        double rotatedLimelightY = TurretMap.LIMELIGHT_OFFSET_X * Math.sin(turretRotationRadians)
-                + TurretMap.LIMELIGHT_OFFSET_Y * Math.cos(turretRotationRadians);
-
-        Translation3d limelightOffsetFromTurretCenter = new Translation3d(
-                rotatedLimelightX,
-                rotatedLimelightY,
-                TurretMap.LIMELIGHT_OFFSET_Z // Z offset doesn't change with rotation
-        );
-
-        // Step 3: Combine to get total limelight position from robot center
-        Translation3d limelightPositionFromRobotCenter = turretCenterFromRobotCenter
-                .plus(limelightOffsetFromTurretCenter);
-
-        // Step 4: Calculate limelight rotation
-        // The limelight's rotation includes both its fixed POV angle and the turret's rotation
-        Rotation3d limelightRotation = new Rotation3d(
-                TurretMap.LIMELIGHT_ROLL, // Roll (around X-axis)
-                TurretMap.LIMELIGHT_PITCH, // Pitch (around Y-axis)
-                TurretMap.LIMELIGHT_YAW + turretRotationRadians // Yaw (around Z-axis) - includes turret rotation
-        );
-
-        // Step 5: Create and return the final Pose3d
-        return new Pose3d(limelightPositionFromRobotCenter, limelightRotation);
-    }
-
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
+        SuperStructure.Turret.LimelightPoseFromRobotCenter = getLimelightPose3dFromRobotCenter();
         // TODO: Currently in field relative, possibly change later
 
         Logger.processInputs(getName(), SuperStructure.Turret);

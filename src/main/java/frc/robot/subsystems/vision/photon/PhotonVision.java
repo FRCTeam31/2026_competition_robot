@@ -16,9 +16,9 @@ import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
+import frc.robot.subsystems.vision.VisionMap;
 
 public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
-    public static final String DefaultCameraName = "PhotonVision";
     private Map<String, PhotonVisionCamera> _cameras = new HashMap<>();
 
     private VisionSystemSim _visionSim;
@@ -32,6 +32,8 @@ public class PhotonVision extends SubsystemBase implements IVisionSubsystem {
         }
 
         // Add default camera(s) here
+        addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+        addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
     }
 
     /**

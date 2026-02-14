@@ -23,7 +23,6 @@ import frc.robot.subsystems.swerve.util.AutoAlign;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
-import frc.robot.subsystems.vision.photon.PhotonVision;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -180,8 +179,10 @@ public class Swerve extends SubsystemBase {
       return;
     }
 
-    evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
-    evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(PhotonVision.DefaultCameraName));
+    // evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
+      evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
+    }
   }
 
   /**
