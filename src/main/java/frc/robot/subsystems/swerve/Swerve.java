@@ -137,7 +137,7 @@ public class Swerve extends LoggedSubsystem {
    */
   private void driveRobotRelative(ChassisSpeeds robotRelativeChassisSpeeds) {
     // If AutoAlign is enabled, override the input rotational speed to reach the setpoint
-    Logger.recordOutput(getName() + "/autoAlignCorrection", SuperStructure.Swerve.AutoAlignCorrection);
+    recordOutput("autoAlignCorrection", SuperStructure.Swerve.AutoAlignCorrection);
 
     robotRelativeChassisSpeeds.omegaRadiansPerSecond = SuperStructure.Swerve.UseAutoAlign
         ? SuperStructure.Swerve.AutoAlignCorrection
@@ -146,14 +146,14 @@ public class Swerve extends LoggedSubsystem {
     // Correct drift by taking the input speeds and converting them to a desired
     // per-period speed. This is known as "discretizing"
     robotRelativeChassisSpeeds = ChassisSpeeds.discretize(robotRelativeChassisSpeeds, 0.02);
-    Logger.recordOutput(getName() + "/desiredChassisSpeeds", robotRelativeChassisSpeeds);
+    recordOutput("desiredChassisSpeeds", robotRelativeChassisSpeeds);
 
     // Calculate the module states from the chassis speeds
     var swerveModuleStates = _swervePackager.Kinematics.toSwerveModuleStates(robotRelativeChassisSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveMap.Chassis.MaxSpeedMetersPerSecond);
 
     // Set the desired states for each module
-    Logger.recordOutput(getName() + "/desiredStates", swerveModuleStates);
+    recordOutput("desiredStates", swerveModuleStates);
     _swervePackager.setDesiredModuleStates(swerveModuleStates);
 
     // Update the gyro omega for simulation purposes
@@ -174,7 +174,7 @@ public class Swerve extends LoggedSubsystem {
         currentXVelocity.lt(MetersPerSecond.of(2)) &&
         currentYVelocity.lt(MetersPerSecond.of(2));
 
-    Logger.recordOutput(getName() + "/withinPoseEstimationVelocity", withinPoseEstimationVelocity);
+    recordOutput("withinPoseEstimationVelocity", withinPoseEstimationVelocity);
     if (!withinPoseEstimationVelocity) {
       return;
     }
@@ -240,16 +240,16 @@ public class Swerve extends LoggedSubsystem {
     Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
 
     // Update LEDs
-    Logger.recordOutput(getName() + "/autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
-    Logger.recordOutput(getName() + "/autoAlign/Setpoint", _autoAlign.getSetpoint());
-    Logger.recordOutput(getName() + "/autoAlign/AtSetpoint", _autoAlign.atSetpoint());
+    recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
+    recordOutput("autoAlign/Setpoint", _autoAlign.getSetpoint());
+    recordOutput()"autoAlign/AtSetpoint", _autoAlign.atSetpoint());
 
     if (DriverStation.isAutonomousEnabled()) {
-      Logger.recordOutput(getName() + "/pp-translation-error", _primeHolonomicController.getTranslationError());
+      recordOutput("pp-translation-error", _primeHolonomicController.getTranslationError());
     }
 
     // Update dashboard
-    Logger.recordOutput(getName() + "/estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
+    recordOutput("estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
     _drivetrainDashboardSection.setAutoAlignEnabled(SuperStructure.Swerve.UseAutoAlign);
     _drivetrainDashboardSection.setAutoAlignTarget(_autoAlign.getSetpoint());
 
