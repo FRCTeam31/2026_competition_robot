@@ -1,7 +1,6 @@
 package frc.robot.subsystems.climb;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import org.littletonrobotics.junction.Logger;
 import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -78,7 +77,7 @@ public class Climb extends LoggedSubsystem {
     @Override
     public void periodic() {
         _climb.updateInputs(SuperStructure.Climb);
-        Logger.processInputs(getName(), SuperStructure.Climb);
+        processInputs(SuperStructure.Climb);
 
         actOnState(SuperStructure.Climb);
     }

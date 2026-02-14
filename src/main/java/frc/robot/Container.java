@@ -30,6 +30,7 @@ import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
+import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 import frc.robot.subsystems.vision.photon.PhotonVision;
 import frc.robot.subsystems.turret.Turret.FlywheelState;
@@ -66,8 +67,13 @@ public class Container {
 
       // Create subsystems
       LEDs = new PwmLEDs();
+
       LimelightVision = new LimelightVision();
+      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
       PhotonVision = new PhotonVision();
+      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+
       Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();

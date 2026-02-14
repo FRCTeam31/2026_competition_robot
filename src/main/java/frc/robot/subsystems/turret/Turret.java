@@ -2,7 +2,6 @@ package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
 
-import org.littletonrobotics.junction.Logger;
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.util.MutVector;
 
@@ -340,7 +339,7 @@ public class Turret extends LoggedSubsystem {
         SuperStructure.Turret.LimelightPoseFromRobotCenter = getLimelightPose3dFromRobotCenter();
         // TODO: Currently in field relative, possibly change later
 
-        Logger.processInputs(getName(), SuperStructure.Turret);
+        processInputs(SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);
 

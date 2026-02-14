@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
 import org.prime.subsystems.LoggedSubsystem;
 
@@ -16,7 +17,6 @@ import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
-import frc.robot.subsystems.vision.VisionMap;
 
 public class PhotonVision extends LoggedSubsystem implements IVisionSubsystem {
     private Map<String, PhotonVisionCamera> _cameras = new HashMap<>();
@@ -30,10 +30,6 @@ public class PhotonVision extends LoggedSubsystem implements IVisionSubsystem {
             _visionSim = new VisionSystemSim("main");
             _visionSim.addAprilTags(FieldTargets.FieldTagLayout);
         }
-
-        // Add default camera(s) here
-        addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
-        addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
     }
 
     /**
@@ -122,6 +118,7 @@ public class PhotonVision extends LoggedSubsystem implements IVisionSubsystem {
         // Update superstructure
         for (var name : _cameras.keySet()) {
             _cameras.get(name).updateInputs(SuperStructure.VisionPhotons.get(name));
+            Logger.processInputs("Vision/Photon/" + name, SuperStructure.VisionPhotons.get(name));
         }
     }
 

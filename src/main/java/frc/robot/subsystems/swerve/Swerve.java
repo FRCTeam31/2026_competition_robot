@@ -30,7 +30,6 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
 import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
@@ -233,7 +232,7 @@ public class Swerve extends LoggedSubsystem {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
     SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
-    Logger.processInputs(getName(), SuperStructure.Swerve);
+    processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
     Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
@@ -242,7 +241,7 @@ public class Swerve extends LoggedSubsystem {
     // Update LEDs
     recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
     recordOutput("autoAlign/Setpoint", _autoAlign.getSetpoint());
-    recordOutput()"autoAlign/AtSetpoint", _autoAlign.atSetpoint());
+    recordOutput("autoAlign/AtSetpoint", _autoAlign.atSetpoint());
 
     if (DriverStation.isAutonomousEnabled()) {
       recordOutput("pp-translation-error", _primeHolonomicController.getTranslationError());

@@ -49,16 +49,9 @@ class LimelightVisionTest {
 
     @Test
     void testConstructorCreatesLimelights() {
-        // Verify that one Limelight instance was created
-        assertEquals(1, mockLimelightConstruction.constructed().size(),
-                "Vision should create one Limelight instance");
-
-        // Verify the limelight was created with correct name
-        var constructedLimelights = mockLimelightConstruction.constructed();
-        var turretLL = constructedLimelights.get(0);
-
-        // Verify construction arguments
-        verify(turretLL, never()).updateInputs(any());
+        // Constructor no longer adds default cameras - cameras are added via Container
+        assertEquals(0, mockLimelightConstruction.constructed().size(),
+                "Vision should start with no Limelight instances");
     }
 
     @Test
@@ -73,6 +66,7 @@ class LimelightVisionTest {
 
     @Test
     void testSetLedModeTurret() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setLEDMode(VisionMap.LimelightTurretName, 1);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -82,6 +76,7 @@ class LimelightVisionTest {
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2, 3 })
     void testSetLedModeAllValidModes(int mode) {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setLEDMode(VisionMap.LimelightTurretName, mode);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -94,6 +89,7 @@ class LimelightVisionTest {
 
     @Test
     void testBlinkLedTurret() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.blinkLED(VisionMap.LimelightTurretName, 5);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -106,6 +102,7 @@ class LimelightVisionTest {
 
     @Test
     void testSetPipelineTurret() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setPipeline(VisionMap.LimelightTurretName, 2);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -115,6 +112,7 @@ class LimelightVisionTest {
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
     void testSetPipelineAllValidPipelines(int pipeline) {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setPipeline(VisionMap.LimelightTurretName, pipeline);
 
         var frontLL = mockLimelightConstruction.constructed().get(0);
@@ -127,6 +125,7 @@ class LimelightVisionTest {
 
     @Test
     void testSetPiPStreamingModeTurret() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setPiPStreamingMode(VisionMap.LimelightTurretName, 1);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -136,6 +135,7 @@ class LimelightVisionTest {
     @ParameterizedTest
     @ValueSource(ints = { 0, 1, 2 })
     void testSetPiPStreamingModeAllValidModes(int mode) {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.setPiPStreamingMode(VisionMap.LimelightTurretName, mode);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -148,6 +148,7 @@ class LimelightVisionTest {
 
     @Test
     void testSetCameraPoseTurret() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         Pose3d testPose = new Pose3d(1.0, 2.0, 3.0, new Rotation3d(0.1, 0.2, 0.3));
         vision.setCameraPose(VisionMap.LimelightTurretName, testPose);
 
@@ -157,10 +158,12 @@ class LimelightVisionTest {
 
     @Test
     void testSetCameraPoseZeroPose() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         Pose3d zeroPose = Pose3d.kZero;
         vision.setCameraPose(VisionMap.LimelightTurretName, zeroPose);
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
+        // addCamera calls setCameraPose once with the transform-derived pose, plus our explicit call
         verify(turretLL, times(2)).setCameraPose(zeroPose);
     }
 
@@ -170,6 +173,7 @@ class LimelightVisionTest {
 
     @Test
     void testPeriodicUpdatesLimelights() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         vision.periodic();
 
         var turretLL = mockLimelightConstruction.constructed().get(0);
@@ -180,6 +184,7 @@ class LimelightVisionTest {
 
     @Test
     void testPeriodicMultipleCalls() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         // Call periodic multiple times
         vision.periodic();
         vision.periodic();
@@ -204,6 +209,7 @@ class LimelightVisionTest {
 
     @Test
     void testSetLimelightPipelineCommandExecution() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         Command command = vision.setProcessingPipeline(VisionMap.LimelightTurretName, 5);
 
         // Execute the command
@@ -223,8 +229,8 @@ class LimelightVisionTest {
         boolean result = vision.addCamera("limelight-front", new Transform3d());
 
         assertTrue(result, "Should return true when adding new limelight");
-        assertEquals(2, mockLimelightConstruction.constructed().size(),
-                "Should have two limelights after adding");
+        assertEquals(1, mockLimelightConstruction.constructed().size(),
+                "Should have one limelight after adding");
         assertTrue(vision.hasCamera("limelight-front"),
                 "Should contain newly added limelight");
     }
@@ -236,7 +242,7 @@ class LimelightVisionTest {
 
         assertTrue(firstAdd, "First add should succeed");
         assertFalse(secondAdd, "Second add with same name should fail");
-        assertEquals(2, mockLimelightConstruction.constructed().size(),
+        assertEquals(1, mockLimelightConstruction.constructed().size(),
                 "Should only create one limelight instance");
     }
 
@@ -246,12 +252,11 @@ class LimelightVisionTest {
         vision.addCamera("limelight-rear", new Transform3d());
         vision.addCamera("limelight-intake", new Transform3d());
 
-        assertEquals(4, mockLimelightConstruction.constructed().size(),
-                "Should have four limelights total");
+        assertEquals(3, mockLimelightConstruction.constructed().size(),
+                "Should have three limelights total");
         assertTrue(vision.hasCamera("limelight-front"));
         assertTrue(vision.hasCamera("limelight-rear"));
         assertTrue(vision.hasCamera("limelight-intake"));
-        assertTrue(vision.hasCamera(VisionMap.LimelightTurretName));
     }
 
     @Test
@@ -262,8 +267,8 @@ class LimelightVisionTest {
         assertTrue(result, "Should return true when removing existing limelight");
         assertFalse(vision.hasCamera("limelight-test"),
                 "Should not contain removed limelight");
-        assertEquals(1, vision.getCameraNames().size(),
-                "Should have one limelight remaining");
+        assertEquals(0, vision.getCameraNames().size(),
+                "Should have no limelights remaining");
     }
 
     @Test
@@ -275,11 +280,12 @@ class LimelightVisionTest {
 
     @Test
     void testRemoveDefaultLimelight() {
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
         boolean result = vision.removeCamera(VisionMap.LimelightTurretName);
 
-        assertTrue(result, "Should be able to remove default limelight");
+        assertTrue(result, "Should be able to remove turret limelight");
         assertFalse(vision.hasCamera(VisionMap.LimelightTurretName),
-                "Default limelight should be removed");
+                "Turret limelight should be removed");
     }
 
     @Test
@@ -287,22 +293,30 @@ class LimelightVisionTest {
         var names = vision.getCameraNames();
 
         assertNotNull(names, "Names set should not be null");
-        assertEquals(1, names.size(), "Should have one limelight by default");
+        assertEquals(0, names.size(), "Should have no limelights by default");
+
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+        names = vision.getCameraNames();
+        assertEquals(1, names.size(), "Should have one limelight after adding turret");
         assertTrue(names.contains(VisionMap.LimelightTurretName),
-                "Should contain default turret limelight");
+                "Should contain turret limelight");
 
         vision.addCamera("limelight-test", new Transform3d());
         names = vision.getCameraNames();
-        assertEquals(2, names.size(), "Should have two limelights after adding");
+        assertEquals(2, names.size(), "Should have two limelights after adding another");
         assertTrue(names.contains("limelight-test"), "Should contain added limelight");
     }
 
     @Test
     void testHasLimelight() {
-        assertTrue(vision.hasCamera(VisionMap.LimelightTurretName),
-                "Should have default turret limelight");
+        assertFalse(vision.hasCamera(VisionMap.LimelightTurretName),
+                "Should not have turret limelight before adding");
         assertFalse(vision.hasCamera("limelight-nonexistent"),
                 "Should not have non-existent limelight");
+
+        vision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+        assertTrue(vision.hasCamera(VisionMap.LimelightTurretName),
+                "Should have turret limelight after adding");
 
         vision.addCamera("limelight-test", new Transform3d());
         assertTrue(vision.hasCamera("limelight-test"),

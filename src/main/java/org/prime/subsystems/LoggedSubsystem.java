@@ -1,6 +1,7 @@
 package org.prime.subsystems;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Unit;
@@ -9,6 +10,10 @@ import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LoggedSubsystem extends SubsystemBase {
+
+    protected void processInputs(LoggableInputs inputs) {
+        Logger.processInputs(getName(), inputs);
+    }
 
     protected void recordOutput(String keyName, byte value) {
         Logger.recordOutput(getName() + "/" + keyName, value);

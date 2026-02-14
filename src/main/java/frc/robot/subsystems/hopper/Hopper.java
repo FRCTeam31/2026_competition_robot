@@ -1,6 +1,5 @@
 package frc.robot.subsystems.hopper;
 
-import org.littletonrobotics.junction.Logger;
 import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -89,7 +88,7 @@ public class Hopper extends LoggedSubsystem {
     @Override
     public void periodic() {
         _hopper.updateInputs(SuperStructure.Hopper);
-        Logger.processInputs(getName(), SuperStructure.Hopper);
+        processInputs(SuperStructure.Hopper);
 
         actOnState(SuperStructure.Hopper);
     }

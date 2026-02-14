@@ -6,12 +6,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
-import frc.robot.subsystems.vision.VisionMap;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.littletonrobotics.junction.Logger;
 import org.prime.subsystems.LoggedSubsystem;
 
 public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem {
@@ -19,9 +19,6 @@ public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem
 
     public LimelightVision() {
         setName("LimelightVision");
-
-        // Add default turret limelight
-        addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
     }
 
     /**
@@ -143,7 +140,7 @@ public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem
         // Update superstructure
         for (var name : _limelights.keySet()) {
             _limelights.get(name).updateInputs(SuperStructure.VisionLimelights.get(name));
-            // Logger.processInputs("Vision/LL/" + name, SuperStructure.LimelightStates.get(name));
+            Logger.processInputs("Vision/LL/" + name, SuperStructure.VisionLimelights.get(name));
         }
     }
 
