@@ -170,6 +170,9 @@ public class Swerve extends SubsystemBase {
    * @param robotRelativeChassisSpeeds The desired speeds of the robot
    */
   private void driveRobotRelative(ChassisSpeeds robotRelativeChassisSpeeds) {
+    Logger.recordOutput(getName() + "/inputOmega", robotRelativeChassisSpeeds.omegaRadiansPerSecond);
+    Logger.recordOutput(getName() + "/inputVx", robotRelativeChassisSpeeds.vxMetersPerSecond);
+    Logger.recordOutput(getName() + "/inputVy", robotRelativeChassisSpeeds.vyMetersPerSecond);
     // If AutoAlign is enabled, override the input rotational speed to reach the setpoint
     Logger.recordOutput(getName() + "/autoAlignCorrection", SuperStructure.Swerve.AutoAlignCorrection);
 

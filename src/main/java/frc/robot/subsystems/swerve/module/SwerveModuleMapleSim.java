@@ -95,13 +95,13 @@ public class SwerveModuleMapleSim implements ISwerveModule {
 
         var ff = _driveFeedForward.calculate(desiredSpeedRotationsPerSecond);
 
-        var currentSpeedRotationsPerSecond = _moduleSim.getDriveWheelFinalSpeed().in(RadiansPerSecond) / (2 * Math.PI);
+        var currentSpeedRotationsPerSecond = _moduleSim.getDriveWheelFinalSpeed().in(RotationsPerSecond);
         var drivePID = _drivingPidController.calculate(currentSpeedRotationsPerSecond, desiredSpeedRotationsPerSecond);
         var driveOutput = MathUtil.clamp(ff + drivePID, -12.0, 12.0);
 
         var currentHeading = _moduleSim.getSteerAbsoluteFacing();
-        var setpoint = _steeringRateLimiter.calculate(desiredState.angle.getRadians());
-        var steerPID = _steeringPidController.calculate(currentHeading.getRadians(), setpoint);
+        var rateLimitedDesiredAngle = _steeringRateLimiter.calculate(desiredState.angle.getRadians());
+        var steerPID = _steeringPidController.calculate(currentHeading.getRadians(), rateLimitedDesiredAngle);
         var steerOutput = MathUtil.clamp(steerPID, -12, 12);
 
         Logger.recordOutput("Swerve/Modules/" + _name + "/DrivePID", drivePID);
@@ -112,6 +112,13 @@ public class SwerveModuleMapleSim implements ISwerveModule {
         Logger.recordOutput("Swerve/Modules/" + _name + "/SteerPID", steerPID);
         Logger.recordOutput("Swerve/Modules/" + _name + "/SteerMotorOutputVoltage", steerOutput);
         _steer.requestVoltage(Voltage.ofBaseUnits(steerOutput, Volts));
+
+        // Logging being used to debug
+        Logger.recordOutput("Swerve/Modules/" + _name + "/DesiredSpeedRPS", desiredSpeedRotationsPerSecond);
+        Logger.recordOutput("Swerve/Modules/" + _name + "/CurrentSpeedRPS", currentSpeedRotationsPerSecond);
+        Logger.recordOutput("Swerve/Modules/" + _name + "/PIDError", desiredSpeedRotationsPerSecond - currentSpeedRotationsPerSecond);
+        Logger.recordOutput("Swerve/Modules/" + _name + "/DriveOutput", driveOutput);
+        Logger.recordOutput("Swerve/Modules/" + _name + "/AppliedVoltage", _drive.getAppliedVoltage());
     }
 
     @Override

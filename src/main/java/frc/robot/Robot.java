@@ -152,9 +152,6 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
-    CommandScheduler.getInstance().run();
-    EventLoop.poll();
-
     // Update MapleSim simulation
     if (isSimulation() && USE_MAPLESIM) {
       var simulatedArenaInstance = SimulatedArena.getInstance();
@@ -168,7 +165,13 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput("MapleSim/FuelPositions", fuelPoses);
       Logger.recordOutput("MapleSim/RedScore", redScore);
       Logger.recordOutput("MapleSim/BlueScore", blueScore);
+
+      Logger.recordOutput("SimDt", SimulatedArena.getSimulationDt());
+      Logger.recordOutput("SimSubsteps", SimulatedArena.getSimulationSubTicksIn1Period());
     }
+
+    CommandScheduler.getInstance().run();
+    EventLoop.poll();
   }
 
   /**
