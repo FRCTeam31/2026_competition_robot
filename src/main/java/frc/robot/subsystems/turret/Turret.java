@@ -2,6 +2,10 @@ package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.units.TimeUnit;
+import edu.wpi.first.units.Units;
+import frc.robot.subsystems.swerve.Swerve;
 import org.littletonrobotics.junction.Logger;
 import org.prime.util.MutVector;
 
@@ -18,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+
+import static org.prime.util.PhysicsConstants.GRAVITY;
 
 public class Turret extends SubsystemBase {
     private ITurret _turret;
@@ -138,6 +144,57 @@ public class Turret extends SubsystemBase {
                 // We are not in the neutral zone, target the hub.
                 target = FieldTargets.GetHubPosition();
             }
+
+            double velocityX = _mutNominalTargetVector.getX();
+            double velocityY = _mutNominalTargetVector.getY();
+            double velocityZ = _mutNominalTargetVector.getZ();
+
+            double initialX = SuperStructure.Swerve.EstimatedRobotPose.getX();
+            double initialY = SuperStructure.Swerve.EstimatedRobotPose.getY();
+            double initialZ = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+
+            var deltaX = target.getX() - SuperStructure.Swerve.EstimatedRobotPose.getX();
+            var deltaY = target.getY() - SuperStructure.Swerve.EstimatedRobotPose.getY();
+            var distance = Math.hypot(deltaX, deltaY);
+
+            //            var totalTime = 0.0;
+            //
+            //            if (_mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds) != -1) {
+            //                totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
+            //            }
+
+            var totalTime = 10;
+
+            var timeStep = 0.05;
+
+            int numPoints = (int) (totalTime / timeStep) + 1;
+            Pose3d[] trajectory = new Pose3d[numPoints];
+
+            for (int i = 0; i < numPoints; i++) {
+                double t = i * timeStep;
+
+                // Projectile motion equations
+                double x = initialX + velocityX * t;
+                double y = initialY + velocityY * t;
+                double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
+
+                // Calculate velocity direction for orientation
+                double vx = velocityX;
+                double vy = velocityY;
+                double vz = velocityZ - GRAVITY * t;
+
+                // Create rotation based on velocity direction
+                double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
+                double yaw = Math.atan2(vy, vx);
+
+                trajectory[i] = new Pose3d(
+                        new Translation3d(x, y, z),
+                        new Rotation3d(0, pitch, yaw));
+            }
+
+            Logger.recordOutput("Optimal Fuel Trajectory", trajectory);
+            Logger.recordOutput("Target Pose", target);
+
             aimVector = calculateTurretVectorFromRobotPose(target);
         }
 
@@ -194,10 +251,63 @@ public class Turret extends SubsystemBase {
                 break;
             case REVERSED:
                 _turret.setFeederSpeed(-.5);
+                break;
             case STOPPED:
             default:
                 _turret.setFeederSpeed(0);
+                break;
         }
+    }
+
+    /**
+     * Calculates the limelight's 3D pose (position and rotation) relative to the robot's centerpoint on the ground.
+     * 
+     * This method accounts for:
+     * - The turret's rotation origin offset from the robot center
+     * - The current turret rotation angle
+     * - The limelight's fixed offset from the turret rotation center
+     * - The limelight's fixed POV angle relative to the turret
+     * 
+     * @return Pose3d representing the limelight's position (XYZ) and rotation (pitch, yaw, roll) 
+     *         from the robot's centerpoint on the ground
+     */
+    public Pose3d getLimelightPose3dFromRobotCenter() {
+        // Get current turret rotation from inputs
+        double turretRotationRadians = SuperStructure.Turret.TurretRotation.getRadians();
+
+        // Step 1: Calculate turret rotation center position from robot center
+        Translation3d turretCenterFromRobotCenter = new Translation3d(
+                TurretMap.TURRET_CENTER_OFFSET_X,
+                TurretMap.TURRET_CENTER_OFFSET_Y,
+                TurretMap.TURRET_CENTER_OFFSET_Z);
+
+        // Step 2: Calculate limelight offset from turret center, accounting for turret rotation
+        // The limelight offset rotates with the turret around the Z-axis (yaw)
+        double rotatedLimelightX = TurretMap.LIMELIGHT_OFFSET_X * Math.cos(turretRotationRadians)
+                - TurretMap.LIMELIGHT_OFFSET_Y * Math.sin(turretRotationRadians);
+        double rotatedLimelightY = TurretMap.LIMELIGHT_OFFSET_X * Math.sin(turretRotationRadians)
+                + TurretMap.LIMELIGHT_OFFSET_Y * Math.cos(turretRotationRadians);
+
+        Translation3d limelightOffsetFromTurretCenter = new Translation3d(
+                rotatedLimelightX,
+                rotatedLimelightY,
+                TurretMap.LIMELIGHT_OFFSET_Z // Z offset doesn't change with rotation
+        );
+
+        // Step 3: Combine to get total limelight position from robot center
+        Translation3d limelightPositionFromRobotCenter = turretCenterFromRobotCenter
+                .plus(limelightOffsetFromTurretCenter);
+
+        // Step 4: Calculate limelight rotation
+        // The limelight's rotation includes both its fixed POV angle and the turret's rotation
+        Rotation3d limelightRotation = new Rotation3d(
+                TurretMap.LIMELIGHT_ROLL, // Roll (around X-axis)
+                TurretMap.LIMELIGHT_PITCH, // Pitch (around Y-axis)
+                TurretMap.LIMELIGHT_YAW + turretRotationRadians // Yaw (around Z-axis) - includes turret rotation
+        );
+
+        // Step 5: Create and return the final Pose3d
+        return new Pose3d(limelightPositionFromRobotCenter, limelightRotation);
     }
 
     /**
@@ -255,12 +365,13 @@ public class Turret extends SubsystemBase {
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
         // TODO: Currently in field relative, possibly change later
-        SuperStructure.Turret.targetVector = _mutNominalTargetVector.getTranslation3d()
-                .plus(new Translation3d(SuperStructure.Swerve.EstimatedRobotPose.getTranslation()));
 
         Logger.processInputs(getName(), SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);
+
+        SuperStructure.Turret.targetVector = _mutNominalTargetVector.getTranslation3d()
+                .plus(new Translation3d(SuperStructure.Swerve.EstimatedRobotPose.getTranslation()));
     }
 
     public Command setFlywheel(FlywheelState state) {
