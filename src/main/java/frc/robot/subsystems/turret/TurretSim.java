@@ -53,7 +53,7 @@ public class TurretSim implements ITurret {
         // Wrap error to [-0.5, 0.5] rotations for continuous wrap behavior
         error = error - Math.round(error);
 
-        if (Math.abs(error) < 0.001 && Math.abs(_turretVelocityRPS) < 0.01) {
+        if (Math.abs(error) < 0.01 && Math.abs(_turretVelocityRPS) < 0.015) {
             _turretPositionRotations = _turretTargetPositionRotations;
             _turretVelocityRPS = 0;
         } else {

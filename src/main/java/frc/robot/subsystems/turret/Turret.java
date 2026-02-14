@@ -71,7 +71,7 @@ public class Turret extends LoggedSubsystem {
     private DoubleSupplier _pitchSupplier;
 
     // Yaw setpoint filter to smooth out noise from pose estimation
-    private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.1, Robot.defaultPeriodSecs);
+    private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
     public Turret() {
         setName("Turret");
