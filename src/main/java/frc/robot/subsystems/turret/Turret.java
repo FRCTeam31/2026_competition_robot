@@ -91,11 +91,13 @@ public class Turret extends LoggedSubsystem {
                     TurretMap.FLYWHEEL_MAX_SPEED);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_CALCULATED;
 
+            // TODO: Enable after empirical measurements correlating distance to required flywheel speed are taken
             if (TurretMap.USE_SPEED_INTERPOLATION) {
                 var interpolatedFlywheelSpeed = TurretMap.DISTANCE_TO_FLYWHEEL_SPEED_MAP.get(targetDistance);
                 _mutNominalTargetVector.setMagnitude(interpolatedFlywheelSpeed);
             }
 
+            // TODO: Refine motion compensation, enable, and test
             if (TurretMap.AUTO_MOTION_COMPENSATION) {
                 var shotTimeToTarget = _mutNominalTargetVector.getTimeToTarget(targetDistance);
                 ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
