@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -68,6 +69,9 @@ public class Turret extends LoggedSubsystem {
     // Manual Control Suppliers
     private DoubleSupplier _yawSupplier;
     private DoubleSupplier _pitchSupplier;
+
+    // Yaw setpoint filter to smooth out noise from pose estimation
+    private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.1, Robot.defaultPeriodSecs);
 
     public Turret() {
         setName("Turret");
@@ -306,7 +310,7 @@ public class Turret extends LoggedSubsystem {
                 var fieldYawDeg = aimVector.getYaw();
                 fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
-                var robotRelativeYawRotations = (fieldYawDeg - robotHeadingDeg) / 360.0;
+                var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
                 _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
 
                 // var pitch = aimVector.getPitch();
