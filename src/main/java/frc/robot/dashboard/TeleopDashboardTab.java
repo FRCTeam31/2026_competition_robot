@@ -10,6 +10,8 @@ import frc.robot.Robot;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.prime.dashboard.DashboardSection;
+
 public class TeleopDashboardTab extends DashboardSection {
         private final String _fieldName = "Field";
         private final Field2d _fieldWidget;
@@ -45,6 +47,14 @@ public class TeleopDashboardTab extends DashboardSection {
 
         public void setFieldTargetPose(Pose2d pose) {
                 getFieldTargetPose().setPose(pose);
+        }
+
+        public FieldObject2d getFieldVisionEstimationPose() {
+                return _fieldWidget.getObject("VisionEstimation");
+        }
+
+        public void setFieldVisionEstimationPose(Pose2d pose) {
+                getFieldVisionEstimationPose().setPose(pose);
         }
 
         public FieldObject2d getFieldPath() {

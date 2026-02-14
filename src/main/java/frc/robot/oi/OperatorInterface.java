@@ -15,8 +15,8 @@ import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.vision.LimelightNameEnum;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightVision;
 
 public class OperatorInterface {
         public static class OIMap {
@@ -31,7 +31,8 @@ public class OperatorInterface {
                 OperatorController = new SupplierXboxController(Controls.OPERATOR_PORT);
         }
 
-        public void bindDriverControls(Swerve swerve, Vision vision, Turret turret, Climb climb, Hopper hopper) {
+        public void bindDriverControls(Swerve swerve, LimelightVision vision, Turret turret, Climb climb,
+                        Hopper hopper) {
                 var controlProfile = DriverController.getSwerveControlProfile(
                                 OIMap.DefaultDriveControlStyle,
                                 SwerveMap.Control.DriveDeadband,
@@ -70,12 +71,12 @@ public class OperatorInterface {
 
         }
 
-        public void bindOperatorControls(Swerve swerve, Vision vision, Turret turret, Climb climb,
+        public void bindOperatorControls(Swerve swerve, LimelightVision vision, Turret turret, Climb climb,
                         Hopper hopper) {
-                // Changes the vision mode for the rear limelight. 
+                // Changes the vision mode for the turret limelight. 
                 OperatorController.start()
-                                .onTrue(vision.setLimelightPipeline(LimelightNameEnum.kRear, 1))
-                                .onFalse(vision.setLimelightPipeline(LimelightNameEnum.kRear, 0));
+                                .onTrue(vision.setProcessingPipeline(VisionMap.LimelightTurretName, 1))
+                                .onFalse(vision.setProcessingPipeline(VisionMap.LimelightTurretName, 0));
 
                 OperatorController.rightTrigger()
                                 .onTrue(Container.startShooting())

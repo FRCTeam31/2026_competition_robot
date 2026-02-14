@@ -3,6 +3,8 @@ package frc.robot;
 import java.util.Collection;
 import java.util.List;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rectangle2d;
@@ -16,6 +18,9 @@ import edu.wpi.first.math.geometry.Translation3d;
  * Field origin is bottom-left corner with Blue Alliance on the left side when viewed from above.
  */
 public class FieldTargets {
+    public static final AprilTagFieldLayout FieldTagLayout = AprilTagFieldLayout
+            .loadField(AprilTagFields.kDefaultField);
+
     public static final double FIELD_TOP = 8.084; // meters
     public static final double FIELD_MIDDLE = FIELD_TOP / 2; // meters
     public static final double FIELD_BOTTOM = 0; // meters

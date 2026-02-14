@@ -10,6 +10,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.prime.dashboard.Elastic;
 import org.prime.util.BuildConstants;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -55,7 +56,7 @@ public class Robot extends LoggedRobot {
     DriverStation.silenceJoystickConnectionWarning(true);
 
     // Initialize the robot container
-    Container.initialize(isReal());
+    Container.initialize();
 
     // Set up the dashboard
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath()); // Start the web server for downloading elastic layout from robot

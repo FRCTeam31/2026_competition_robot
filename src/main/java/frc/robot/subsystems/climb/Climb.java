@@ -1,13 +1,13 @@
 package frc.robot.subsystems.climb;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
-public class Climb extends SubsystemBase {
+public class Climb extends LoggedSubsystem {
     private IClimb _climb;
 
     public enum ClimbState {
@@ -43,9 +43,11 @@ public class Climb extends SubsystemBase {
         CLIMBING_DONE
     }
 
-    public Climb(boolean isReal) {
+    public Climb() {
         setName("Climb");
-        _climb = isReal ? new ClimbReal() : new ClimbSim();
+        _climb = Robot.isReal()
+                ? new ClimbReal()
+                : new ClimbSim();
     }
 
     private void actOnState(ClimbInputsAutoLogged inputs) {
@@ -75,7 +77,7 @@ public class Climb extends SubsystemBase {
     @Override
     public void periodic() {
         _climb.updateInputs(SuperStructure.Climb);
-        Logger.processInputs(getName(), SuperStructure.Climb);
+        processInputs(SuperStructure.Climb);
 
         actOnState(SuperStructure.Climb);
     }

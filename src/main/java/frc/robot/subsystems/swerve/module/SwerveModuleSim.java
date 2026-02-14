@@ -9,11 +9,11 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.dashboard.DashboardSection;
 import frc.robot.subsystems.swerve.SwerveMap;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
+import org.prime.dashboard.DashboardSection;
 import org.prime.util.SwerveUtil;
 
 public class SwerveModuleSim implements ISwerveModule {

@@ -2,26 +2,25 @@ package frc.robot.subsystems.turret;
 
 import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.units.TimeUnit;
-import edu.wpi.first.units.Units;
-import frc.robot.subsystems.swerve.Swerve;
-import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldTargets;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
-public class Turret extends SubsystemBase {
+public class Turret extends LoggedSubsystem {
     private ITurret _turret;
 
     public enum FlywheelState {
@@ -67,9 +66,11 @@ public class Turret extends SubsystemBase {
     private DoubleSupplier _yawSupplier;
     private DoubleSupplier _pitchSupplier;
 
-    public Turret(boolean isReal) {
+    public Turret() {
         setName("Turret");
-        _turret = isReal ? new TurretReal() : new TurretSim();
+        _turret = Robot.isReal()
+                ? new TurretReal()
+                : new TurretSim();
     }
 
     public MutVector calculateTurretVectorFromRobotPose(Pose3d targetPose) {
@@ -90,11 +91,13 @@ public class Turret extends SubsystemBase {
                     TurretMap.FLYWHEEL_MAX_SPEED);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_CALCULATED;
 
+            // TODO: Enable after empirical measurements correlating distance to required flywheel speed are taken
             if (TurretMap.USE_SPEED_INTERPOLATION) {
                 var interpolatedFlywheelSpeed = TurretMap.DISTANCE_TO_FLYWHEEL_SPEED_MAP.get(targetDistance);
                 _mutNominalTargetVector.setMagnitude(interpolatedFlywheelSpeed);
             }
 
+            // TODO: Refine motion compensation, enable, and test
             if (TurretMap.AUTO_MOTION_COMPENSATION) {
                 var shotTimeToTarget = _mutNominalTargetVector.getTimeToTarget(targetDistance);
                 ChassisSpeeds chassisSpeeds = SuperStructure.Swerve.RobotRelativeChassisSpeeds;
@@ -129,72 +132,85 @@ public class Turret extends SubsystemBase {
     }
 
     private void actOnState(TurretInputsAutoLogged inputs) {
-        var target = Pose3d.kZero;
         MutVector aimVector = null;
 
         if (inputs.TargetingState == TargetingState.AUTO) {
-            target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
-            if (target == null) {
-                // We are not in the neutral zone, target the hub.
-                target = FieldTargets.GetHubPosition();
-            }
-
-            double velocityX = _mutNominalTargetVector.getX();
-            double velocityY = _mutNominalTargetVector.getY();
-            double velocityZ = _mutNominalTargetVector.getZ();
-
-            double initialX = SuperStructure.Swerve.EstimatedRobotPose.getX();
-            double initialY = SuperStructure.Swerve.EstimatedRobotPose.getY();
-            double initialZ = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
-
-            var deltaX = target.getX() - SuperStructure.Swerve.EstimatedRobotPose.getX();
-            var deltaY = target.getY() - SuperStructure.Swerve.EstimatedRobotPose.getY();
-            var distance = Math.hypot(deltaX, deltaY);
-
-//            var totalTime = 0.0;
-//
-//            if (_mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds) != -1) {
-//                totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
-//            }
-
-            var totalTime = 10;
-
-            var timeStep = 0.05;
-
-            int numPoints = (int)(totalTime / timeStep) + 1;
-            Pose3d[] trajectory = new Pose3d[numPoints];
-
-            for (int i = 0; i < numPoints; i++) {
-                double t = i * timeStep;
-
-                // Projectile motion equations
-                double x = initialX + velocityX * t;
-                double y = initialY + velocityY * t;
-                double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
-
-                // Calculate velocity direction for orientation
-                double vx = velocityX;
-                double vy = velocityY;
-                double vz = velocityZ - GRAVITY * t;
-
-                // Create rotation based on velocity direction
-                double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
-                double yaw = Math.atan2(vy, vx);
-
-                trajectory[i] = new Pose3d(
-                        new Translation3d(x, y, z),
-                        new Rotation3d(0, pitch, yaw)
-                );
-            }
-
-                Logger.recordOutput("Optimal Fuel Trajectory", trajectory);
-            Logger.recordOutput("Target Pose", target);
-
+            var target = resolveAutoTarget();
             aimVector = calculateTurretVectorFromRobotPose(target);
+            logTrajectory(target, aimVector);
         }
 
-        // TODO: explain
-        switch (inputs.TargetingState) {
+        actOnTargetingState(inputs.TargetingState, aimVector);
+        actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, aimVector);
+        actOnFeedState(inputs.FeedState);
+    }
+
+    /**
+     * Resolves the target position for auto-aiming.
+     * Uses the passing position if the robot is in the neutral zone, otherwise targets the hub.
+     */
+    private Pose3d resolveAutoTarget() {
+        var target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
+        if (target == null) {
+            target = FieldTargets.GetHubPosition();
+        }
+        return target;
+    }
+
+    /**
+     * Computes and logs the predicted projectile trajectory for visualization.
+     */
+    private void logTrajectory(Pose3d target, MutVector aimVector) {
+        double velocityX = _mutNominalTargetVector.getX();
+        double velocityY = _mutNominalTargetVector.getY();
+        double velocityZ = _mutNominalTargetVector.getZ();
+
+        double initialX = SuperStructure.Swerve.EstimatedRobotPose.getX();
+        double initialY = SuperStructure.Swerve.EstimatedRobotPose.getY();
+        double initialZ = TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
+
+        // TODO: Replace hardcoded totalTime with calculated time-to-target once validated
+        // var totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
+        var totalTime = 3;
+        var timeStep = 0.05;
+
+        int numPoints = (int) (totalTime / timeStep) + 1;
+        Pose3d[] trajectory = new Pose3d[numPoints];
+
+        for (int i = 0; i < numPoints; i++) {
+            double t = i * timeStep;
+
+            // Projectile motion equations
+            double x = initialX + velocityX * t;
+            double y = initialY + velocityY * t;
+            double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
+
+            // Calculate velocity direction for orientation
+            double vx = velocityX;
+            double vy = velocityY;
+            double vz = velocityZ - GRAVITY * t;
+
+            // Create rotation based on velocity direction
+            double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
+            double yaw = Math.atan2(vy, vx);
+
+            trajectory[i] = new Pose3d(
+                    new Translation3d(x, y, z),
+                    new Rotation3d(0, pitch, yaw));
+        }
+
+        recordOutput("Optimal Fuel Trajectory", trajectory);
+        recordOutput("Target Pose", target);
+    }
+
+    /**
+     * Controls turret yaw and hood based on the current targeting state.
+     * 
+     * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
+     * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
+     */
+    private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
+        switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
                 _turret.controlYaw(
@@ -208,7 +224,7 @@ public class Turret extends SubsystemBase {
                 yaw += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 _turret.controlYaw(_yawControl.withPosition(yaw));
 
-                var pitch = aimVector.getPitch();
+                // var pitch = aimVector.getPitch();
                 // <hood pitch implementation>
                 break;
             case STOPPED:
@@ -217,17 +233,25 @@ public class Turret extends SubsystemBase {
                 _turret.controlYaw(_yawManualControl.withOutput(0));
                 break;
         }
+    }
 
-        switch (inputs.FlywheelState) {
+    /**
+     * Controls the flywheel based on the current flywheel state and targeting mode.
+     * 
+     * @param flywheelState The desired flywheel behavior (IDLE, SHOOTING, or STOPPED)
+     * @param targetingState The current targeting mode, used to determine manual vs auto speed
+     * @param aimVector The calculated aim vector for deriving auto flywheel speed (may be null)
+     */
+    private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
+        switch (flywheelState) {
             case IDLE:
-                // Low speed for flywheel
                 _turret.controlFlywheel(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
                 break;
             case STOPPED:
                 _turret.controlFlywheel(_flywheelControl.withVelocity(0));
                 break;
             case SHOOTING:
-                if (inputs.TargetingState == TargetingState.MANUAL) {
+                if (targetingState == TargetingState.MANUAL) {
                     _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
                 } else {
                     // Temp relation between flywheel speed and fuel velocity, will be replaced
@@ -238,9 +262,15 @@ public class Turret extends SubsystemBase {
                 }
                 break;
         }
+    }
 
-        // Turret Feed States
-        switch (inputs.FeedState) {
+    /**
+     * Controls the turret feeder based on the current feed state.
+     * 
+     * @param feedState The desired feeder direction (FORWARDS, REVERSED, or STOPPED)
+     */
+    private void actOnFeedState(UptakeState feedState) {
+        switch (feedState) {
             case FORWARDS:
                 _turret.setFeederSpeed(.5);
                 break;
@@ -254,12 +284,64 @@ public class Turret extends SubsystemBase {
         }
     }
 
+    /**
+     * Calculates the limelight's 3D pose (position and rotation) relative to the robot's centerpoint on the ground.
+     * 
+     * This method accounts for:
+     * - The turret's rotation origin offset from the robot center
+     * - The current turret rotation angle
+     * - The limelight's fixed offset from the turret rotation center
+     * - The limelight's fixed POV angle relative to the turret
+     * 
+     * @return Pose3d representing the limelight's position (XYZ) and rotation (pitch, yaw, roll) 
+     *         from the robot's centerpoint on the ground
+     */
+    public Pose3d getLimelightPose3dFromRobotCenter() {
+        // Get current turret rotation from inputs
+        double turretRotationRadians = SuperStructure.Turret.TurretRotation.getRadians();
+
+        // Step 1: Calculate turret rotation center position from robot center
+        Translation3d turretCenterFromRobotCenter = new Translation3d(
+                TurretMap.TURRET_CENTER_OFFSET_X,
+                TurretMap.TURRET_CENTER_OFFSET_Y,
+                TurretMap.TURRET_CENTER_OFFSET_Z);
+
+        // Step 2: Calculate limelight offset from turret center, accounting for turret rotation
+        // The limelight offset rotates with the turret around the Z-axis (yaw)
+        double rotatedLimelightX = TurretMap.LIMELIGHT_OFFSET_X * Math.cos(turretRotationRadians)
+                - TurretMap.LIMELIGHT_OFFSET_Y * Math.sin(turretRotationRadians);
+        double rotatedLimelightY = TurretMap.LIMELIGHT_OFFSET_X * Math.sin(turretRotationRadians)
+                + TurretMap.LIMELIGHT_OFFSET_Y * Math.cos(turretRotationRadians);
+
+        Translation3d limelightOffsetFromTurretCenter = new Translation3d(
+                rotatedLimelightX,
+                rotatedLimelightY,
+                TurretMap.LIMELIGHT_OFFSET_Z // Z offset doesn't change with rotation
+        );
+
+        // Step 3: Combine to get total limelight position from robot center
+        Translation3d limelightPositionFromRobotCenter = turretCenterFromRobotCenter
+                .plus(limelightOffsetFromTurretCenter);
+
+        // Step 4: Calculate limelight rotation
+        // The limelight's rotation includes both its fixed POV angle and the turret's rotation
+        Rotation3d limelightRotation = new Rotation3d(
+                TurretMap.LIMELIGHT_ROLL, // Roll (around X-axis)
+                TurretMap.LIMELIGHT_PITCH, // Pitch (around Y-axis)
+                TurretMap.LIMELIGHT_YAW + turretRotationRadians // Yaw (around Z-axis) - includes turret rotation
+        );
+
+        // Step 5: Create and return the final Pose3d
+        return new Pose3d(limelightPositionFromRobotCenter, limelightRotation);
+    }
+
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
+        SuperStructure.Turret.LimelightPoseFromRobotCenter = getLimelightPose3dFromRobotCenter();
         // TODO: Currently in field relative, possibly change later
 
-        Logger.processInputs(getName(), SuperStructure.Turret);
+        processInputs(SuperStructure.Turret);
 
         actOnState(SuperStructure.Turret);
 

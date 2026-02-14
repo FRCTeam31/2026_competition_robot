@@ -1,4 +1,4 @@
-package frc.robot.dashboard;
+package org.prime.dashboard;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;

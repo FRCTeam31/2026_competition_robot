@@ -1,15 +1,13 @@
 package frc.robot.subsystems.hopper;
 
-import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
-public class Hopper extends SubsystemBase {
+public class Hopper extends LoggedSubsystem {
     private IHopper _hopper;
 
     @SuppressWarnings("unused")
@@ -32,10 +30,12 @@ public class Hopper extends SubsystemBase {
         OFF
     }
 
-    public Hopper(boolean isReal) {
+    public Hopper() {
         setName("Hopper");
 
-        _hopper = isReal ? new HopperReal() : new HopperSim();
+        _hopper = Robot.isReal()
+                ? new HopperReal()
+                : new HopperSim();
     }
 
     private void actOnState(HopperInputsAutoLogged inputs) {
@@ -88,7 +88,7 @@ public class Hopper extends SubsystemBase {
     @Override
     public void periodic() {
         _hopper.updateInputs(SuperStructure.Hopper);
-        Logger.processInputs(getName(), SuperStructure.Hopper);
+        processInputs(SuperStructure.Hopper);
 
         actOnState(SuperStructure.Hopper);
     }

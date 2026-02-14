@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import org.prime.dashboard.DashboardSection;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -13,7 +15,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
-import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
@@ -29,8 +30,10 @@ import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
+import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightVision;
+import frc.robot.subsystems.vision.photon.PhotonVision;
 import frc.robot.subsystems.turret.Turret.FlywheelState;
-import frc.robot.subsystems.vision.Vision;
 
 public class Container {
   public static TeleopDashboardTab TeleopDashboardSection;
@@ -42,7 +45,8 @@ public class Container {
 
   public static PwmLEDs LEDs;
   public static Swerve Swerve;
-  public static Vision Vision;
+  public static LimelightVision LimelightVision;
+  public static PhotonVision PhotonVision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
@@ -53,7 +57,7 @@ public class Container {
     OUTWARDS
   }
 
-  public static void initialize(boolean isReal) {
+  public static void initialize() {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
@@ -63,17 +67,22 @@ public class Container {
 
       // Create subsystems
       LEDs = new PwmLEDs();
-      Vision = new Vision();
-      Swerve = new Swerve(isReal);
-      Pneumatics = new Pneumatics(isReal);
-      Hopper = new Hopper(isReal);
-      Climb = new Climb(isReal);
-      Turret = new Turret(isReal);
 
+      LimelightVision = new LimelightVision();
+      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+      PhotonVision = new PhotonVision();
+      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+
+      Swerve = new Swerve();
+      Pneumatics = new Pneumatics();
+      Hopper = new Hopper();
+      Climb = new Climb();
+      Turret = new Turret();
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, Vision, Turret, Climb, Hopper);
-      OperatorInterface.bindOperatorControls(Swerve, Vision, Turret, Climb, Hopper);
+      OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);
+      OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       NamedCommands.registerCommands(Swerve.getNamedCommands());

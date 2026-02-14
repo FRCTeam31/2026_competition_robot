@@ -1,13 +1,18 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.limelight;
 
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.subsystems.vision.helpers.LimelightResults;
-import frc.robot.subsystems.vision.helpers.PoseEstimate;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightResults;
+import frc.robot.subsystems.vision.limelight.helpers.PoseEstimate;
 
 @AutoLog
-public class LimelightInputs {
+public class LimelightCameraInputs {
+
+    /**
+     * The JSON dump from this limelight.
+     */
+    public LimelightResults CurrentResults = new LimelightResults();
 
     /**
      * Horizontal Offset From Crosshair To Target 
@@ -30,9 +35,4 @@ public class LimelightInputs {
      * The robot's MT2 pose in field space.
      */
     public PoseEstimate BotPoseEstimateMT2 = new PoseEstimate();
-
-    /**
-     * The JSON dump from this limelight.
-     */
-    public LimelightResults CurrentResults = new LimelightResults();
 }

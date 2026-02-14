@@ -39,13 +39,14 @@ public class SwerveIOPackager {
       new SwerveModuleInputsAutoLogged()
   };
 
-  public SwerveIOPackager(boolean isReal) {
+  public SwerveIOPackager() {
     // Create kinematics in order FL, FR, RL, RR
     Kinematics = new SwerveDriveKinematics(SwerveMap.FrontLeftSwerveModule.ModuleLocation,
         SwerveMap.FrontRightSwerveModule.ModuleLocation,
         SwerveMap.RearLeftSwerveModule.ModuleLocation,
         SwerveMap.RearRightSwerveModule.ModuleLocation);
 
+    var isReal = Robot.isReal();
     _gyro = isReal
         ? new GyroReal()
         : new GyroSim(0);
