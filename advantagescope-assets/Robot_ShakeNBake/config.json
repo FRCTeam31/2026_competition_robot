@@ -1,12 +1,18 @@
 {
-  "name": "Shake 'N' Bake",
-  "rotations": [],
-  "position": [],
-  "cameras": [],
-  "components": [
-    {
-      "zeroedRotation": [],
-      "zeroedPosition": []
-    }
-  ]
+    "name": "Shake 'N' Bake",
+    "rotations": [
+        {
+            "axis": "x",
+            "degrees": 180
+        },
+        {
+            "axis": "z",
+            "degrees": 180
+        }
+    ],
+    "position": [
+        0,
+        0,
+        0.044
+    ]
 }
