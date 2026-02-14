@@ -201,193 +201,197 @@ public class MutVectorTest {
     // Tests for setToTargetVector
     // ============================================
 
-    @Test
-    public void testSetToTargetVector_ValidShotAtSameHeight() throws Exception {
-        // Create source and target poses at the same height
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(5, 0, 1.0, new Rotation3d());
+    // As the MutVector.setToTargetVector method is for a specific use case
+    // which can be fit into a single subsystem, the tests are commented out
+    // because of the decoupling of the code
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_ValidShotAtSameHeight() throws Exception {
+    //     // Create source and target poses at the same height
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(5, 0, 1.0, new Rotation3d());
 
-        // Should find a valid solution
-        Assertions.assertTrue(mutVector.getMagnitude() > 0);
-        Assertions.assertTrue(mutVector.getMagnitude() <= 1000.0);
-        Assertions.assertTrue(mutVector.getMagnitude() >= 0.0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_ValidShotWithElevationChange() throws Exception {
-        // Target is higher than source
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(3, 0, 3.0, new Rotation3d());
+    //     // Should find a valid solution
+    //     Assertions.assertTrue(mutVector.getMagnitude() > 0);
+    //     Assertions.assertTrue(mutVector.getMagnitude() <= 1000.0);
+    //     Assertions.assertTrue(mutVector.getMagnitude() >= 0.0);
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_ValidShotWithElevationChange() throws Exception {
+    //     // Target is higher than source
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(3, 0, 3.0, new Rotation3d());
 
-        // Should find a valid solution
-        Assertions.assertTrue(mutVector.getMagnitude() > 0);
-        Assertions.assertTrue(mutVector.getPitch() >= 20.0);
-        Assertions.assertTrue(mutVector.getPitch() <= 60.0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_VeryFarTargetVeryLowSpeed() {
-        // Impossible shot: target extremely far and high with impossibly low speed
-        Pose3d source = new Pose3d(0, 0, 0.0, new Rotation3d());
-        Pose3d target = new Pose3d(10000, 0, 1000.0, new Rotation3d());
+    //     // Should find a valid solution
+    //     Assertions.assertTrue(mutVector.getMagnitude() > 0);
+    //     Assertions.assertTrue(mutVector.getPitch() >= 20.0);
+    //     Assertions.assertTrue(mutVector.getPitch() <= 60.0);
+    // }
 
-        Assertions.assertThrows(Exception.class, () -> {
-            mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 0.01);
-        });
-    }
+    // @Test
+    // public void testSetToTargetVector_VeryFarTargetVeryLowSpeed() {
+    //     // Impossible shot: target extremely far and high with impossibly low speed
+    //     Pose3d source = new Pose3d(0, 0, 0.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(10000, 0, 1000.0, new Rotation3d());
 
-    @Test
-    public void testSetToTargetVector_ThrowsWhenSpeedTooLow() {
-        // Speed range impossibly low for any reasonable distance
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(50, 0, 10.0, new Rotation3d());
+    //     Assertions.assertThrows(Exception.class, () -> {
+    //         mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 0.01);
+    //     });
+    // }
 
-        Assertions.assertThrows(Exception.class, () -> {
-            mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 0.1);
-        });
-    }
+    // @Test
+    // public void testSetToTargetVector_ThrowsWhenSpeedTooLow() {
+    //     // Speed range impossibly low for any reasonable distance
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(50, 0, 10.0, new Rotation3d());
 
-    @Test
-    public void testSetToTargetVector_ThrowsWhenAngleRangeTooNarrow() {
-        // Angle range at extreme (nearly vertical) where physics won't allow horizontal travel
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(50, 0, 1.0, new Rotation3d());
+    //     Assertions.assertThrows(Exception.class, () -> {
+    //         mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 0.1);
+    //     });
+    // }
 
-        Assertions.assertThrows(Exception.class, () -> {
-            mutVector.setToTargetVector(source, target, 89.9, 90.0, 0.0, 1000.0);
-        });
-    }
+    // @Test
+    // public void testSetToTargetVector_ThrowsWhenAngleRangeTooNarrow() {
+    //     // Angle range at extreme (nearly vertical) where physics won't allow horizontal travel
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(50, 0, 1.0, new Rotation3d());
 
-    @Test
-    public void testSetToTargetVector_YawCalculationPositiveY() throws Exception {
-        // Target to the right (+Y direction)
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(3, 3, 1.0, new Rotation3d());
+    //     Assertions.assertThrows(Exception.class, () -> {
+    //         mutVector.setToTargetVector(source, target, 89.9, 90.0, 0.0, 1000.0);
+    //     });
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_YawCalculationPositiveY() throws Exception {
+    //     // Target to the right (+Y direction)
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(3, 3, 1.0, new Rotation3d());
 
-        // Yaw should point towards +Y
-        double yaw = mutVector.getYaw();
-        Assertions.assertTrue(Math.abs(yaw - 45) < 5, "Yaw should be approximately 45 degrees");
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_YawCalculationNegativeY() throws Exception {
-        // Target to the left (-Y direction)
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(3, -3, 1.0, new Rotation3d());
+    //     // Yaw should point towards +Y
+    //     double yaw = mutVector.getYaw();
+    //     Assertions.assertTrue(Math.abs(yaw - 45) < 5, "Yaw should be approximately 45 degrees");
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_YawCalculationNegativeY() throws Exception {
+    //     // Target to the left (-Y direction)
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(3, -3, 1.0, new Rotation3d());
 
-        // Yaw should point towards -Y
-        double yaw = mutVector.getYaw();
-        Assertions.assertTrue(Math.abs(yaw + 45) < 5, "Yaw should be approximately -45 degrees");
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_ShortDistance() throws Exception {
-        // Very short distance shot
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(2.0, 0, 1.0, new Rotation3d());
+    //     // Yaw should point towards -Y
+    //     double yaw = mutVector.getYaw();
+    //     Assertions.assertTrue(Math.abs(yaw + 45) < 5, "Yaw should be approximately -45 degrees");
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_ShortDistance() throws Exception {
+    //     // Very short distance shot
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(2.0, 0, 1.0, new Rotation3d());
 
-        // Should still find a valid solution
-        Assertions.assertTrue(mutVector.getMagnitude() > 0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_TargetBelowSource() throws Exception {
-        // Shooting downward
-        Pose3d source = new Pose3d(0, 0, 5.0, new Rotation3d());
-        Pose3d target = new Pose3d(3, 0, 1.0, new Rotation3d());
+    //     // Should still find a valid solution
+    //     Assertions.assertTrue(mutVector.getMagnitude() > 0);
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_TargetBelowSource() throws Exception {
+    //     // Shooting downward
+    //     Pose3d source = new Pose3d(0, 0, 5.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(3, 0, 1.0, new Rotation3d());
 
-        // Should find a valid solution
-        Assertions.assertTrue(mutVector.getMagnitude() > 0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_MaxAngleBoundary() throws Exception {
-        // Test with angle at max boundary
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(2, 0, 2.0, new Rotation3d());
+    //     // Should find a valid solution
+    //     Assertions.assertTrue(mutVector.getMagnitude() > 0);
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_MaxAngleBoundary() throws Exception {
+    //     // Test with angle at max boundary
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(2, 0, 2.0, new Rotation3d());
 
-        // Pitch should be within range
-        Assertions.assertTrue(mutVector.getPitch() >= 20.0);
-        Assertions.assertTrue(mutVector.getPitch() <= 60.0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_MinAngleBoundary() throws Exception {
-        // Test with angle at min boundary
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(5, 0, 1.5, new Rotation3d());
+    //     // Pitch should be within range
+    //     Assertions.assertTrue(mutVector.getPitch() >= 20.0);
+    //     Assertions.assertTrue(mutVector.getPitch() <= 60.0);
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_MinAngleBoundary() throws Exception {
+    //     // Test with angle at min boundary
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(5, 0, 1.5, new Rotation3d());
 
-        // Pitch should be within range
-        Assertions.assertTrue(mutVector.getPitch() >= 20.0);
-        Assertions.assertTrue(mutVector.getPitch() <= 60.0);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-    @Test
-    public void testSetToTargetVector_SpeedWithinRange() throws Exception {
-        // Verify calculated speed is within min/max bounds when solution exists
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(10, 0, 2.0, new Rotation3d());
+    //     // Pitch should be within range
+    //     Assertions.assertTrue(mutVector.getPitch() >= 20.0);
+    //     Assertions.assertTrue(mutVector.getPitch() <= 60.0);
+    // }
 
-        double minSpeed = 1.0;
-        double maxSpeed = 1000.0;
+    // @Test
+    // public void testSetToTargetVector_SpeedWithinRange() throws Exception {
+    //     // Verify calculated speed is within min/max bounds when solution exists
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(10, 0, 2.0, new Rotation3d());
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, minSpeed, maxSpeed);
+    //     double minSpeed = 1.0;
+    //     double maxSpeed = 1000.0;
 
-        Assertions.assertTrue(mutVector.getMagnitude() >= minSpeed);
-        Assertions.assertTrue(mutVector.getMagnitude() <= maxSpeed);
-    }
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, minSpeed, maxSpeed);
 
-    @Test
-    public void testSetToTargetVector_DiagonalShot() throws Exception {
-        // Shot in both X and Y directions
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(4, 3, 2.0, new Rotation3d());
+    //     Assertions.assertTrue(mutVector.getMagnitude() >= minSpeed);
+    //     Assertions.assertTrue(mutVector.getMagnitude() <= maxSpeed);
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_DiagonalShot() throws Exception {
+    //     // Shot in both X and Y directions
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(4, 3, 2.0, new Rotation3d());
 
-        // Should find a valid solution
-        Assertions.assertTrue(mutVector.getMagnitude() > 0);
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-        // Verify the vector components make sense
-        Assertions.assertNotEquals(0, mutVector.getX());
-        Assertions.assertNotEquals(0, mutVector.getY());
-    }
+    //     // Should find a valid solution
+    //     Assertions.assertTrue(mutVector.getMagnitude() > 0);
 
-    @Test
-    public void testSetToTargetVector_PrecisionCheck() throws Exception {
-        // Test that the solution is reasonably accurate
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(5, 0, 1.0, new Rotation3d());
+    //     // Verify the vector components make sense
+    //     Assertions.assertNotEquals(0, mutVector.getX());
+    //     Assertions.assertNotEquals(0, mutVector.getY());
+    // }
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testSetToTargetVector_PrecisionCheck() throws Exception {
+    //     // Test that the solution is reasonably accurate
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(5, 0, 1.0, new Rotation3d());
 
-        // Store the values
-        double magnitude = mutVector.getMagnitude();
-        double pitch = mutVector.getPitch();
-        double yaw = mutVector.getYaw();
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-        // All values should be valid numbers
-        Assertions.assertFalse(Double.isNaN(magnitude));
-        Assertions.assertFalse(Double.isNaN(pitch));
-        Assertions.assertFalse(Double.isNaN(yaw));
-        Assertions.assertFalse(Double.isInfinite(magnitude));
-    }
+    //     // Store the values
+    //     double magnitude = mutVector.getMagnitude();
+    //     double pitch = mutVector.getPitch();
+    //     double yaw = mutVector.getYaw();
+
+    //     // All values should be valid numbers
+    //     Assertions.assertFalse(Double.isNaN(magnitude));
+    //     Assertions.assertFalse(Double.isNaN(pitch));
+    //     Assertions.assertFalse(Double.isNaN(yaw));
+    //     Assertions.assertFalse(Double.isInfinite(magnitude));
+    // }
 
     // ============================================
     // Tests for getTimeToTarget
@@ -507,21 +511,23 @@ public class MutVectorTest {
         Assertions.assertEquals(2.0, time.in(Units.Seconds), 0.001);
     }
 
-    @Test
-    public void testGetTimeToTarget_AfterSetToTargetVector() throws Exception {
-        // Integration test: use setToTargetVector then check time
-        Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
-        Pose3d target = new Pose3d(5, 0, 2.0, new Rotation3d());
+    // see commented out setToTargetVector tests
 
-        mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
+    // @Test
+    // public void testGetTimeToTarget_AfterSetToTargetVector() throws Exception {
+    //     // Integration test: use setToTargetVector then check time
+    //     Pose3d source = new Pose3d(0, 0, 1.0, new Rotation3d());
+    //     Pose3d target = new Pose3d(5, 0, 2.0, new Rotation3d());
 
-        double distance = Math.hypot(5, 0);
-        var time = mutVector.getTimeToTarget(distance);
+    //     mutVector.setToTargetVector(source, target, 20.0, 60.0, 0.0, 1000.0);
 
-        // Time should be positive and reasonable
-        Assertions.assertTrue(time.in(Units.Seconds) > 0);
-        Assertions.assertTrue(time.in(Units.Seconds) < 10); // Should be less than 10 seconds for this scenario
-    }
+    //     double distance = Math.hypot(5, 0);
+    //     var time = mutVector.getTimeToTarget(distance);
+
+    //     // Time should be positive and reasonable
+    //     Assertions.assertTrue(time.in(Units.Seconds) > 0);
+    //     Assertions.assertTrue(time.in(Units.Seconds) < 10); // Should be less than 10 seconds for this scenario
+    // }
 
     @Test
     public void testGetTimeToTarget_ConsistentWithMagnitude() {
