@@ -1,14 +1,14 @@
 package frc.robot.subsystems.hopper;
 
 import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
-public class Hopper extends SubsystemBase {
+public class Hopper extends LoggedSubsystem {
     private IHopper _hopper;
 
     @SuppressWarnings("unused")

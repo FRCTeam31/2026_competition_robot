@@ -14,7 +14,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.dashboard.DrivetrainDashboardSection;
 import frc.robot.Container;
 import frc.robot.Robot;
@@ -35,8 +34,9 @@ import org.littletonrobotics.junction.Logger;
 import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
+import org.prime.subsystems.LoggedSubsystem;
 
-public class Swerve extends SubsystemBase {
+public class Swerve extends LoggedSubsystem {
 
   private DrivetrainDashboardSection _drivetrainDashboardSection;
   private ImpactRumbleHelper _rumbleHelper;

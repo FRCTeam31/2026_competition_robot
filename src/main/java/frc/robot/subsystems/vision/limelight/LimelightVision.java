@@ -4,7 +4,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.IVisionSubsystem;
 import frc.robot.subsystems.vision.VisionMap;
@@ -13,7 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class LimelightVision extends SubsystemBase implements IVisionSubsystem {
+import org.prime.subsystems.LoggedSubsystem;
+
+public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem {
     private Map<String, LimeLightCamera> _limelights = new HashMap<>();
 
     public LimelightVision() {

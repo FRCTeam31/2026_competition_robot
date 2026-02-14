@@ -2,13 +2,13 @@ package frc.robot.subsystems.climb;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
-public class Climb extends SubsystemBase {
+public class Climb extends LoggedSubsystem {
     private IClimb _climb;
 
     public enum ClimbState {
