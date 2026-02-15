@@ -259,7 +259,7 @@ public class Turret extends LoggedSubsystem {
         var target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
         if (target == null) {
             // We are not in the neutral zone, target the hub.
-            target = FieldTargets.GetHubPosition();
+            target = FieldTargets.GetCurrentAllianceHubPosition();
         }
         recordOutput("Target Pose", target);
 
