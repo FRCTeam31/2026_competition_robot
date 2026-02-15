@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
+import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.util.MutVector;
 import org.prime.util.PhysicsConstants;
 
@@ -16,10 +17,13 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.vision.VisionMap;
 
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
@@ -72,11 +76,34 @@ public class Turret extends LoggedSubsystem {
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
+    // SysId characterization routines
+    private final SysIdRoutineHelper _flywheelSysId;
+    private final SysIdRoutineHelper _yawSysId;
+
     public Turret() {
         setName("Turret");
         _turret = Robot.isReal()
                 ? new TurretReal()
                 : new TurretSim();
+
+        // Configure SysId routine for flywheel characterization
+        _flywheelSysId = new SysIdRoutineHelper(
+                this,
+                "TurretFlywheel",
+                (voltage) -> _turret.setFlywheelVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("flywheel")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
+                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity));
+
+        // Configure SysId routine for turret yaw characterization
+        _yawSysId = new SysIdRoutineHelper(
+                this,
+                "TurretYaw",
+                (voltage) -> _turret.setYawVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("yaw")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
+                        .angularPosition(Units.Rotations.of(
+                                SuperStructure.Turret.TurretRotation.getRotations())));
     }
 
     /**
@@ -417,6 +444,8 @@ public class Turret extends LoggedSubsystem {
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
         SuperStructure.Turret.LimelightPoseFromRobotCenter = getLimelightPose3dFromRobotCenter();
+        Container.LimelightVision.setCameraPose(VisionMap.LimelightTurretName,
+                SuperStructure.Turret.LimelightPoseFromRobotCenter);
         // TODO: Currently in field relative, possibly change later
 
         processInputs(SuperStructure.Turret);
@@ -450,5 +479,29 @@ public class Turret extends LoggedSubsystem {
 
     public Command setFeed(UptakeState state) {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret flywheel.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the flywheel
+     */
+    public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _flywheelSysId.getCommand(testType, direction);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret yaw rotation.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the turret yaw motor
+     */
+    public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _yawSysId.getCommand(testType, direction);
     }
 }

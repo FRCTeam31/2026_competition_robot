@@ -26,6 +26,10 @@ public class TurretSim implements ITurret {
     private double _hoodSpeed = 0;
     private double _feederSpeed = 0;
 
+    // SysId voltage tracking
+    private double _flywheelVoltage = 0;
+    private double _yawVoltage = 0;
+
     // Simulated turret motion constants
     private static final double TURRET_CRUISE_VELOCITY_RPS = 100.0 / TurretMap.TURRET_GEAR_RATIO;
     private static final double TURRET_ACCELERATION_RPS2 = 200.0 / TurretMap.TURRET_GEAR_RATIO;
@@ -93,6 +97,8 @@ public class TurretSim implements ITurret {
         inputs.TurretRotation = Rotation2d.fromRotations(_turretPositionRotations);
         inputs.TurretRotationResetSwitch = (_turretPositionRotations <= 0.001);
         inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
+        inputs.FlywheelVoltage = _flywheelVoltage;
+        inputs.YawVoltage = _yawVoltage;
     }
 
     @Override
@@ -124,5 +130,19 @@ public class TurretSim implements ITurret {
     @Override
     public void setFeederSpeed(double speed) {
         _feederSpeed = speed;
+    }
+
+    @Override
+    public void setFlywheelVoltage(double volts) {
+        _flywheelVoltage = volts;
+        // Approximate velocity from voltage for simulation
+        _flywheelVelocityRPS = volts * 8.0; // rough approximation
+    }
+
+    @Override
+    public void setYawVoltage(double volts) {
+        _yawVoltage = volts;
+        _turretManualSpeed = volts / 12.0;
+        _isManualControl = true;
     }
 }

@@ -1,8 +1,11 @@
 package frc.robot.subsystems.swerve;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -10,6 +13,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Preferences;
 import frc.robot.Robot;
+import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.gyro.GyroReal;
 import frc.robot.subsystems.swerve.gyro.GyroInputsAutoLogged;
 import frc.robot.subsystems.swerve.gyro.GyroSim;
@@ -32,7 +36,7 @@ public class SwerveIOPackager {
   private ISwerveModule _frontLeftModule, _frontRightModule, _rearLeftModule, _rearRightModule;
 
   private GyroInputsAutoLogged _gyroInputs = new GyroInputsAutoLogged();
-  private SwerveModuleInputsAutoLogged[] m_moduleInputs = new SwerveModuleInputsAutoLogged[] {
+  private SwerveModuleInputsAutoLogged[] _moduleInputs = new SwerveModuleInputsAutoLogged[] {
       new SwerveModuleInputsAutoLogged(),
       new SwerveModuleInputsAutoLogged(),
       new SwerveModuleInputsAutoLogged(),
@@ -85,15 +89,16 @@ public class SwerveIOPackager {
    * Called periodically to update the swerve modules and gyro
    * @param swerveInputs
    */
-  public void updateInputs(SwerveSubsystemInputs swerveInputs) {
-    _frontLeftModule.updateInputs(m_moduleInputs[0]);
-    // Logger.processInputs("Drivetrain/FLModule", m_moduleInputs[0]);
-    _frontRightModule.updateInputs(m_moduleInputs[1]);
-    // Logger.processInputs("Drivetrain/FRModule", m_moduleInputs[1]);
-    _rearLeftModule.updateInputs(m_moduleInputs[2]);
-    // Logger.processInputs("Drivetrain/RLModule", m_moduleInputs[2]);
-    _rearRightModule.updateInputs(m_moduleInputs[3]);
-    // Logger.processInputs("Drivetrain/RRModule", m_moduleInputs[3]);
+  public void updateInputs(SwerveSubsystemInputsAutoLogged swerveInputs) {
+    _frontLeftModule.updateInputs(_moduleInputs[0]);
+    Logger.processInputs("Swerve/FLModule", _moduleInputs[0]);
+    _frontRightModule.updateInputs(_moduleInputs[1]);
+    Logger.processInputs("Swerve/FRModule", _moduleInputs[1]);
+    _rearLeftModule.updateInputs(_moduleInputs[2]);
+    Logger.processInputs("Swerve/RLModule", _moduleInputs[2]);
+    _rearRightModule.updateInputs(_moduleInputs[3]);
+    Logger.processInputs("Swerve/RRModule", _moduleInputs[3]);
+    SuperStructure.SwerveModules = _moduleInputs;
 
     swerveInputs.ModuleStates = getModuleStates();
     swerveInputs.RobotRelativeChassisSpeeds = Kinematics.toChassisSpeeds(getModuleStates());
@@ -186,6 +191,20 @@ public class SwerveIOPackager {
   }
 
   /**
+   * Sets a voltage to all drive motors, locking steering at the specified angle.
+   * Used for SysId characterization of drive motors.
+   * 
+   * @param voltage The voltage to apply to each drive motor
+   * @param moduleAngle The heading to lock all modules at during the test
+   */
+  public void setDriveVoltageAllModules(double voltage, Rotation2d moduleAngle) {
+    _frontLeftModule.setDriveVoltage(voltage, moduleAngle);
+    _frontRightModule.setDriveVoltage(voltage, moduleAngle);
+    _rearLeftModule.setDriveVoltage(voltage, moduleAngle);
+    _rearRightModule.setDriveVoltage(voltage, moduleAngle);
+  }
+
+  /**
    * Resets the gyro and pose estimator
    */
   public void resetGyro() {
@@ -219,10 +238,10 @@ public class SwerveIOPackager {
    */
   public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[] {
-        m_moduleInputs[0].ModuleState,
-        m_moduleInputs[1].ModuleState,
-        m_moduleInputs[2].ModuleState,
-        m_moduleInputs[3].ModuleState,
+        _moduleInputs[0].ModuleState,
+        _moduleInputs[1].ModuleState,
+        _moduleInputs[2].ModuleState,
+        _moduleInputs[3].ModuleState,
     };
   }
 
@@ -231,10 +250,10 @@ public class SwerveIOPackager {
    */
   public SwerveModulePosition[] getModulePositions() {
     return new SwerveModulePosition[] {
-        m_moduleInputs[0].ModulePosition,
-        m_moduleInputs[1].ModulePosition,
-        m_moduleInputs[2].ModulePosition,
-        m_moduleInputs[3].ModulePosition,
+        _moduleInputs[0].ModulePosition,
+        _moduleInputs[1].ModulePosition,
+        _moduleInputs[2].ModulePosition,
+        _moduleInputs[3].ModulePosition,
     };
   }
 }

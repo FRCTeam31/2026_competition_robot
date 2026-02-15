@@ -27,4 +27,8 @@ public class TurretInputs {
 
     // Targets
     public Translation3d targetVector = Translation3d.kZero;
+
+    // Sysid
+    public double FlywheelVoltage = 0;
+    public double YawVoltage = 0;
 }

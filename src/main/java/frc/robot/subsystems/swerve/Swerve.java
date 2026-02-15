@@ -34,6 +34,7 @@ import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
 import org.prime.subsystems.LoggedSubsystem;
+import org.prime.sysid.SysIdRoutineHelper;
 
 public class Swerve extends LoggedSubsystem {
 
@@ -50,6 +51,9 @@ public class Swerve extends LoggedSubsystem {
   // Vision, Kinematics, odometry
   private PrimeHolonomicDriveController _primeHolonomicController;
   private RobotConfig _pathplannerRobotConfig;
+
+  // SysId characterization
+  private final SysIdRoutineHelper _driveSysId;
 
   /**
    * Creates a new Drivetrain.
@@ -69,6 +73,29 @@ public class Swerve extends LoggedSubsystem {
     _drivetrainDashboardSection = new DrivetrainDashboardSection();
 
     configurePathPlanner();
+
+    // Configure SysId routine for drive motor characterization.
+    // All 4 modules are driven in unison, locked at 0° heading.
+    _driveSysId = new SysIdRoutineHelper(
+        this,
+        "SwerveDrive",
+        (voltage) -> _swervePackager.setDriveVoltageAllModules(
+            voltage.in(edu.wpi.first.units.Units.Volts), Rotation2d.fromDegrees(0)),
+        (log) -> {
+          var states = SuperStructure.Swerve.ModuleStates;
+          log.motor("drive-fl")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[0].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond));
+          log.motor("drive-fr")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[1].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond));
+          log.motor("drive-rl")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[2].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond));
+          log.motor("drive-rr")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[3].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond));
+        });
   }
 
   private void configurePathPlanner() {
@@ -391,6 +418,19 @@ public class Swerve extends LoggedSubsystem {
    */
   public Map<String, Command> getNamedCommands() {
     return Map.of();
+  }
+
+  /**
+   * Returns a SysId characterization command for all 4 swerve drive motors.
+   * Modules are locked at 0° heading and driven in unison.
+   *
+   * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+   * @param direction FORWARD or REVERSE
+   * @return A command that runs the specified SysId test on the drive motors
+   */
+  public Command sysIdDriveCommand(SysIdRoutineHelper.TestType testType,
+      SysIdRoutineHelper.TestDirection direction) {
+    return _driveSysId.getCommand(testType, direction);
   }
   // #endregion
 }

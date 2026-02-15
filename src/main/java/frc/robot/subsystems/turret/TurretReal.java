@@ -138,6 +138,8 @@ public class TurretReal implements ITurret {
         inputs.TurretRotation = getTurretRotation();
         inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
+        inputs.FlywheelVoltage = _flywheelLeft.getMotorVoltage().getValueAsDouble();
+        inputs.YawVoltage = _turretRotator.getMotorVoltage().getValueAsDouble();
     }
 
     private Rotation2d getTurretRotation() {
@@ -174,6 +176,16 @@ public class TurretReal implements ITurret {
     @Override
     public void setFeederSpeed(double speed) {
         _sparkFeed.set(speed);
+    }
+
+    @Override
+    public void setFlywheelVoltage(double volts) {
+        _flywheelLeft.setVoltage(volts);
+    }
+
+    @Override
+    public void setYawVoltage(double volts) {
+        _turretRotator.setVoltage(volts);
     }
 
 }
