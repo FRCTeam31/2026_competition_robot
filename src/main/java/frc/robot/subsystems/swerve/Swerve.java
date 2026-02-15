@@ -246,7 +246,9 @@ public class Swerve extends LoggedSubsystem {
     _swervePackager.addPoseEstimatorVisionMeasurement(
         photonInputs.BotPoseEstimate,
         photonInputs.TimestampSeconds,
-        VecBuilder.fill(photonInputs.CurrentStdDevs[0], photonInputs.CurrentStdDevs[1],
+        VecBuilder.fill(
+            photonInputs.CurrentStdDevs[0],
+            photonInputs.CurrentStdDevs[1],
             photonInputs.CurrentStdDevs[2]));
   }
 
