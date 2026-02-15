@@ -7,18 +7,17 @@ import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.RobotConfig;
 import frc.robot.subsystems.climb.ClimbMap;
 import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
-public class Hopper extends SubsystemBase {
+public class Hopper extends LoggedSubsystem {
     private IHopper _hopper;
 
     // Hopper Mechanism
@@ -33,16 +32,6 @@ public class Hopper extends SubsystemBase {
     private LoggedMechanismLigament2d _intakeLigament;
 
     @SuppressWarnings("unused")
-    private Trigger _pulseHopperTrigger = new Trigger(
-            () -> SuperStructure.Hopper.ExtensionState == ExtensionState.PULSING)
-            .whileTrue(pulseHopperPrivateCommand());
-
-    public enum ExtensionState { // For extending and retracting Hopper
-        IN,
-        OUT,
-        OFF,
-        PULSING
-    }
 
     public enum TransferFeedState { // For feeding in and out to the shooter
         INWARDS,
@@ -56,16 +45,18 @@ public class Hopper extends SubsystemBase {
         STOPPED
     }
 
-    public enum IntakeControlState { // For intake rotation
+    public enum HopperIntakeState { // For intake rotation
         IN,
         OUT,
         OFF
     }
 
-    public Hopper(boolean isReal) {
+    public Hopper() {
         setName("Hopper");
 
-        _hopper = isReal ? new HopperReal() : new HopperSim();
+        _hopper = Robot.isReal()
+                ? new HopperReal()
+                : new HopperSim();
 
         initMechanisms();
     }
@@ -99,16 +90,19 @@ public class Hopper extends SubsystemBase {
                 break;
         }
 
-        // Intake solenoid control
+        // Intake and Hopper solenoid control
         switch (inputs.IntakeControlState) {
             case IN:
             default:
+                _hopper.setHopper(DoubleSolenoid.Value.kReverse);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kReverse);
                 break;
             case OUT:
+                _hopper.setHopper(DoubleSolenoid.Value.kForward);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kForward);
                 break;
             case OFF:
+                _hopper.setHopper(DoubleSolenoid.Value.kOff);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kOff);
         }
 
@@ -126,19 +120,6 @@ public class Hopper extends SubsystemBase {
                 break;
         }
 
-        // Hopper solenoid control
-        switch (inputs.ExtensionState) {
-            case IN:
-            default:
-                _hopper.setHopper(DoubleSolenoid.Value.kReverse);
-                break;
-            case OUT:
-                _hopper.setHopper(DoubleSolenoid.Value.kForward);
-                break;
-            case OFF:
-                _hopper.setHopper(DoubleSolenoid.Value.kOff);
-                break;
-        }
     }
 
     @Override
@@ -212,31 +193,28 @@ public class Hopper extends SubsystemBase {
             ));
         }
 
-        Logger.recordOutput("Hopper/HopperMechanism", _hopperMechanism);
-        Logger.recordOutput("Hopper/IntakeMechanism", _intakeMechanism);
+        recordOutput("HopperMechanism", _hopperMechanism);
+        recordOutput("IntakeMechanism", _intakeMechanism);
 
-        Logger.processInputs(getName(), SuperStructure.Hopper);
+        processInputs(SuperStructure.Hopper);
 
         actOnState(SuperStructure.Hopper);
     }
 
     // #region Commands
 
-    private Command pulseHopperPrivateCommand() {
-        return this.run(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.IN)
-                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
-                .andThen(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.OUT)
-                .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay));
-    }
+    // private Command pulseHopperPrivateCommand() {
+    //     return this.run(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.IN)
+    //             .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay))
+    //             .andThen(() -> SuperStructure.Hopper.ExtensionState = ExtensionState.OUT)
+    //             .andThen(Commands.waitSeconds(HopperMap.HopperPulseDelay));
+    // }
 
     /**
      * Sets the hopper solenoid state
      * @param state The desired hopper state (IN, OUT, OFF, PULSING)
      * @return Command to set the state
      */
-    public Command setHopper(ExtensionState state) {
-        return this.runOnce(() -> SuperStructure.Hopper.ExtensionState = state);
-    }
 
     /**
      * Sets the transfer feed motor state
@@ -261,7 +239,7 @@ public class Hopper extends SubsystemBase {
      * @param state The desired intake control state (IN, OUT, OFF)
      * @return Command to set the state
      */
-    public Command setIntakeControl(IntakeControlState state) {
+    public Command setHopperIntakeControl(HopperIntakeState state) {
         return this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = state);
     }
 

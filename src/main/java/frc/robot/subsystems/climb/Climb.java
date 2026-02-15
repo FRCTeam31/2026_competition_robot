@@ -4,16 +4,16 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
-import org.littletonrobotics.junction.Logger;
+import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
-public class Climb extends SubsystemBase {
+public class Climb extends LoggedSubsystem {
     private IClimb _climb;
 
     // Climb Mechanism
@@ -60,9 +60,11 @@ public class Climb extends SubsystemBase {
         CLIMBING_DONE
     }
 
-    public Climb(boolean isReal) {
+    public Climb() {
         setName("Climb");
-        _climb = isReal ? new ClimbReal() : new ClimbSim();
+        _climb = Robot.isReal()
+                ? new ClimbReal()
+                : new ClimbSim();
 
         initMechanisms();
     }
@@ -131,10 +133,10 @@ public class Climb extends SubsystemBase {
                 supportComponent.getRotation()
         ).rotateAround(robotTranslation, robotRotation);
 
-        Logger.recordOutput("Climb/ClimbMechanism", _climbMechanism);
-        Logger.recordOutput("Climb/SupportMechanism", _supportMechanism);
+        recordOutput("ClimbMechanism", _climbMechanism);
+        recordOutput("SupportMechanism", _supportMechanism);
 
-        Logger.processInputs(getName(), SuperStructure.Climb);
+        processInputs(SuperStructure.Climb);
 
         actOnState(SuperStructure.Climb);
     }

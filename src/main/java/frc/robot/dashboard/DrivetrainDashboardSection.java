@@ -1,5 +1,7 @@
 package frc.robot.dashboard;
 
+import org.prime.dashboard.DashboardSection;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import frc.robot.Robot;

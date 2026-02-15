@@ -59,17 +59,19 @@ wpi.java.debugJni = false
 // Set this to true to enable desktop support.
 def includeDesktopSupport = true
 
+// Detect autocommit branch once for use in eventDeploy and createVersionFile
+def currentBranch = 'git branch --show-current'.execute().text.trim()
+def isAutoCommitBranch = currentBranch.toLowerCase().contains("autocommit")
+
 // Create commit with working changes on event branches
 // Create commit with working changes on event branches
 task(eventDeploy) {
     doLast {
         if (project.gradle.startParameter.taskNames.any({ it.toLowerCase().contains("deploy") })) {
 
-            def autoBranchSubstring = "autocommit"
-            def branch = 'git branch --show-current'.execute().text.trim()
             def commitMessage = "Update at '${new Date().toString()}'"
 
-            if (branch.toLowerCase().contains(autoBranchSubstring)) {
+            if (isAutoCommitBranch) {
                 exec {
                     workingDir(projectDir)
                     executable 'git'
@@ -82,7 +84,7 @@ task(eventDeploy) {
                     ignoreExitValue = true
                 }
 
-                println "Committed to branch: '$branch'"
+                println "Committed to branch: '$currentBranch'"
                 println "Commit message: '$commitMessage'"
             } else {
                 println "Not on an auto-commit branch, skipping commit"
@@ -265,8 +267,12 @@ task(replayWatch, type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-// Create version file
-project.compileJava.dependsOn(createVersionFile)
+// Create version file (only on autocommit branches)
+if (isAutoCommitBranch) {
+    project.compileJava.dependsOn(createVersionFile)
+} else {
+    createVersionFile.enabled = false
+}
 gversion {
     srcDir       = "src/main/java/"
     classPackage = "org.prime.util"

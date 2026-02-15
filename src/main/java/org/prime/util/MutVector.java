@@ -190,48 +190,6 @@ public class MutVector {
         return this.fromCartesian(x, y, z);
     }
 
-    /**
-     * Sets the vector to shoot from a source pose to a target pose
-     * @param sourcePose The source pose
-     * @param targetPose The target pose
-     * @param minAngle The minimum angle of the projectile
-     * @param maxAngle The maximum angle of the projectile
-     * @param minSpeed The minimum speed of the projectile
-     * @param maxSpeed The maximum speed of the projectile
-     * @throws Exception If no valid shot solution is found
-     */
-    public void setToTargetVector(Pose3d sourcePose, Pose3d targetPose, double minAngle, double maxAngle,
-            double minSpeed, double maxSpeed) throws Exception {
-        var deltaX = targetPose.getX() - sourcePose.getX();
-        var deltaY = targetPose.getY() - sourcePose.getY();
-
-        var yaw = Math.toDegrees(Math.atan2(deltaY, deltaX));
-
-        var distance = Math.hypot(deltaX, deltaY);
-        var deltaH = (targetPose.getZ() + TurretMap.HUB_OVERSHOOT_HEIGHT) - TurretMap.TURRET_HEIGHT_ABOVE_GROUND;
-
-        var foundSolution = false;
-        for (double angle = maxAngle; angle >= minAngle; angle -= 0.5) {
-            double angleRad = Math.toRadians(angle);
-            double vSquared = (PhysicsConstants.GRAVITY * 2d) /
-                    (2 * (distance * Math.sin(angleRad) * Math.cos(angleRad)
-                            - deltaH * Math.cos(angleRad) * Math.cos(angleRad)));
-
-            if (vSquared > 0) {
-                double v = Math.sqrt(vSquared);
-                if (v <= maxSpeed && v >= minSpeed) {
-                    foundSolution = true;
-                    setPolar(v, angle, yaw);
-                    break;
-                }
-            }
-        }
-
-        if (!foundSolution) {
-            throw new Exception("No valid shot solution found");
-        }
-    }
-
     public Time getTimeToTarget(double distanceToTarget) {
         double horizontalVelocity = Math.sqrt(Math.pow(_x, 2) + Math.pow(_y, 2));
 

@@ -17,7 +17,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.units.measure.MutLinearVelocity;
-import frc.robot.dashboard.DashboardSection;
 import frc.robot.subsystems.swerve.SwerveMap;
 
 import static edu.wpi.first.units.Units.Meters;
@@ -25,6 +24,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
+import org.prime.dashboard.DashboardSection;
 import org.prime.util.SwerveUtil;
 
 public class SwerveModuleReal implements ISwerveModule {

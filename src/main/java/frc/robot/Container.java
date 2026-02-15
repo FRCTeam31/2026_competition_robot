@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import org.prime.dashboard.DashboardSection;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -13,22 +15,22 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
-import frc.robot.dashboard.DashboardSection;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.Climb.*;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.hopper.Hopper.ExtensionState;
-import frc.robot.subsystems.hopper.Hopper.IntakeControlState;
+import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
+import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightVision;
+import frc.robot.subsystems.vision.photon.PhotonVision;
 import frc.robot.subsystems.turret.Turret.FlywheelState;
-import frc.robot.subsystems.vision.Vision;
 
 public class Container {
   public static TeleopDashboardTab TeleopDashboardSection;
@@ -40,13 +42,19 @@ public class Container {
 
   public static PwmLEDs LEDs;
   public static Swerve Swerve;
-  public static Vision Vision;
+  public static LimelightVision LimelightVision;
+  public static PhotonVision PhotonVision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
   public static Turret Turret;
 
-  public static void initialize(boolean isReal) {
+  public enum IntakeCombinedState {
+    INWARDS,
+    OUTWARDS
+  }
+
+  public static void initialize() {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
@@ -56,17 +64,22 @@ public class Container {
 
       // Create subsystems
       LEDs = new PwmLEDs();
-      Vision = new Vision();
-      Swerve = new Swerve(isReal);
-      Pneumatics = new Pneumatics(isReal);
-      Hopper = new Hopper(isReal);
-      Climb = new Climb(isReal);
-      Turret = new Turret(isReal);
 
+      LimelightVision = new LimelightVision();
+      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+      PhotonVision = new PhotonVision();
+      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+
+      Swerve = new Swerve();
+      Pneumatics = new Pneumatics();
+      Hopper = new Hopper();
+      Climb = new Climb();
+      Turret = new Turret();
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, Vision, Turret, Climb, Hopper);
-      OperatorInterface.bindOperatorControls(Swerve, Vision, Turret, Climb, Hopper);
+      OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);
+      OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       NamedCommands.registerCommands(Swerve.getNamedCommands());
@@ -106,32 +119,47 @@ public class Container {
    */
   public static Command homeRobotCommand() {
     return Hopper.setFeed(TransferFeedState.INWARDS)
-        .andThen(Hopper.setHopper(ExtensionState.OUT))
+        .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.OUT))
         // Time for intake to fully extend
         .andThen(Commands.waitSeconds(1))
-        .andThen(Hopper.setIntakeControl(IntakeControlState.OUT))
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+  }
+
+  public static Command setIntakeStates(IntakeCombinedState state) {
+    if (state == IntakeCombinedState.INWARDS) {
+      return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
+          .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
+          .andThen(Turret.setFeed(UptakeState.FORWARDS))
+          .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
+    } else {
+      return Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+          .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
+          .andThen(Turret.setFeed(UptakeState.REVERSED))
+          .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
+    }
+
   }
 
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
-        .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-        .andThen(Turret.setFeed(UptakeState.REVERSED))
+        .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
+        // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
+        // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
+        // .andThen(Turret.setFeed(UptakeState.REVERSED))
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         .andThen(Climb.setClimb(ClimbState.UP))
         // Time to dump all fuel
         .andThen(Commands.waitSeconds(1))
         .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-        .andThen(Hopper.setIntakeControl(IntakeControlState.IN))
+        .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.IN))
         // Time for intake to fully raise
         .andThen(Commands.waitSeconds(1))
-        .andThen(Hopper.setHopper(ExtensionState.IN))
         // Time for hopper to fully reverse extension
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setSupport(SupportState.LOWERED))
         .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .andThen(OperatorInterface.rumbleControllerShort(OperatorInterface.DriverController))
         .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }

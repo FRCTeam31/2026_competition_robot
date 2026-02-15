@@ -3,6 +3,8 @@ package frc.robot;
 import java.util.Collection;
 import java.util.List;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rectangle2d;
@@ -16,18 +18,22 @@ import edu.wpi.first.math.geometry.Translation3d;
  * Field origin is bottom-left corner with Blue Alliance on the left side when viewed from above.
  */
 public class FieldTargets {
+    public static final AprilTagFieldLayout FieldTagLayout = AprilTagFieldLayout
+            .loadField(AprilTagFields.kDefaultField);
+
     public static final double FIELD_TOP = 8.084; // meters
     public static final double FIELD_MIDDLE = FIELD_TOP / 2; // meters
     public static final double FIELD_BOTTOM = 0; // meters
     public static final double FIELD_LEFT = 0; // meters
     public static final double FIELD_RIGHT = 16.561; // meters
     public static final double HUB_HEIGHT = 1.8288; // meters (72")
+    //public static final double HUB_HEIGHT = 1.6764; // meters (66")
 
     private static final Pose3d Blue_Hub_Position = new Pose3d(
             new Translation3d(4.618, 4.035, 1.8288), // 1.8288m (72") is the height of the top rim
             Rotation3d.kZero);
     private static final Pose3d Red_Hub_Position = new Pose3d(
-            new Translation3d(11.919, 4.035, 1.8288),
+            new Translation3d(11.919, 4.035, 1.6764),
             Rotation3d.kZero);
 
     public static Pose3d GetHubPosition() {

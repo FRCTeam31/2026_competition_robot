@@ -1,9 +1,9 @@
-// Copyright (c) 2023-2025 Gold87 and other Elastic contributors
+// Copyright (c) 2023-2026 Gold87 and other Elastic contributors
 // This software can be modified and/or shared under the terms
 // defined by the Elastic license:
-// https://github.com/Gold872/elastic-dashboard/blob/main/LICENSE
+// https://github.com/Gold872/elastic_dashboard/blob/main/LICENSE
 
-package frc.robot;
+package org.prime.dashboard;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,6 +25,19 @@ public final class Elastic {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
+     * Represents the possible levels of notifications for the Elastic dashboard. These levels are
+     * used to indicate the severity or type of notification.
+     */
+    public enum NotificationLevel {
+        /** Informational Message */
+        INFO,
+        /** Warning message */
+        WARNING,
+        /** Error message */
+        ERROR
+    }
+
+    /**
      * Sends an notification to the Elastic dashboard. The notification is serialized as a JSON string
      * before being published.
      *
@@ -36,51 +49,6 @@ public final class Elastic {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Sends a warning notification to the Elastic dashboard with the given title and description.
-     */
-    public static void sendWarning(String title, String description) {
-        sendNotification(new Notification(Notification.NotificationLevel.WARNING, title, description));
-    }
-
-    /**
-     * Sends a warning notification to the Elastic dashboard with the given title and description for a set amount of time in seconds.
-     */
-    public static void sendWarning(String title, String description, double displayTimeSeconds) {
-        sendNotification(new Notification(Notification.NotificationLevel.WARNING, title, description)
-                .withDisplaySeconds(displayTimeSeconds));
-    }
-
-    /**
-     * Sends an error notification to the Elastic dashboard with the given title and description.
-     */
-    public static void sendError(String title, String description) {
-        sendNotification(new Notification(Notification.NotificationLevel.ERROR, title, description));
-    }
-
-    /**
-     * Sends an error notification to the Elastic dashboard with the given title and description or a set amount of time in seconds.
-     */
-    public static void sendError(String title, String description, double displayTimeSeconds) {
-        sendNotification(new Notification(Notification.NotificationLevel.ERROR, title, description)
-                .withDisplaySeconds(displayTimeSeconds));
-    }
-
-    /**
-     * Sends an info notification to the Elastic dashboard with the given title and description.
-     */
-    public static void sendInfo(String title, String description) {
-        sendNotification(new Notification(Notification.NotificationLevel.INFO, title, description));
-    }
-
-    /**
-     * Sends an info notification to the Elastic dashboard with the given title and description for a set amount of time in seconds.
-     */
-    public static void sendInfo(String title, String description, double displayTimeSeconds) {
-        sendNotification(new Notification(Notification.NotificationLevel.INFO, title, description)
-                .withDisplaySeconds(displayTimeSeconds));
     }
 
     /**
@@ -417,19 +385,6 @@ public final class Elastic {
         public Notification withNoAutoDismiss() {
             setDisplayTimeMillis(0);
             return this;
-        }
-
-        /**
-         * Represents the possible levels of notifications for the Elastic dashboard. These levels are
-         * used to indicate the severity or type of notification.
-         */
-        public enum NotificationLevel {
-            /** Informational Message */
-            INFO,
-            /** Warning message */
-            WARNING,
-            /** Error message */
-            ERROR
         }
     }
 }

@@ -16,13 +16,12 @@ class SwerveTest {
     @BeforeEach
     void setUp() {
         assert HAL.initialize(500, 0);
-        swerve = new Swerve(false);
+        swerve = new Swerve();
     }
 
     @Test
     void testConstructor_InitializesBothModes() {
-        assertDoesNotThrow(() -> new Swerve(false), "Should initialize in sim mode");
-        assertDoesNotThrow(() -> new Swerve(true), "Should initialize in real mode");
+        assertDoesNotThrow(() -> new Swerve(), "Should initialize without errors");
     }
 
     @Test

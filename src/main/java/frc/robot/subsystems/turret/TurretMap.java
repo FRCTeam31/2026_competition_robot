@@ -6,7 +6,9 @@ import org.prime.control.ExtendedPIDConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 
 public class TurretMap {
         public static final double TURRET_GEAR_RATIO = 10;
@@ -22,11 +24,14 @@ public class TurretMap {
         public static final double FLYWHEEL_RAMP_PERIOD = 1;
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants();
         public static final double FLYWHEEL_IDLE_VELOCITY_RPS = 5.0;
-        public static final double FLYWHEEL_RADIUS = 0;
-        public static final double FLYWHEEL_MAX_SPEED = 1000.0;
+        public static final double FLYWHEEL_RADIUS = 0.0505;
+        public static final double FLYWHEEL_MAX_SPEED = 50;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
-        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
-        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
+        //        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
+        //        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
+        public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
+        //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
+        public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
 
         public static final int FEEDER_CANID = 0;
         public static final boolean FEEDER_INVERTED = false;
@@ -36,10 +41,10 @@ public class TurretMap {
         public static final double TURRET_DISTANCE_FROM_ROBOT_CENTER = 0;
         public static final Rotation2d TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT = new Rotation2d()
                         .rotateBy(Rotation2d.kCCW_90deg);
-        public static final double TURRET_HEIGHT_ABOVE_GROUND = 0;
+        public static final double TURRET_HEIGHT_ABOVE_GROUND = 0.45;
 
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
-        public static final double HUB_OVERSHOOT_HEIGHT = 0;
+        public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
         public static final double MIN_SHOT_DISTANCE_METERS = 0;
 
         public static final boolean AUTO_MOTION_COMPENSATION = false;
@@ -56,4 +61,22 @@ public class TurretMap {
                                         Map.entry(7.0, 800.0),
                                         Map.entry(8.0, 900.0),
                                         Map.entry(9.0, 1000.0));
+
+        // Limelight offset from turret rotation center (in meters)
+        // Positive X is forward, Y is left, Z is up from turret rotation center
+        public static double LIMELIGHT_OFFSET_X = 0.0; // Distance forward from turret center
+        public static double LIMELIGHT_OFFSET_Y = 0.0; // Distance right from turret center (negative for left)
+        public static double LIMELIGHT_OFFSET_Z = 0.0; // Distance above turret center
+
+        // Limelight fixed rotation relative to turret (in radians)
+        // This is the camera's POV angle when the turret is at 0 degrees
+        public static double LIMELIGHT_PITCH = 0.0; // Vertical tilt
+        public static double LIMELIGHT_YAW = 0.0; // Horizontal rotation (should typically be 0)
+        public static double LIMELIGHT_ROLL = 0.0; // Camera roll
+
+        // Turret rotation origin offset from robot center (in meters, XYZ from robot center on ground)
+        public static Translation3d TURRET_ROBOT_ORIGIN = new Translation3d(
+                        Units.inchesToMeters(8.25),
+                        Units.inchesToMeters(5.75),
+                        Units.inchesToMeters(15.894));
 }

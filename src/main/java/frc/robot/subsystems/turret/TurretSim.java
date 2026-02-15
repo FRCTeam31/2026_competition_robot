@@ -20,6 +20,7 @@ public class TurretSim implements ITurret {
     private double _turretTargetPositionRotations = 0;
     private double _turretManualSpeed = 0;
     private double _turretVelocityRPS = 0;
+    private boolean _isManualControl = false;
 
     // Hood and feeder state
     private double _hoodSpeed = 0;
@@ -37,31 +38,45 @@ public class TurretSim implements ITurret {
      * @param timestepSeconds the simulation timestep (typically 0.02s)
      */
     public void updateSimulation(double timestepSeconds) {
-        // Simple trapezoidal-ish motion toward the target position
+        if (_isManualControl) {
+            // In manual (DutyCycleOut) mode, apply manual speed directly as velocity
+            _turretVelocityRPS = _turretManualSpeed * TURRET_CRUISE_VELOCITY_RPS;
+            _turretPositionRotations += _turretVelocityRPS * timestepSeconds;
+            // Keep target in sync so switching to position mode doesn't cause a jump
+            _turretTargetPositionRotations = _turretPositionRotations;
+            return;
+        }
+
+        // Position (MotionMagic) mode: trapezoidal motion toward the target position
         double error = _turretTargetPositionRotations - _turretPositionRotations;
 
         // Wrap error to [-0.5, 0.5] rotations for continuous wrap behavior
         error = error - Math.round(error);
 
-        if (Math.abs(error) < 0.001) {
+        if (Math.abs(error) < 0.01 && Math.abs(_turretVelocityRPS) < 0.015) {
             _turretPositionRotations = _turretTargetPositionRotations;
             _turretVelocityRPS = 0;
         } else {
-            double sign = Math.signum(error);
-
-            // Accelerate or decelerate toward target
-            double stoppingDistance = (_turretVelocityRPS * _turretVelocityRPS) /
+            // Calculate stopping distance (signed — how far we'd travel while decelerating to zero)
+            double stoppingDistance = (_turretVelocityRPS * Math.abs(_turretVelocityRPS)) /
                     (2.0 * TURRET_ACCELERATION_RPS2);
 
-            if (stoppingDistance >= Math.abs(error)) {
-                // Decelerate
-                _turretVelocityRPS -= sign * TURRET_ACCELERATION_RPS2 * timestepSeconds;
-                if (Math.abs(_turretVelocityRPS) < TURRET_ACCELERATION_RPS2 * timestepSeconds) {
+            // If we're overshooting (velocity carries us past the target), decelerate
+            // Otherwise, accelerate toward the target
+            boolean shouldDecelerate = Math.abs(stoppingDistance) >= Math.abs(error)
+                    && Math.signum(stoppingDistance) == Math.signum(error);
+
+            if (shouldDecelerate) {
+                // Decelerate: reduce velocity magnitude toward zero
+                double decel = Math.signum(_turretVelocityRPS) * TURRET_ACCELERATION_RPS2 * timestepSeconds;
+                if (Math.abs(decel) > Math.abs(_turretVelocityRPS)) {
                     _turretVelocityRPS = 0;
+                } else {
+                    _turretVelocityRPS -= decel;
                 }
             } else {
-                // Accelerate up to cruise velocity
-                _turretVelocityRPS += sign * TURRET_ACCELERATION_RPS2 * timestepSeconds;
+                // Accelerate toward target (in the direction of the error)
+                _turretVelocityRPS += Math.signum(error) * TURRET_ACCELERATION_RPS2 * timestepSeconds;
                 _turretVelocityRPS = Math.max(
                         Math.min(_turretVelocityRPS, TURRET_CRUISE_VELOCITY_RPS),
                         -TURRET_CRUISE_VELOCITY_RPS);
@@ -94,8 +109,10 @@ public class TurretSim implements ITurret {
         // Extract the target position from known position control request types.
         if (request instanceof MotionMagicVoltage motionMagicRequest) {
             _turretTargetPositionRotations = motionMagicRequest.Position;
+            _isManualControl = false;
         } else if (request instanceof DutyCycleOut dutyCycleRequest) {
             _turretManualSpeed = dutyCycleRequest.Output;
+            _isManualControl = true;
         }
     }
 

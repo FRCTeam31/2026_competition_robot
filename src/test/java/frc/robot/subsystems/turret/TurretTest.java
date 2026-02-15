@@ -1,213 +1,385 @@
 package frc.robot.subsystems.turret;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.prime.util.MutVector;
 
 import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.SuperStructure;
-import frc.robot.subsystems.turret.Turret.FlywheelState;
-import frc.robot.subsystems.turret.Turret.TargetingState;
 
 /**
- * Test suite for the Turret subsystem.
- * Tests command factory methods and calculateTurretVectorFromRobotPose helper.
+ * Unit tests for the Turret subsystem.
+ * Focuses on testing the getLimelightPose3dFromRobotCenter() function
+ * to verify correct 3D pose calculation using actual TurretMap constants.
  */
-public class TurretTest {
+class TurretTest {
     private Turret turret;
+    private static final double EPSILON = 1e-6; // Tolerance for floating-point comparisons
+
+    // Cache actual TurretMap values for readability in expected value calculations
+    private double originX;
+    private double originY;
+    private double originZ;
+    private double llOffsetX;
+    private double llOffsetY;
+    private double llOffsetZ;
+    private double llPitch;
+    private double llYaw;
+    private double llRoll;
 
     @BeforeEach
-    public void setUp() {
-        Assertions.assertTrue(HAL.initialize(500, 0));
-        turret = new Turret(false);
+    void setUp() {
+        // Initialize HAL for WPILib
+        assert HAL.initialize(500, 0);
 
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d();
-        SuperStructure.Swerve.RobotRelativeChassisSpeeds = new ChassisSpeeds();
-        SuperStructure.Turret.FlywheelState = Turret.FlywheelState.STOPPED;
-        SuperStructure.Turret.TargetingState = Turret.TargetingState.STOPPED;
-        SuperStructure.Turret.ShotCalculationState = Turret.LockOnState.SHOT_NOT_CALCULATED;
+        // Cache actual TurretMap values
+        originX = TurretMap.TURRET_ROBOT_ORIGIN.getX();
+        originY = TurretMap.TURRET_ROBOT_ORIGIN.getY();
+        originZ = TurretMap.TURRET_ROBOT_ORIGIN.getZ();
+        llOffsetX = TurretMap.LIMELIGHT_OFFSET_X;
+        llOffsetY = TurretMap.LIMELIGHT_OFFSET_Y;
+        llOffsetZ = TurretMap.LIMELIGHT_OFFSET_Z;
+        llPitch = TurretMap.LIMELIGHT_PITCH;
+        llYaw = TurretMap.LIMELIGHT_YAW;
+        llRoll = TurretMap.LIMELIGHT_ROLL;
+
+        // Create turret in simulation mode
+        turret = new Turret();
     }
 
-    // ============================================
-    // Constructor Tests
-    // ============================================
+    //#region Helper Methods
 
-    @Test
-    public void testConstructor_InitializesBothModes() {
-        Assertions.assertDoesNotThrow(() -> new Turret(false));
-        Assertions.assertDoesNotThrow(() -> new Turret(true));
-        Assertions.assertEquals("Turret", turret.getName());
+    /**
+     * Sets the turret rotation for testing
+     */
+    private void setTurretRotation(double radians) {
+        SuperStructure.Turret.TurretRotation = new Rotation2d(radians);
     }
 
-    @Test
-    public void testPeriodicDoesNotThrow() {
-        Assertions.assertDoesNotThrow(() -> turret.periodic());
+    /**
+     * Computes the expected X position from robot center for a given turret rotation.
+     * X = originX + llOffsetX * cos(theta) - llOffsetY * sin(theta)
+     */
+    private double expectedX(double turretRadians) {
+        return originX
+                + llOffsetX * Math.cos(turretRadians)
+                - llOffsetY * Math.sin(turretRadians);
     }
 
-    // ============================================
-    // Command Factory Tests - State Transitions
-    // ============================================
-
-    @Test
-    public void testFlywheelStateTransitions() {
-        SuperStructure.Turret.FlywheelState = Turret.FlywheelState.STOPPED;
-
-        turret.setFlywheel(FlywheelState.IDLE).initialize();
-        Assertions.assertEquals(Turret.FlywheelState.IDLE, SuperStructure.Turret.FlywheelState);
-
-        turret.setFlywheel(FlywheelState.SHOOTING).initialize();
-        Assertions.assertEquals(Turret.FlywheelState.SHOOTING, SuperStructure.Turret.FlywheelState);
-
-        turret.setFlywheel(FlywheelState.STOPPED).initialize();
-        Assertions.assertEquals(Turret.FlywheelState.STOPPED, SuperStructure.Turret.FlywheelState);
+    /**
+     * Computes the expected Y position from robot center for a given turret rotation.
+     * Y = originY + llOffsetX * sin(theta) + llOffsetY * cos(theta)
+     */
+    private double expectedY(double turretRadians) {
+        return originY
+                + llOffsetX * Math.sin(turretRadians)
+                + llOffsetY * Math.cos(turretRadians);
     }
 
-    @Test
-    public void testTargetingStateTransitions() {
-        SuperStructure.Turret.TargetingState = Turret.TargetingState.STOPPED;
-
-        turret.setTargeting(TargetingState.AUTO).initialize();
-        Assertions.assertEquals(Turret.TargetingState.AUTO, SuperStructure.Turret.TargetingState);
-
-        turret.setTargeting(TargetingState.MANUAL).initialize();
-        Assertions.assertEquals(Turret.TargetingState.MANUAL, SuperStructure.Turret.TargetingState);
-
-        turret.setTargeting(TargetingState.STOPPED).initialize();
-        Assertions.assertEquals(Turret.TargetingState.STOPPED, SuperStructure.Turret.TargetingState);
+    /**
+     * Computes the expected Z position from robot center (independent of rotation).
+     * Z = originZ + llOffsetZ
+     */
+    private double expectedZ() {
+        return originZ + llOffsetZ;
     }
 
+    //#endregion
+
+    //#region Zero Rotation Tests
+
     @Test
-    public void testCommandFactoriesReturnValidCommands() {
-        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.SHOOTING));
-        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.IDLE));
-        Assertions.assertNotNull(turret.setFlywheel(FlywheelState.STOPPED));
-        Assertions.assertNotNull(turret.setTargeting(TargetingState.AUTO));
-        Assertions.assertNotNull(turret.setTargeting(TargetingState.MANUAL));
-        Assertions.assertNotNull(turret.setTargeting(TargetingState.STOPPED));
+    void testGetLimelightPose_ZeroTurretRotation() {
+        setTurretRotation(0.0);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        // At zero rotation, limelight offsets add directly to turret origin
+        assertEquals(expectedX(0.0), result.getX(), EPSILON, "X should be origin + limelight offset X");
+        assertEquals(expectedY(0.0), result.getY(), EPSILON, "Y should be origin + limelight offset Y");
+        assertEquals(expectedZ(), result.getZ(), EPSILON, "Z should be origin + limelight offset Z");
+        assertEquals(llRoll, result.getRotation().getX(), EPSILON, "Roll should match limelight roll");
+        assertEquals(llPitch, result.getRotation().getY(), EPSILON, "Pitch should match limelight pitch");
+        assertEquals(llYaw, result.getRotation().getZ(), EPSILON, "Yaw should match limelight yaw");
     }
 
-    // ============================================
-    // calculateTurretVectorFromRobotPose Tests
-    // ============================================
+    //#endregion
+
+    //#region Turret Rotation Tests
 
     @Test
-    public void testCalculateTurretVector_ReturnsSameVectorInstance() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
-        Pose3d target = new Pose3d(5, 0, 2.0, new Rotation3d());
+    void testGetLimelightPose_90DegreeRotation() {
+        double angle = Math.PI / 2;
+        setTurretRotation(angle);
 
-        MutVector result1 = turret.calculateTurretVectorFromRobotPose(target);
-        MutVector result2 = turret.calculateTurretVectorFromRobotPose(target);
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        Assertions.assertSame(result1, result2);
-    }
-
-    @Test
-    public void testCalculateTurretVector_TooCloseRejectsShot() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
-        Pose3d target = new Pose3d(0.01, 0, 2.0, new Rotation3d());
-
-        turret.calculateTurretVectorFromRobotPose(target);
-
-        Assertions.assertEquals(Turret.LockOnState.SHOT_NOT_CALCULATED,
-                SuperStructure.Turret.ShotCalculationState);
+        assertEquals(expectedX(angle), result.getX(), EPSILON, "X position at 90 degrees");
+        assertEquals(expectedY(angle), result.getY(), EPSILON, "Y position at 90 degrees");
+        assertEquals(expectedZ(), result.getZ(), EPSILON, "Z should be unchanged by rotation");
+        assertEquals(llYaw + angle, result.getRotation().getZ(), EPSILON, "Yaw should include turret rotation");
     }
 
     @Test
-    public void testCalculateTurretVector_ValidatesOutput() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
-        Pose3d target = new Pose3d(5, 0, 2.0, new Rotation3d());
+    void testGetLimelightPose_180DegreeRotation() {
+        double angle = Math.PI;
+        setTurretRotation(angle);
 
-        MutVector result = turret.calculateTurretVectorFromRobotPose(target);
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        Assertions.assertFalse(Double.isNaN(result.getX()));
-        Assertions.assertFalse(Double.isNaN(result.getY()));
-        Assertions.assertFalse(Double.isNaN(result.getZ()));
-        Assertions.assertFalse(Double.isNaN(result.getMagnitude()));
-        Assertions.assertFalse(Double.isInfinite(result.getMagnitude()));
+        assertEquals(expectedX(angle), result.getX(), EPSILON, "X position at 180 degrees");
+        assertEquals(expectedY(angle), result.getY(), EPSILON, "Y position at 180 degrees");
+        assertEquals(expectedZ(), result.getZ(), EPSILON, "Z should be unchanged by rotation");
+        assertEquals(llYaw + angle, result.getRotation().getZ(), EPSILON, "Yaw should be PI + limelight yaw");
     }
 
     @Test
-    public void testCalculateTurretVector_RepeatedCalculationsConsistent() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
-        SuperStructure.Swerve.RobotRelativeChassisSpeeds = new ChassisSpeeds();
-        Pose3d target = new Pose3d(5, 0, 2.0, new Rotation3d());
+    void testGetLimelightPose_NegativeRotation() {
+        double angle = -Math.PI / 2;
+        setTurretRotation(angle);
 
-        MutVector result1 = turret.calculateTurretVectorFromRobotPose(target);
-        double mag1 = result1.getMagnitude();
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        MutVector result2 = turret.calculateTurretVectorFromRobotPose(target);
-        double mag2 = result2.getMagnitude();
-
-        Assertions.assertEquals(mag1, mag2, 0.001);
+        assertEquals(expectedX(angle), result.getX(), EPSILON, "X position at -90 degrees");
+        assertEquals(expectedY(angle), result.getY(), EPSILON, "Y position at -90 degrees");
+        assertEquals(llYaw + angle, result.getRotation().getZ(), EPSILON, "Yaw should be -PI/2 + limelight yaw");
     }
 
     @Test
-    public void testCalculateTurretVector_HandlesAllQuadrants() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
+    void testGetLimelightPose_45DegreeRotation() {
+        double angle = Math.PI / 4;
+        setTurretRotation(angle);
 
-        // Test all four quadrants in a single test
-        Pose3d[] targets = {
-                new Pose3d(5, 5, 2.0, new Rotation3d()), // Quadrant I (+X, +Y)
-                new Pose3d(-5, 5, 2.0, new Rotation3d()), // Quadrant II (-X, +Y)
-                new Pose3d(-5, -5, 2.0, new Rotation3d()), // Quadrant III (-X, -Y)
-                new Pose3d(5, -5, 2.0, new Rotation3d()) // Quadrant IV (+X, -Y)
-        };
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        for (Pose3d target : targets) {
-            MutVector result = turret.calculateTurretVectorFromRobotPose(target);
-            Assertions.assertFalse(Double.isNaN(result.getMagnitude()));
-        }
+        assertEquals(expectedX(angle), result.getX(), EPSILON, "X position at 45 degrees");
+        assertEquals(expectedY(angle), result.getY(), EPSILON, "Y position at 45 degrees");
+    }
+
+    //#endregion
+
+    //#region Limelight Fixed Rotation Tests
+
+    @Test
+    void testGetLimelightPose_PitchMatchesMap() {
+        setTurretRotation(0.0);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        assertEquals(llPitch, result.getRotation().getY(), EPSILON, "Pitch should match TurretMap value");
     }
 
     @Test
-    public void testCalculateTurretVector_HandlesVariousVelocities() {
-        Pose3d target = new Pose3d(8, 0, 2.0, new Rotation3d());
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
+    void testGetLimelightPose_YawMatchesMapAtZeroRotation() {
+        setTurretRotation(0.0);
 
-        ChassisSpeeds[] velocities = {
-                new ChassisSpeeds(0, 0, 0),
-                new ChassisSpeeds(5.0, 3.0, 1.5),
-                new ChassisSpeeds(-1, -1, -1)
-        };
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        for (ChassisSpeeds velocity : velocities) {
-            SuperStructure.Swerve.RobotRelativeChassisSpeeds = velocity;
-            MutVector result = turret.calculateTurretVectorFromRobotPose(target);
-            Assertions.assertFalse(Double.isNaN(result.getMagnitude()));
-        }
+        assertEquals(llYaw, result.getRotation().getZ(), EPSILON,
+                "Yaw at zero rotation should match TurretMap limelight yaw");
     }
 
     @Test
-    public void testCalculateTurretVector_HandlesExtremeDistances() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
+    void testGetLimelightPose_RollMatchesMap() {
+        setTurretRotation(0.0);
 
-        // Near target
-        turret.calculateTurretVectorFromRobotPose(new Pose3d(1.5, 0, 2.0, new Rotation3d()));
-        Assertions.assertNotNull(SuperStructure.Turret.ShotCalculationState);
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        // Far target - should handle gracefully
-        Assertions.assertDoesNotThrow(() -> {
-            turret.calculateTurretVectorFromRobotPose(new Pose3d(1000, 1000, 100.0, new Rotation3d()));
-        });
+        assertEquals(llRoll, result.getRotation().getX(), EPSILON, "Roll should match TurretMap value");
     }
 
     @Test
-    public void testCalculateTurretVector_HandlesTargetHeights() {
-        SuperStructure.Swerve.EstimatedRobotPose = new Pose2d(0, 0, new Rotation2d());
+    void testGetLimelightPose_YawCombinesTurretRotationAndFixedYaw() {
+        double turretAngle = Math.PI / 3; // 60 degrees turret rotation
+        setTurretRotation(turretAngle);
 
-        // Test low, normal, and high targets
-        double[] heights = { 0.0, 0.5, 2.0, 10.0 };
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
 
-        for (double height : heights) {
-            MutVector result = turret.calculateTurretVectorFromRobotPose(
-                    new Pose3d(5, 0, height, new Rotation3d()));
-            Assertions.assertFalse(Double.isNaN(result.getMagnitude()));
-        }
+        // Combined yaw should be sum of fixed yaw and turret rotation
+        assertEquals(llYaw + turretAngle, result.getRotation().getZ(), EPSILON,
+                "Yaw should be limelight yaw + turret rotation");
     }
+
+    //#endregion
+
+    //#region Complex Scenario Tests
+
+    @Test
+    void testGetLimelightPose_ComplexRotation() {
+        double angle = Math.toRadians(135);
+        setTurretRotation(angle);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        // Verify result is not null and has reasonable values
+        assertNotNull(result);
+        assertTrue(Double.isFinite(result.getX()), "X should be finite");
+        assertTrue(Double.isFinite(result.getY()), "Y should be finite");
+        assertEquals(expectedZ(), result.getZ(), EPSILON, "Z should be origin + limelight offset Z");
+
+        // Verify rotation components
+        assertEquals(llRoll, result.getRotation().getX(), EPSILON, "Roll should match map");
+        assertEquals(llPitch, result.getRotation().getY(), EPSILON, "Pitch should match map");
+        assertEquals(llYaw + angle, result.getRotation().getZ(), EPSILON, "Yaw = turret rotation + limelight yaw");
+    }
+
+    @Test
+    void testGetLimelightPose_RotatedOffsetPosition() {
+        // With 90 degree rotation, the limelight offset X should map to Y and vice versa
+        double angle = Math.PI / 2;
+        setTurretRotation(angle);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        // Rotated offset: X' = offsetX*cos(90) - offsetY*sin(90) = -offsetY
+        //                 Y' = offsetX*sin(90) + offsetY*cos(90) = offsetX
+        double rotatedX = llOffsetX * Math.cos(angle) - llOffsetY * Math.sin(angle);
+        double rotatedY = llOffsetX * Math.sin(angle) + llOffsetY * Math.cos(angle);
+
+        assertEquals(originX + rotatedX, result.getX(), EPSILON, "X = origin + rotated offset X");
+        assertEquals(originY + rotatedY, result.getY(), EPSILON, "Y = origin + rotated offset Y");
+    }
+
+    //#endregion
+
+    //#region Edge Cases
+
+    @Test
+    void testGetLimelightPose_VerySmallRotation() {
+        setTurretRotation(0.0);
+        Pose3d baseResult = turret.getLimelightPose3dFromRobotCenter();
+
+        double angle = 0.0001;
+        setTurretRotation(angle);
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        // Should be very close to the zero rotation case
+        assertEquals(baseResult.getX(), result.getX(), 0.01, "X should be close to zero-rotation result");
+        assertEquals(baseResult.getY(), result.getY(), 0.01, "Y should be close to zero-rotation result");
+    }
+
+    @Test
+    void testGetLimelightPose_FullRotation() {
+        // Full 360 degree rotation should give same result as zero rotation
+        setTurretRotation(0.0);
+        Pose3d zeroResult = turret.getLimelightPose3dFromRobotCenter();
+
+        setTurretRotation(2 * Math.PI);
+        Pose3d fullResult = turret.getLimelightPose3dFromRobotCenter();
+
+        assertEquals(zeroResult.getX(), fullResult.getX(), EPSILON, "X should match zero rotation after full rotation");
+        assertEquals(zeroResult.getY(), fullResult.getY(), EPSILON, "Y should match zero rotation after full rotation");
+        assertEquals(zeroResult.getZ(), fullResult.getZ(), EPSILON, "Z should match zero rotation after full rotation");
+    }
+
+    @Test
+    void testGetLimelightPose_MultipleConsecutiveCalls() {
+        // Verify function is idempotent (same result on multiple calls)
+        setTurretRotation(Math.PI / 3);
+
+        Pose3d result1 = turret.getLimelightPose3dFromRobotCenter();
+        Pose3d result2 = turret.getLimelightPose3dFromRobotCenter();
+        Pose3d result3 = turret.getLimelightPose3dFromRobotCenter();
+
+        assertEquals(result1.getX(), result2.getX(), EPSILON, "Multiple calls should give same X");
+        assertEquals(result1.getY(), result2.getY(), EPSILON, "Multiple calls should give same Y");
+        assertEquals(result1.getZ(), result2.getZ(), EPSILON, "Multiple calls should give same Z");
+        assertEquals(result1.getX(), result3.getX(), EPSILON, "Multiple calls should give same X");
+    }
+
+    @Test
+    void testGetLimelightPose_RotationSymmetry() {
+        // Test that rotating by +angle and -angle produces expected symmetric behavior
+        // cos is even, sin is odd, so the rotated X offset is the same for +/- angle
+        // and the rotated Y offset is negated for +/- angle
+        double angle = Math.PI / 6;
+
+        setTurretRotation(angle);
+        Pose3d resultPositive = turret.getLimelightPose3dFromRobotCenter();
+
+        setTurretRotation(-angle);
+        Pose3d resultNegative = turret.getLimelightPose3dFromRobotCenter();
+
+        // The X position should be the same for +/- angle (origin is constant, cos is even, sin is odd)
+        assertEquals(resultPositive.getX(), resultNegative.getX(), EPSILON, "X should be symmetric for +/- angle");
+
+        // The Y offset from origin should be negated for +/- angle
+        double yOffsetPositive = resultPositive.getY() - originY;
+        double yOffsetNegative = resultNegative.getY() - originY;
+        assertEquals(yOffsetPositive, -yOffsetNegative, EPSILON,
+                "Y offset from origin should be opposite for +/- angle");
+    }
+
+    @Test
+    void testGetLimelightPose_ZOffsetIndependentOfRotation() {
+        // Z offset should not be affected by turret rotation
+        double expectedZValue = expectedZ();
+
+        setTurretRotation(0.0);
+        Pose3d result1 = turret.getLimelightPose3dFromRobotCenter();
+
+        setTurretRotation(Math.PI);
+        Pose3d result2 = turret.getLimelightPose3dFromRobotCenter();
+
+        setTurretRotation(Math.PI / 2);
+        Pose3d result3 = turret.getLimelightPose3dFromRobotCenter();
+
+        assertEquals(expectedZValue, result1.getZ(), EPSILON, "Z should be constant at 0 rotation");
+        assertEquals(expectedZValue, result2.getZ(), EPSILON, "Z should be constant at PI rotation");
+        assertEquals(expectedZValue, result3.getZ(), EPSILON, "Z should be constant at PI/2 rotation");
+    }
+
+    @Test
+    void testGetLimelightPose_NegativeRotations() {
+        double angle = Math.toRadians(-45);
+        setTurretRotation(angle);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        assertEquals(llRoll, result.getRotation().getX(), EPSILON, "Roll should match map value");
+        assertEquals(llPitch, result.getRotation().getY(), EPSILON, "Pitch should match map value");
+        assertEquals(llYaw + angle, result.getRotation().getZ(), EPSILON,
+                "Yaw should be limelight yaw + turret rotation");
+    }
+
+    @Test
+    void testGetLimelightPose_ResultIsFiniteForLargeRotation() {
+        setTurretRotation(Math.PI / 4);
+
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+
+        assertNotNull(result);
+        assertTrue(Double.isFinite(result.getX()), "X should be finite");
+        assertTrue(Double.isFinite(result.getY()), "Y should be finite");
+        assertTrue(Double.isFinite(result.getZ()), "Z should be finite");
+    }
+
+    //#endregion
+
+    //#region Subsystem Tests
+
+    @Test
+    void testTurretSubsystem_HasGetLimelightPoseMethod() {
+        // Verify the method exists and is public
+        assertDoesNotThrow(() -> {
+            turret.getLimelightPose3dFromRobotCenter();
+        }, "getLimelightPose3dFromRobotCenter should be callable");
+    }
+
+    @Test
+    void testTurretSubsystem_MethodReturnsNonNull() {
+        Pose3d result = turret.getLimelightPose3dFromRobotCenter();
+        assertNotNull(result, "Method should never return null");
+    }
+
+    @Test
+    void testTurretSubsystem_InitializesCorrectly() {
+        assertNotNull(turret, "Turret should initialize");
+        assertEquals("Turret", turret.getName(), "Subsystem name should be 'Turret'");
+    }
+
+    //#endregion
 }
