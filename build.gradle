@@ -60,6 +60,7 @@ wpi.java.debugJni = false
 def includeDesktopSupport = true
 
 // Create commit with working changes on event branches
+// Create commit with working changes on event branches
 task(eventDeploy) {
     doLast {
         if (project.gradle.startParameter.taskNames.any({ it.toLowerCase().contains("deploy") })) {
@@ -276,12 +277,21 @@ gversion {
     version      = "0.1.0"
 }
 
-task copyAdvantageScopeAssets(type: Exec) {
-    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        commandLine 'cmd', '/c', 'bash copy-advantagescope-assets.sh'
+// Copy AdvantageScope assets to the user's local config directory
+task copyAdvantageScopeAssets(type: Copy) {
+    from 'advantagescope-assets'
+
+    def osName = System.getProperty('os.name').toLowerCase()
+    def destDir
+    if (osName.contains('windows')) {
+        destDir = "${System.getenv('APPDATA')}/AdvantageScope/userAssets"
+    } else if (osName.contains('mac')) {
+        destDir = "${System.getProperty('user.home')}/Library/Application Support/AdvantageScope/userAssets"
     } else {
-        commandLine 'bash', 'copy-advantagescope-assets.sh'
+        destDir = "${System.getProperty('user.home')}/.config/AdvantageScope/userAssets"
     }
+
+    into destDir
 }
 
 build.dependsOn copyAdvantageScopeAssets
