@@ -12,7 +12,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -235,6 +234,7 @@ public class Turret extends LoggedSubsystem {
             // We are not in the neutral zone, target the hub.
             target = FieldTargets.GetHubPosition();
         }
+        recordOutput("Target Pose", target);
 
         double velocityX = _mutNominalTargetVector.getX();
         double velocityY = _mutNominalTargetVector.getY();
@@ -244,25 +244,19 @@ public class Turret extends LoggedSubsystem {
         double initialY = turretPose.getY();
         double initialZ = turretPose.getZ();
 
-        var deltaX = target.getX() - initialX;
-        var deltaY = target.getY() - initialY;
-        var distance = Math.hypot(deltaX, deltaY);
+        // Calculate total flight time from horizontal distance and horizontal speed
+        double horizontalSpeed = Math.hypot(velocityX, velocityY);
+        double deltaX = target.getX() - initialX;
+        double deltaY = target.getY() - initialY;
+        double distance = Math.hypot(deltaX, deltaY);
+        double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
 
-        //            var totalTime = 0.0;
-        //
-        //            if (_mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds) != -1) {
-        //                totalTime = _mutNominalTargetVector.getTimeToTarget(distance).in(Units.Seconds);
-        //            }
-
-        var totalTime = 3;
-
-        var timeStep = 0.05;
-
+        var timeStep = 0.05; // seconds
         int numPoints = (int) (totalTime / timeStep) + 1;
         Pose3d[] trajectory = new Pose3d[numPoints];
 
         for (int i = 0; i < numPoints; i++) {
-            double t = i * timeStep;
+            double t = (numPoints > 1) ? totalTime * i / (numPoints - 1) : 0;
 
             // Projectile motion equations
             double x = initialX + velocityX * t;
@@ -284,7 +278,6 @@ public class Turret extends LoggedSubsystem {
         }
 
         recordOutput("Optimal Fuel Trajectory", trajectory);
-        recordOutput("Target Pose", target);
         return target;
     }
 
