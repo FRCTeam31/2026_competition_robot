@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.RobotConfig;
 import frc.robot.subsystems.climb.ClimbMap;
 import org.littletonrobotics.junction.Logger;
 
@@ -144,6 +145,7 @@ public class Hopper extends SubsystemBase {
     public void periodic() {
         _hopper.updateInputs(SuperStructure.Hopper);
 
+        // Updates the hopper ligaments
         _hopperExtensionLigament.setLength(
                 SuperStructure.Hopper.ExtensionState == ExtensionState.OUT
                         ? 0.281
@@ -155,6 +157,7 @@ public class Hopper extends SubsystemBase {
                         : 145
         );
 
+        // Gets the specific generated poses that represent the hopper components
         Pose3d hopperComponent = _hopperMechanism.generate3dMechanism().get(1);
         Pose3d intakeComponent = _intakeMechanism.generate3dMechanism().get(0);
 
@@ -162,6 +165,7 @@ public class Hopper extends SubsystemBase {
         Translation3d robotTranslation = robotPose.getTranslation();
         Rotation3d robotRotation = robotPose.getRotation();
 
+        // Convert the generated robot relative poses to field relative
         SuperStructure.Hopper.hopperComponentPose = new Pose3d(
                 hopperComponent.getTranslation().plus(HopperMap.HOPPER_ROOT_POSITION).plus(robotTranslation),
                 hopperComponent.getRotation()
@@ -170,38 +174,43 @@ public class Hopper extends SubsystemBase {
                 intakeComponent.getTranslation().plus(HopperMap.INTAKE_ROOT_POSITION).plus(robotTranslation),
                 intakeComponent.getRotation()
         ).rotateAround(robotTranslation, robotRotation);
-        SuperStructure.Hopper.intakeFeedComponentPose = robotPose
-                .plus(new Transform3d(
-                        HopperMap.INTAKE_ROOT_POSITION,
-                        Rotation3d.kZero
-                ))
-                .plus(new Transform3d(
-                        intakeComponent.getTranslation(),
-                        intakeComponent.getRotation()
-                )).plus(new Transform3d(
-                        HopperMap.INTAKE_FEED_ROOT_POSITION,
-                        new Rotation3d(
-                                SuperStructure.Hopper.hopperFeedPosition * Math.PI * 2,
-                                0,
-                                Math.PI / 2
-                        )
-                ));
-        SuperStructure.Hopper.topFeedBarComponentPose = robotPose.plus(new Transform3d(
-                HopperMap.TOP_FEED_BAR_ROOT_POSITION,
-                new Rotation3d(
-                        SuperStructure.Hopper.intakeFeedPosition * Math.PI * 2,
-                        0,
-                        Math.PI / 2
-                )
-        ));
-        SuperStructure.Hopper.bottomFeedBarComponentPose = robotPose.plus(new Transform3d(
-                HopperMap.BOTTOM_FEED_BAR_ROOT_POSITION,
-                new Rotation3d(
-                        -SuperStructure.Hopper.intakeFeedPosition * Math.PI * 2,
-                        0,
-                        Math.PI / 2
-                )
-        ));
+
+        // Creates poses representing the rotation of the intake and hopper feeds, used only in advanced robot
+        // visualization
+        if (RobotConfig.USE_ADVANCED_ROBOT_VISUALIZATION) {
+            SuperStructure.Hopper.intakeFeedComponentPose = robotPose
+                    .plus(new Transform3d(
+                            HopperMap.INTAKE_ROOT_POSITION,
+                            Rotation3d.kZero
+                    ))
+                    .plus(new Transform3d(
+                            intakeComponent.getTranslation(),
+                            intakeComponent.getRotation()
+                    )).plus(new Transform3d(
+                            HopperMap.INTAKE_FEED_ROOT_POSITION,
+                            new Rotation3d(
+                                    SuperStructure.Hopper.hopperFeedPosition * Math.PI * 2,
+                                    0,
+                                    Math.PI / 2
+                            )
+                    ));
+            SuperStructure.Hopper.topFeedBarComponentPose = robotPose.plus(new Transform3d(
+                    HopperMap.TOP_FEED_BAR_ROOT_POSITION,
+                    new Rotation3d(
+                            SuperStructure.Hopper.intakeFeedPosition * Math.PI * 2,
+                            0,
+                            Math.PI / 2
+                    )
+            ));
+            SuperStructure.Hopper.bottomFeedBarComponentPose = robotPose.plus(new Transform3d(
+                    HopperMap.BOTTOM_FEED_BAR_ROOT_POSITION,
+                    new Rotation3d(
+                            -SuperStructure.Hopper.intakeFeedPosition * Math.PI * 2,
+                            0,
+                            Math.PI / 2
+                    )
+            ));
+        }
 
         Logger.recordOutput("Hopper/HopperMechanism", _hopperMechanism);
         Logger.recordOutput("Hopper/IntakeMechanism", _intakeMechanism);

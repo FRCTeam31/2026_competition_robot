@@ -109,9 +109,11 @@ public class Climb extends SubsystemBase {
     public void periodic() {
         _climb.updateInputs(SuperStructure.Climb);
 
+        // Updates the climb ligaments
         _climbExtensionLigament.setLength(SuperStructure.Climb.climbExtension);
         _supportLigament.setAngle(SuperStructure.Climb.supportAngle);
 
+        // Gets the specific generated poses that represent the climb components
         Pose3d climbComponent = _climbMechanism.generate3dMechanism().get(1);
         Pose3d supportComponent = _supportMechanism.generate3dMechanism().get(0);
 
@@ -119,6 +121,7 @@ public class Climb extends SubsystemBase {
         Translation3d robotTranslation = robotPose.getTranslation();
         Rotation3d robotRotation = robotPose.getRotation();
 
+        // Convert the generated robot relative poses to field relative
         SuperStructure.Climb.climbComponentPose = new Pose3d(
                 climbComponent.getTranslation().plus(ClimbMap.CLIMB_ROOT_POSITION).plus(robotTranslation),
                 climbComponent.getRotation()

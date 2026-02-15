@@ -154,43 +154,52 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     EventLoop.poll();
 
-    Pose3d robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
-    Translation3d robotTranslation = robotPose.getTranslation();
-    Rotation3d robotRotation = robotPose.getRotation();
+    var FrontLeftSwerveModulePose = Pose3d.kZero;
+    var FrontRightSwerveModulePose = Pose3d.kZero;
+    var BackLeftSwerveModulePose = Pose3d.kZero;
+    var BackRightSwerveModulePose = Pose3d.kZero;
 
-    Pose3d FrontLeftSwerveModulePose = new Pose3d(
-            new Translation3d(SwerveMap.FrontLeftSwerveModule.ModuleLocation).plus(robotTranslation),
-            new Rotation3d(
-                    0,
-                    SuperStructure.Swerve.WheelPositionsRadians[0],
-                    SuperStructure.Swerve.ModuleStates[0].angle.getRadians()
-            )
-    ).rotateAround(robotTranslation, robotRotation);
-    Pose3d FrontRightSwerveModulePose = new Pose3d(
-            new Translation3d(SwerveMap.FrontRightSwerveModule.ModuleLocation).plus(robotTranslation),
-            new Rotation3d(
-                    0,
-                    SuperStructure.Swerve.WheelPositionsRadians[1],
-                    SuperStructure.Swerve.ModuleStates[1].angle.getRadians()
-            )
-    ).rotateAround(robotTranslation, robotRotation);
-    Pose3d BackLeftSwerveModulePose = new Pose3d(
-            new Translation3d(SwerveMap.RearLeftSwerveModule.ModuleLocation).plus(robotTranslation),
-            new Rotation3d(
-                    0,
-                    SuperStructure.Swerve.WheelPositionsRadians[2],
-                    SuperStructure.Swerve.ModuleStates[2].angle.getRadians()
-            )
-    ).rotateAround(robotTranslation, robotRotation);
-    Pose3d BackRightSwerveModulePose = new Pose3d(
-            new Translation3d(SwerveMap.RearRightSwerveModule.ModuleLocation).plus(robotTranslation),
-            new Rotation3d(
-                    0,
-                    SuperStructure.Swerve.WheelPositionsRadians[3],
-                    SuperStructure.Swerve.ModuleStates[3].angle.getRadians()
-            )
-    ).rotateAround(robotTranslation, robotRotation);
+    // Constructs poses representing the robot's wheels, used only in advanced robot visualization mode
+    if (RobotConfig.USE_ADVANCED_ROBOT_VISUALIZATION) {
+      Pose3d robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
+      Translation3d robotTranslation = robotPose.getTranslation();
+      Rotation3d robotRotation = robotPose.getRotation();
 
+      FrontLeftSwerveModulePose = new Pose3d(
+              new Translation3d(SwerveMap.FrontLeftSwerveModule.ModuleLocation).plus(robotTranslation),
+              new Rotation3d(
+                      0,
+                      SuperStructure.Swerve.WheelPositionsRadians[0],
+                      SuperStructure.Swerve.ModuleStates[0].angle.getRadians()
+              )
+      ).rotateAround(robotTranslation, robotRotation);
+      FrontRightSwerveModulePose = new Pose3d(
+              new Translation3d(SwerveMap.FrontRightSwerveModule.ModuleLocation).plus(robotTranslation),
+              new Rotation3d(
+                      0,
+                      SuperStructure.Swerve.WheelPositionsRadians[1],
+                      SuperStructure.Swerve.ModuleStates[1].angle.getRadians()
+              )
+      ).rotateAround(robotTranslation, robotRotation);
+      BackLeftSwerveModulePose = new Pose3d(
+              new Translation3d(SwerveMap.RearLeftSwerveModule.ModuleLocation).plus(robotTranslation),
+              new Rotation3d(
+                      0,
+                      SuperStructure.Swerve.WheelPositionsRadians[2],
+                      SuperStructure.Swerve.ModuleStates[2].angle.getRadians()
+              )
+      ).rotateAround(robotTranslation, robotRotation);
+      BackRightSwerveModulePose = new Pose3d(
+              new Translation3d(SwerveMap.RearRightSwerveModule.ModuleLocation).plus(robotTranslation),
+              new Rotation3d(
+                      0,
+                      SuperStructure.Swerve.WheelPositionsRadians[3],
+                      SuperStructure.Swerve.ModuleStates[3].angle.getRadians()
+              )
+      ).rotateAround(robotTranslation, robotRotation);
+    }
+
+    // Poses used for AdvantageScope visualization
     Pose3d[] robotComponentPoses = new Pose3d[] {
             FrontLeftSwerveModulePose,
             FrontRightSwerveModulePose,
