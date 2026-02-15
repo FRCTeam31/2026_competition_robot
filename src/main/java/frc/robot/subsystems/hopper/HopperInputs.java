@@ -12,11 +12,11 @@ public class HopperInputs {
     public Hopper.IntakeFeedState IntakeFeedState = Hopper.IntakeFeedState.STOPPED;
 
     // Mechanism Poses
-    public Pose3d hopperComponentPose = new Pose3d();
-    public Pose3d intakeComponentPose = new Pose3d();
-    public Pose3d intakeFeedComponentPose = new Pose3d();
-    public Pose3d topFeedBarComponentPose = new Pose3d();
-    public Pose3d bottomFeedBarComponentPose = new Pose3d();
+    public Pose3d hopperComponentPose = Pose3d.kZero;
+    public Pose3d intakeComponentPose = Pose3d.kZero;
+    public Pose3d intakeFeedComponentPose = Pose3d.kZero;
+    public Pose3d topFeedBarComponentPose = Pose3d.kZero;
+    public Pose3d bottomFeedBarComponentPose = Pose3d.kZero;
 
     // Feed Positions
     public double intakeFeedPosition;

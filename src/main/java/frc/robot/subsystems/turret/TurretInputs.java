@@ -27,4 +27,7 @@ public class TurretInputs {
 
     // Targets
     public Translation3d targetVector = Translation3d.kZero;
+
+    // Mechanism Poses
+    public Pose3d turretComponentPose = Pose3d.kZero;
 }

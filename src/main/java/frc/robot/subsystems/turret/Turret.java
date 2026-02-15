@@ -153,7 +153,6 @@ public class Turret extends LoggedSubsystem {
         }
 
         try {
-            recordOutput("Turret Pose", turretPose);
             calculateAimVector(
                     _mutNominalTargetVector,
                     turretPose,
@@ -418,6 +417,9 @@ public class Turret extends LoggedSubsystem {
         _turret.updateInputs(SuperStructure.Turret);
         SuperStructure.Turret.LimelightPoseFromRobotCenter = getLimelightPose3dFromRobotCenter();
         // TODO: Currently in field relative, possibly change later
+
+        // Update turret yaw pose
+        SuperStructure.Turret.turretComponentPose = getTurretPose();
 
         processInputs(SuperStructure.Turret);
 

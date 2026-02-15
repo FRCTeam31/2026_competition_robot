@@ -5,9 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.units.AngleUnit;
 import frc.robot.subsystems.swerve.SwerveMap;
-import frc.robot.subsystems.swerve.module.SwerveModuleMap;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -33,8 +31,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.util.LocalADStarADK;
-
-import static edu.wpi.first.units.Units.Radians;
 
 public class Robot extends LoggedRobot {
 
@@ -212,7 +208,8 @@ public class Robot extends LoggedRobot {
             SuperStructure.Hopper.intakeComponentPose,
             SuperStructure.Hopper.intakeFeedComponentPose,
             SuperStructure.Hopper.topFeedBarComponentPose,
-            SuperStructure.Hopper.bottomFeedBarComponentPose
+            SuperStructure.Hopper.bottomFeedBarComponentPose,
+            SuperStructure.Turret.turretComponentPose
     };
 
     Logger.recordOutput("RobotComponentPoses", robotComponentPoses);
