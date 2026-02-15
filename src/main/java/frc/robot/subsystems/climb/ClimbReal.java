@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
@@ -79,6 +80,11 @@ public class ClimbReal implements IClimb {
     public void updateInputs(ClimbInputsAutoLogged inputs) {
         inputs.upperLimitSwitch = _upperLimitSwitch.get();
         inputs.lowerLimitSwitch = _lowerLimitSwitch.get();
+
+        inputs.climbExtension = _climbMotor.getPosition().getValueAsDouble() * ClimbMap.CLIMB_PULLEY_RADIUS * Math.PI * 2;
+        inputs.supportAngle = inputs.supportState == Climb.SupportState.LOWERED
+                ? Rotation2d.k180deg
+                : Rotation2d.kCCW_90deg;
     }
 
     @Override

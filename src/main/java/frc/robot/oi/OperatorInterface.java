@@ -73,7 +73,7 @@ public class OperatorInterface {
 
         public void bindOperatorControls(Swerve swerve, LimelightVision vision, Turret turret, Climb climb,
                         Hopper hopper) {
-                // Changes the vision mode for the turret limelight. 
+                // Changes the vision mode for the turret limelight.
                 OperatorController.start()
                                 .onTrue(vision.setProcessingPipeline(VisionMap.LimelightTurretName, 1))
                                 .onFalse(vision.setProcessingPipeline(VisionMap.LimelightTurretName, 0));

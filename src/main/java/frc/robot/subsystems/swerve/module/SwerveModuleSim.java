@@ -46,6 +46,8 @@ public class SwerveModuleSim implements ISwerveModule {
     inputs.ModulePosition.angle = _currentHeading;
     inputs.ModulePosition.distanceMeters = _driveMotorSim.getAngularPositionRotations()
         * SwerveMap.DriveWheelCircumferenceMeters;
+    inputs.WheelPosition = _driveMotorSim.getAngularPosition().div(SwerveMap.DriveGearRatio);
+
     Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage", _driveMotorSim.getInputVoltage());
   }
 

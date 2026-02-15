@@ -19,14 +19,11 @@ import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.PwmLEDs;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.Climb.ClimbState;
-import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
-import frc.robot.subsystems.climb.Climb.SupportState;
+import frc.robot.subsystems.climb.Climb.*;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
-import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.Turret.UptakeState;
@@ -174,7 +171,8 @@ public class Container {
    */
   public static Command startClimbing() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
-        // Time for climb to fully lower
+        .andThen(Climb.setClimb(ClimbState.DOWN))
+         // Time for climb to fully lower
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
         .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
@@ -205,6 +203,7 @@ public class Container {
    */
   public static Command resetRobotAfterClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESETTING)
+        .andThen(Climb.setClimb(ClimbState.DOWN))
         .andThen(Climb.setSupport(SupportState.RAISED))
         // Time for support to fully raise
         .andThen(Commands.waitSeconds(1))

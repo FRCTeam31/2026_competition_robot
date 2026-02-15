@@ -212,6 +212,7 @@ public class SwerveModuleReal implements ISwerveModule {
     inputs.ModulePosition.angle = rotation;
     inputs.ModulePosition.distanceMeters = distanceMeters.magnitude();
     inputs.DriveMotorVoltage = _driveMotor.getMotorVoltage().getValueAsDouble();
+    inputs.WheelPosition = _driveMotor.getPosition().getValue().div(SwerveMap.DriveGearRatio);
 
     Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage",
         _driveMotor.getMotorVoltage().getValueAsDouble());
