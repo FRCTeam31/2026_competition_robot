@@ -127,16 +127,14 @@ public class Hopper extends LoggedSubsystem {
         _hopper.updateInputs(SuperStructure.Hopper);
 
         // Updates the hopper ligaments
-        _hopperExtensionLigament.setLength(
-                SuperStructure.Hopper.ExtensionState == ExtensionState.OUT
-                        ? 0.281
-                        : 0
-        );
-        _intakeLigament.setAngle(
-                SuperStructure.Hopper.IntakeControlState == IntakeControlState.OUT
-                        ? 0
-                        : 145
-        );
+        if (SuperStructure.Hopper.IntakeControlState == HopperIntakeState.OUT) {
+            _hopperExtensionLigament.setLength(0.281);
+            _intakeLigament.setAngle(0);
+        } else {
+            _hopperExtensionLigament.setLength(0);
+            _intakeLigament.setAngle(145);
+        }
+
 
         // Gets the specific generated poses that represent the hopper components
         Pose3d hopperComponent = _hopperMechanism.generate3dMechanism().get(1);
@@ -193,8 +191,9 @@ public class Hopper extends LoggedSubsystem {
             ));
         }
 
-        recordOutput("HopperMechanism", _hopperMechanism);
-        recordOutput("IntakeMechanism", _intakeMechanism);
+        // Log the Mechanism2ds using AdvantageKit's Logger class
+        Logger.recordOutput(getName() + "/HopperMechanism", _hopperMechanism);
+        Logger.recordOutput(getName() + "/IntakeMechanism", _intakeMechanism);
 
         processInputs(SuperStructure.Hopper);
 

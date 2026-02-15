@@ -7,7 +7,6 @@ import org.littletonrobotics.junction.AutoLog;
 @AutoLog
 public class HopperInputs {
     // States
-    public Hopper.ExtensionState ExtensionState = Hopper.ExtensionState.IN;
     public Hopper.TransferFeedState TransferFeedState = Hopper.TransferFeedState.STOPPED;
     public Hopper.HopperIntakeState IntakeControlState = Hopper.HopperIntakeState.IN;
     public Hopper.IntakeFeedState IntakeFeedState = Hopper.IntakeFeedState.STOPPED;
