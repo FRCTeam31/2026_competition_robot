@@ -11,6 +11,9 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 
 public class TurretMap {
+        // Feature flags
+        public static final boolean UPDATE_LIMELIGHT_POSE = false;
+
         public static final double TURRET_GEAR_RATIO = 10;
         public static final int TURRET_ROTATOR_CANID = 0;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
