@@ -11,6 +11,7 @@ import org.prime.util.PhysicsConstants;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
@@ -380,7 +381,9 @@ class TurretUtilitiesTest {
         @Test
         void forwardOffset_AddsToX_AtZeroRotation() {
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.1, 0.0, 0.0, 0, 0, 0, 0);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.1, 0.0, 0.0, Rotation3d.kZero),
+                    0);
 
             assertEquals(TURRET_ORIGIN.getX() + 0.1, result.getX(), EPSILON);
             assertEquals(TURRET_ORIGIN.getY(), result.getY(), EPSILON);
@@ -392,7 +395,9 @@ class TurretUtilitiesTest {
         @Test
         void lateralOffset_AddsToY_AtZeroRotation() {
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.0, 0.05, 0.0, 0, 0, 0, 0);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.0, 0.05, 0.0, Rotation3d.kZero),
+                    0);
 
             assertEquals(TURRET_ORIGIN.getX(), result.getX(), EPSILON);
             assertEquals(TURRET_ORIGIN.getY() + 0.05, result.getY(), EPSILON);
@@ -405,7 +410,9 @@ class TurretUtilitiesTest {
         void forwardOffset_MapsToY_At90DegRotation() {
             double rot = Math.toRadians(90);
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.1, 0.0, 0.0, 0, 0, 0, rot);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.1, 0.0, 0.0, Rotation3d.kZero),
+                    rot);
 
             assertEquals(TURRET_ORIGIN.getX(), result.getX(), EPSILON);
             assertEquals(TURRET_ORIGIN.getY() + 0.1, result.getY(), EPSILON);
@@ -418,7 +425,9 @@ class TurretUtilitiesTest {
         void lateralOffset_MapsToNegX_At90DegRotation() {
             double rot = Math.toRadians(90);
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.0, 0.05, 0.0, 0, 0, 0, rot);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.0, 0.05, 0.0, Rotation3d.kZero),
+                    rot);
 
             assertEquals(TURRET_ORIGIN.getX() - 0.05, result.getX(), EPSILON);
             assertEquals(TURRET_ORIGIN.getY(), result.getY(), EPSILON);
@@ -431,7 +440,9 @@ class TurretUtilitiesTest {
         void forwardOffset_NegatesInX_At180DegRotation() {
             double rot = Math.toRadians(180);
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.1, 0.0, 0.0, 0, 0, 0, rot);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.1, 0.0, 0.0, Rotation3d.kZero),
+                    rot);
 
             assertEquals(TURRET_ORIGIN.getX() - 0.1, result.getX(), EPSILON);
             assertEquals(TURRET_ORIGIN.getY(), result.getY(), EPSILON);
@@ -444,7 +455,9 @@ class TurretUtilitiesTest {
         void combinedOffset_RotatesCorrectly_At45Deg() {
             double angle = Math.toRadians(45);
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0.1, 0.05, 0.0, 0, 0, 0, angle);
+                    TURRET_ORIGIN,
+                    new Transform3d(0.1, 0.05, 0.0, Rotation3d.kZero),
+                    angle);
 
             double expectedDx = 0.1 * Math.cos(angle) - 0.05 * Math.sin(angle);
             double expectedDy = 0.1 * Math.sin(angle) + 0.05 * Math.cos(angle);
@@ -463,7 +476,9 @@ class TurretUtilitiesTest {
 
             for (double angle : angles) {
                 Pose3d result = TurretUtilities.calculateSensorPose(
-                        TURRET_ORIGIN, 0.1, 0.05, 0.08, 0, 0, 0, angle);
+                        TURRET_ORIGIN,
+                        new Transform3d(0.1, 0.05, 0.08, Rotation3d.kZero),
+                        angle);
                 assertEquals(expectedZ, result.getZ(), EPSILON,
                         String.format("Z should be constant at angle=%.2f rad", angle));
             }
@@ -479,7 +494,9 @@ class TurretUtilitiesTest {
 
             for (double angle : angles) {
                 Pose3d result = TurretUtilities.calculateSensorPose(
-                        TURRET_ORIGIN, 0.15, 0.08, 0.0, 0, 0, 0, angle);
+                        TURRET_ORIGIN,
+                        new Transform3d(0.15, 0.08, 0.0, Rotation3d.kZero),
+                        angle);
 
                 double dx = result.getX() - TURRET_ORIGIN.getX();
                 double dy = result.getY() - TURRET_ORIGIN.getY();
@@ -497,7 +514,9 @@ class TurretUtilitiesTest {
             double turretAngle = Math.toRadians(60);
 
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    TURRET_ORIGIN, 0, 0, 0, 0, fixedYaw, 0, turretAngle);
+                    TURRET_ORIGIN,
+                    new Transform3d(0, 0, 0, new Rotation3d(0, 0, fixedYaw)),
+                    turretAngle);
 
             assertEquals(fixedYaw + turretAngle, result.getRotation().getZ(), EPSILON);
         }
@@ -512,7 +531,9 @@ class TurretUtilitiesTest {
 
             for (double angle : angles) {
                 Pose3d result = TurretUtilities.calculateSensorPose(
-                        TURRET_ORIGIN, 0, 0, 0, fixedPitch, 0, 0, angle);
+                        TURRET_ORIGIN,
+                        new Transform3d(0, 0, 0, new Rotation3d(0, fixedPitch, 0)),
+                        angle);
 
                 assertEquals(fixedPitch, result.getRotation().getY(), EPSILON,
                         String.format("Pitch should be constant at turret angle=%.2f rad", angle));
@@ -526,7 +547,9 @@ class TurretUtilitiesTest {
         void worksWithArbitraryTurretOrigin() {
             Translation3d customOrigin = new Translation3d(1.0, 2.0, 0.5);
             Pose3d result = TurretUtilities.calculateSensorPose(
-                    customOrigin, 0.2, 0.0, 0.0, 0, 0, 0, 0);
+                    customOrigin,
+                    new Transform3d(0.2, 0.0, 0.0, Rotation3d.kZero),
+                    0);
 
             assertEquals(1.2, result.getX(), EPSILON);
             assertEquals(2.0, result.getY(), EPSILON);

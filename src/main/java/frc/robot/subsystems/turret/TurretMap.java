@@ -6,6 +6,8 @@ import org.prime.control.ExtendedPIDConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
@@ -65,17 +67,12 @@ public class TurretMap {
                                         Map.entry(8.0, 900.0),
                                         Map.entry(9.0, 1000.0));
 
-        // Limelight offset from turret rotation center (in meters)
+        // Limelight offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)
         // Positive X is forward, Y is left, Z is up from turret rotation center
-        public static double LIMELIGHT_OFFSET_X = 0.0; // Distance forward from turret center
-        public static double LIMELIGHT_OFFSET_Y = 0.0; // Distance right from turret center (negative for left)
-        public static double LIMELIGHT_OFFSET_Z = 0.0; // Distance above turret center
-
-        // Limelight fixed rotation relative to turret (in radians)
-        // This is the camera's POV angle when the turret is at 0 degrees
-        public static double LIMELIGHT_PITCH = 0.0; // Vertical tilt
-        public static double LIMELIGHT_YAW = 0.0; // Horizontal rotation (should typically be 0)
-        public static double LIMELIGHT_ROLL = 0.0; // Camera roll
+        // Rotation is the camera's POV angle when the turret is at 0 degrees
+        public static Transform3d LIMELIGHT_TRANSFORM_FROM_TURRET_CENTER = new Transform3d(
+                        new Translation3d(0.016, -0.138, .105),
+                        new Rotation3d(0, 0.523599, 0));
 
         // Turret rotation origin offset from robot center (in meters, XYZ from robot center on ground)
         public static Translation3d TURRET_ROBOT_ORIGIN = new Translation3d(

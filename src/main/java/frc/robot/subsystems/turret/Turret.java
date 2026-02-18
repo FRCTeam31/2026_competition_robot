@@ -380,12 +380,7 @@ public class Turret extends LoggedSubsystem {
         if (TurretMap.UPDATE_LIMELIGHT_POSE) {
             var llPose = TurretUtilities.calculateSensorPose(
                     TurretMap.TURRET_ROBOT_ORIGIN,
-                    TurretMap.LIMELIGHT_OFFSET_X,
-                    TurretMap.LIMELIGHT_OFFSET_Y,
-                    TurretMap.LIMELIGHT_OFFSET_Z,
-                    TurretMap.LIMELIGHT_PITCH,
-                    TurretMap.LIMELIGHT_YAW,
-                    TurretMap.LIMELIGHT_ROLL,
+                    TurretMap.LIMELIGHT_TRANSFORM_FROM_TURRET_CENTER,
                     SuperStructure.Turret.TurretRotation.getRadians());
 
             Container.LimelightVision.setCameraPose(VisionMap.LimelightTurretName, llPose);

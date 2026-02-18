@@ -5,6 +5,7 @@ import org.prime.util.PhysicsConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 /**
@@ -106,20 +107,19 @@ public class TurretUtilities {
      */
     public static Pose3d calculateSensorPose(
             Translation3d turretOriginFromRobotCenter,
-            double sensorOffsetX, double sensorOffsetY, double sensorOffsetZ,
-            double sensorPitch, double sensorYaw, double sensorRoll,
+            Transform3d sensorTransformFromTurretCenter,
             double turretRotationRadians) {
 
         // Rotate sensor XY offset around turret Z-axis
-        double rotatedX = sensorOffsetX * Math.cos(turretRotationRadians)
-                - sensorOffsetY * Math.sin(turretRotationRadians);
-        double rotatedY = sensorOffsetX * Math.sin(turretRotationRadians)
-                + sensorOffsetY * Math.cos(turretRotationRadians);
+        double rotatedX = sensorTransformFromTurretCenter.getX() * Math.cos(turretRotationRadians)
+                - sensorTransformFromTurretCenter.getY() * Math.sin(turretRotationRadians);
+        double rotatedY = sensorTransformFromTurretCenter.getX() * Math.sin(turretRotationRadians)
+                + sensorTransformFromTurretCenter.getY() * Math.cos(turretRotationRadians);
 
         Translation3d sensorOffsetFromTurretCenter = new Translation3d(
                 rotatedX,
                 rotatedY,
-                sensorOffsetZ);
+                sensorTransformFromTurretCenter.getZ());
 
         // Combine turret origin + rotated sensor offset
         Translation3d sensorPositionFromRobotCenter = turretOriginFromRobotCenter
@@ -127,9 +127,9 @@ public class TurretUtilities {
 
         // Sensor rotation includes fixed orientation + turret rotation on yaw axis
         Rotation3d sensorRotation = new Rotation3d(
-                sensorRoll,
-                sensorPitch,
-                sensorYaw + turretRotationRadians);
+                sensorTransformFromTurretCenter.getRotation().getX(),
+                sensorTransformFromTurretCenter.getRotation().getY(),
+                sensorTransformFromTurretCenter.getRotation().getZ() + turretRotationRadians);
 
         return new Pose3d(sensorPositionFromRobotCenter, sensorRotation);
     }
