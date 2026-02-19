@@ -13,7 +13,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Preferences;
 import frc.robot.Robot;
-import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.gyro.GyroReal;
 import frc.robot.subsystems.swerve.gyro.GyroInputsAutoLogged;
 import frc.robot.subsystems.swerve.gyro.GyroSim;
@@ -91,14 +90,13 @@ public class SwerveIOPackager {
    */
   public void updateInputs(SwerveSubsystemInputsAutoLogged swerveInputs) {
     _frontLeftModule.updateInputs(_moduleInputs[0]);
-    Logger.processInputs("Swerve/FLModule", _moduleInputs[0]);
+    Logger.processInputs("Swerve/Modules/FL", _moduleInputs[0]);
     _frontRightModule.updateInputs(_moduleInputs[1]);
-    Logger.processInputs("Swerve/FRModule", _moduleInputs[1]);
+    Logger.processInputs("Swerve/Modules/FR", _moduleInputs[1]);
     _rearLeftModule.updateInputs(_moduleInputs[2]);
-    Logger.processInputs("Swerve/RLModule", _moduleInputs[2]);
+    Logger.processInputs("Swerve/Modules/RL", _moduleInputs[2]);
     _rearRightModule.updateInputs(_moduleInputs[3]);
-    Logger.processInputs("Swerve/RRModule", _moduleInputs[3]);
-    SuperStructure.SwerveModules = _moduleInputs;
+    Logger.processInputs("Swerve/Modules/RR", _moduleInputs[3]);
 
     swerveInputs.ModuleStates = getModuleStates();
     swerveInputs.RobotRelativeChassisSpeeds = Kinematics.toChassisSpeeds(getModuleStates());

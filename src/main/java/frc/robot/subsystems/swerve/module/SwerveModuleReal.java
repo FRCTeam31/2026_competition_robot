@@ -1,5 +1,7 @@
 package frc.robot.subsystems.swerve.module;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -7,6 +9,7 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -15,12 +18,18 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.swerve.SwerveMap;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
@@ -38,6 +47,13 @@ public class SwerveModuleReal implements ISwerveModule {
   private TalonFX _driveMotor;
   private CANcoder _encoder;
 
+  // Status signals
+  private StatusSignal<AngularVelocity> _driveVelocity; // Velocity from integrated sensor in rotations per second
+  private StatusSignal<Angle> _drivePosition; // Position from integrated sensor in rotations
+  private StatusSignal<Voltage> _driveVoltage;
+  private StatusSignal<Angle> _steeringAzimuth; // Absolute position from CANCoder in rotations, with offset applied
+  private StatusSignal<Angle> _steeringPosition;
+
   // Control requests
   private final MotionMagicVoltage _steeringControl = new MotionMagicVoltage(0);
   private final VelocityVoltage _driveControl = new VelocityVoltage(0);
@@ -51,6 +67,10 @@ public class SwerveModuleReal implements ISwerveModule {
     setupCanCoder();
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
+
+    BaseStatusSignal.setUpdateFrequencyForAll(200, _drivePosition, _driveVelocity, _steeringAzimuth);
+    BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
+    ParentDevice.optimizeBusUtilizationForAll(_driveMotor, _steeringMotor, _encoder);
   }
 
   /**
@@ -65,6 +85,9 @@ public class SwerveModuleReal implements ISwerveModule {
     canCoderConfig.MagnetSensor.MagnetOffset = -_map.CanCoderStartingOffset;
 
     _encoder.getConfigurator().apply(canCoderConfig);
+    _encoder.clearStickyFaults();
+
+    _steeringAzimuth = _encoder.getPosition(false);
   }
 
   /**
@@ -88,7 +111,7 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Feedback Configuration - Use CANCoder as remote sensor
     config.Feedback.FeedbackRemoteSensorID = _map.CANCoderCanId;
-    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
     config.Feedback.RotorToSensorRatio = SwerveMap.SteeringGearRatio;
     config.Feedback.SensorToMechanismRatio = 1.0;
 
@@ -104,9 +127,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Motion Magic Configuration
     MotionMagicConfigs motionMagic = new MotionMagicConfigs();
-    motionMagic.MotionMagicCruiseVelocity = 100; // rotations per second (tune this)
-    motionMagic.MotionMagicAcceleration = 200; // rotations per second^2 (tune this)
-    motionMagic.MotionMagicJerk = 1600; // rotations per second^3 (tune this)
+    motionMagic.MotionMagicCruiseVelocity = 15; // rotations per second
+    motionMagic.MotionMagicAcceleration = 100; // rotations per second^2
+    motionMagic.MotionMagicJerk = 1000; // rotations per second^3
     config.MotionMagic = motionMagic;
 
     // Closed Loop Configuration
@@ -119,6 +142,9 @@ public class SwerveModuleReal implements ISwerveModule {
     // Configure control request to use FOC and slot 0
     _steeringControl.EnableFOC = true;
     _steeringControl.Slot = 0;
+
+    // Initialize status signals
+    _steeringPosition = _steeringMotor.getPosition(false);
   }
 
   @Override
@@ -185,6 +211,11 @@ public class SwerveModuleReal implements ISwerveModule {
     // Configure control request to use FOC and slot 0
     _driveControl.EnableFOC = true;
     _driveControl.Slot = 0;
+
+    // Initialize status signals
+    _driveVelocity = _driveMotor.getVelocity(false);
+    _drivePosition = _driveMotor.getPosition(false);
+    _driveVoltage = _driveMotor.getMotorVoltage(false);
   }
 
   @Override
@@ -203,22 +234,22 @@ public class SwerveModuleReal implements ISwerveModule {
 
   @Override
   public void updateInputs(SwerveModuleInputsAutoLogged inputs) {
-    var rotation = getCurrentHeading();
-    var speedMps = getCurrentVelocity().in(MetersPerSecond);
-    var distanceMeters = getModuleDistance();
+    // Refresh odometry-critical status signals to get the latest values from the hardware
+    // CANIVore timesync pattern: https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/api-usage/status-signals.html#canivore-timesync
+    BaseStatusSignal.waitForAll(0.010, _drivePosition, _driveVelocity, _steeringAzimuth);
 
-    inputs.ModuleState.angle = rotation;
-    inputs.ModuleState.speedMetersPerSecond = speedMps;
-    inputs.ModulePosition.angle = rotation;
-    inputs.ModulePosition.distanceMeters = distanceMeters.magnitude();
-    inputs.DriveMotorVoltage = _driveMotor.getMotorVoltage().getValueAsDouble();
+    // Non-blocking refresh for telemetry-only signals
+    BaseStatusSignal.refreshAll(_driveVoltage, _steeringPosition);
 
-    Logger.recordOutput("Swerve/Modules/" + _name + "/DriveMotorMeasuredVoltage",
-        _driveMotor.getMotorVoltage().getValueAsDouble());
+    var az = getCurrentAzimuth();
+    inputs.ModuleState.angle = az;
+    inputs.ModuleState.speedMetersPerSecond = getCurrentVelocity().in(MetersPerSecond);
+    inputs.ModulePosition.angle = az;
+    inputs.ModulePosition.distanceMeters = getModuleDistance().in(Meters);
+    inputs.DriveMotorVoltage = _driveVoltage.getValue().in(Volts);
+
     Logger.recordOutput("Swerve/Modules/" + _name + "/SteeringMotorPosition",
-        _steeringMotor.getPosition().getValueAsDouble());
-    Logger.recordOutput("Swerve/Modules/" + _name + "/CANCoderPosition",
-        _encoder.getPosition().getValueAsDouble());
+        _steeringPosition.getValue().in(Rotations));
   }
 
   @Override
@@ -242,12 +273,14 @@ public class SwerveModuleReal implements ISwerveModule {
     // Optimize the desired state
     var optimize = _dashboardSection.getBoolean(_optimizeModuleKey, true);
     Logger.recordOutput("Swerve/Modules/" + _name + "/Optimized", optimize);
+
+    var currentHeading = getCurrentAzimuth();
     if (optimize) {
-      desiredState = SwerveUtil.optimize(desiredState, getCurrentHeading());
+      desiredState = SwerveUtil.optimize(desiredState, currentHeading);
     }
 
     // Scale speed by cosine of angle error for smoother driving
-    desiredState.cosineScale(getCurrentHeading());
+    desiredState.cosineScale(currentHeading);
 
     // Set the drive and steering motors to the desired state
     setDriveSpeed(desiredState.speedMetersPerSecond);
@@ -260,8 +293,6 @@ public class SwerveModuleReal implements ISwerveModule {
     var wheelRotationsPerSecond = desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters;
 
     Logger.recordOutput("Swerve/Modules/" + _name + "/DesiredWheelRPS", wheelRotationsPerSecond);
-    Logger.recordOutput("Swerve/Modules/" + _name + "/ActualWheelRPS",
-        getCurrentVelocity().in(MetersPerSecond) / SwerveMap.DriveWheelCircumferenceMeters);
 
     // Send velocity command in rotations per second (wheel rotations)
     _driveMotor.setControl(_driveControl.withVelocity(wheelRotationsPerSecond));
@@ -272,7 +303,6 @@ public class SwerveModuleReal implements ISwerveModule {
     var targetRotations = angle.getRotations();
 
     Logger.recordOutput("Swerve/Modules/" + _name + "/TargetAngle", angle.getDegrees());
-    Logger.recordOutput("Swerve/Modules/" + _name + "/CurrentAngle", getCurrentHeading().getDegrees());
 
     // Send Motion Magic position command in rotations
     _steeringMotor.setControl(_steeringControl.withPosition(targetRotations));
@@ -281,8 +311,8 @@ public class SwerveModuleReal implements ISwerveModule {
   /**
    * Gets the current heading of the module from the CANCoder
    */
-  private Rotation2d getCurrentHeading() {
-    return Rotation2d.fromRotations(_encoder.getPosition().getValueAsDouble());
+  private Rotation2d getCurrentAzimuth() {
+    return Rotation2d.fromRotations(_steeringAzimuth.getValue().in(Rotations));
   }
 
   /**
@@ -290,7 +320,7 @@ public class SwerveModuleReal implements ISwerveModule {
    */
   private MutLinearVelocity getCurrentVelocity() {
     // Get velocity in wheel rotations per second from the motor
-    var wheelRPS = _driveMotor.getVelocity().getValueAsDouble();
+    var wheelRPS = _driveVelocity.getValue().in(RotationsPerSecond);
 
     // Convert to meters per second
     var speedMps = wheelRPS * SwerveMap.DriveWheelCircumferenceMeters;
@@ -303,7 +333,7 @@ public class SwerveModuleReal implements ISwerveModule {
    */
   private MutDistance getModuleDistance() {
     // Get position in wheel rotations from the motor
-    var wheelRotations = _driveMotor.getPosition().getValueAsDouble();
+    var wheelRotations = _drivePosition.getValue().in(Rotations);
 
     // Convert to meters
     var distMeters = wheelRotations * SwerveMap.DriveWheelCircumferenceMeters;
