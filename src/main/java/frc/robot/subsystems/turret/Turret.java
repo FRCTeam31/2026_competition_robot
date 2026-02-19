@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
+import org.prime.subsystems.turret.TurretDeadZoneHelper;
 import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.MutVector;
 
@@ -34,6 +35,7 @@ import static org.prime.util.PhysicsConstants.GRAVITY;
  */
 public class Turret extends LoggedSubsystem {
     private ITurret _turret;
+    private final TurretDeadZoneHelper _deadZoneHelper;
 
     /** Represents the desired operational state of the flywheel. */
     public enum FlywheelState {
@@ -116,6 +118,10 @@ public class Turret extends LoggedSubsystem {
         _turret = Robot.isReal()
                 ? new TurretReal()
                 : new TurretSim();
+
+        _deadZoneHelper = new TurretDeadZoneHelper(
+                TurretMap.DEADZONE_START_DEGREES,
+                TurretMap.DEADZONE_END_DEGREES);
 
         // Configure SysId routine for flywheel characterization
         _flywheelSysId = new SysIdRoutineHelper(
@@ -316,6 +322,9 @@ public class Turret extends LoggedSubsystem {
 
     /**
      * Controls turret yaw and hood based on the current targeting state.
+     * When the dead zone is enabled, all yaw commands are routed through
+     * {@link TurretDeadZoneHelper} so the turret never travels through
+     * the forbidden arc.
      * 
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
@@ -324,8 +333,19 @@ public class Turret extends LoggedSubsystem {
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
-                _turret.controlYaw(
-                        _yawManualControl.withOutput(TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble()));
+                var manualInput = TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble();
+
+                if (TurretMap.DEADZONE_ENABLED) {
+                    // If the turret is in the dead zone and the input would drive it
+                    // deeper in, block the input. Always allow rotating OUT.
+                    if (_deadZoneHelper.shouldBlockManualInput(
+                            SuperStructure.Turret.TurretRotation.getRotations(),
+                            manualInput)) {
+                        manualInput = 0;
+                    }
+                }
+
+                _turret.controlYaw(_yawManualControl.withOutput(manualInput));
 
                 // TODO: Limit hood motion based on current angle and max/min angle
                 _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
@@ -337,6 +357,14 @@ public class Turret extends LoggedSubsystem {
                 fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
                 var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
                 var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
+
+                if (TurretMap.DEADZONE_ENABLED) {
+                    // Remap the desired setpoint so the turret never crosses the dead zone.
+                    robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
+                            SuperStructure.Turret.TurretRotation.getRotations(),
+                            robotRelativeYawRotations);
+                }
+
                 _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
 
                 // var pitch = aimVector.getPitch();

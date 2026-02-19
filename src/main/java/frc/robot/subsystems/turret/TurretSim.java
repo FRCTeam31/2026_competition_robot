@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Robot;
+import org.prime.subsystems.turret.TurretDeadZoneHelper;
 
 @SuppressWarnings("unused")
 public class TurretSim implements ITurret {
@@ -34,6 +35,10 @@ public class TurretSim implements ITurret {
     private static final double TURRET_CRUISE_VELOCITY_RPS = 100.0 / TurretMap.TURRET_GEAR_RATIO;
     private static final double TURRET_ACCELERATION_RPS2 = 200.0 / TurretMap.TURRET_GEAR_RATIO;
 
+    // Dead zone enforcement for realistic simulation
+    private final TurretDeadZoneHelper _deadZoneHelper = new TurretDeadZoneHelper(
+            TurretMap.DEADZONE_START_DEGREES, TurretMap.DEADZONE_END_DEGREES);
+
     public TurretSim() {
     }
 
@@ -48,14 +53,22 @@ public class TurretSim implements ITurret {
             _turretPositionRotations += _turretVelocityRPS * timestepSeconds;
             // Keep target in sync so switching to position mode doesn't cause a jump
             _turretTargetPositionRotations = _turretPositionRotations;
+
+            // Hard-stop at dead zone edges
+            if (TurretMap.DEADZONE_ENABLED) {
+                clampAtDeadZone();
+            }
             return;
         }
 
         // Position (MotionMagic) mode: trapezoidal motion toward the target position
         double error = _turretTargetPositionRotations - _turretPositionRotations;
 
-        // Wrap error to [-0.5, 0.5] rotations for continuous wrap behavior
-        error = error - Math.round(error);
+        // When the dead zone is enabled, do NOT wrap the error — the turret is not
+        // continuous. When disabled, wrap to [-0.5, 0.5] for continuous behaviour.
+        if (!TurretMap.DEADZONE_ENABLED) {
+            error = error - Math.round(error);
+        }
 
         if (Math.abs(error) < 0.01 && Math.abs(_turretVelocityRPS) < 0.015) {
             _turretPositionRotations = _turretTargetPositionRotations;
@@ -87,6 +100,26 @@ public class TurretSim implements ITurret {
             }
 
             _turretPositionRotations += _turretVelocityRPS * timestepSeconds;
+        }
+
+        // Hard-stop at dead zone edges
+        if (TurretMap.DEADZONE_ENABLED) {
+            clampAtDeadZone();
+        }
+    }
+
+    /**
+     * Simulates the physical hard stop at dead zone edges. If the turret has
+     * drifted into the dead zone, snap it back to the nearest edge and zero
+     * velocity (as if it hit a wall).
+     */
+    private void clampAtDeadZone() {
+        if (_deadZoneHelper.isInDeadZone(_turretPositionRotations)) {
+            // Snap to whichever edge is closest
+            _turretPositionRotations = _deadZoneHelper.computeLegalSetpoint(
+                    _turretPositionRotations, _turretPositionRotations);
+            _turretVelocityRPS = 0;
+            _turretTargetPositionRotations = _turretPositionRotations;
         }
     }
 

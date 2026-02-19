@@ -55,6 +55,14 @@ public class TurretMap {
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
 
+        // Turret dead zone — the arc from DEADZONE_START to DEADZONE_END (going clockwise
+        // through the larger angle) that the turret physically cannot traverse.
+        // Both values are in degrees, measured in the same frame as turret rotation (0–360).
+        // Example: START = 170, END = 190 means a 20° dead zone centered on 180°.
+        public static final boolean DEADZONE_ENABLED = true;
+        public static final double DEADZONE_START_DEGREES = 170;
+        public static final double DEADZONE_END_DEGREES = 190;
+
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final InterpolatingDoubleTreeMap DISTANCE_TO_FLYWHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(

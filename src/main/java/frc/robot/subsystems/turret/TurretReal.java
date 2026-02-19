@@ -127,7 +127,7 @@ public class TurretReal implements ITurret {
         motionMagic.MotionMagicJerk = 1600; // TODO: Tune this
         config.MotionMagic = motionMagic;
 
-        config.ClosedLoopGeneral.ContinuousWrap = true; // TODO: Determine if needed
+        config.ClosedLoopGeneral.ContinuousWrap = !TurretMap.DEADZONE_ENABLED;
 
         _turretRotator.getConfigurator().apply(config);
         _turretRotator.clearStickyFaults();
