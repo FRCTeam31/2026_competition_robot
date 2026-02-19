@@ -68,8 +68,8 @@ public class SwerveModuleReal implements ISwerveModule {
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
 
-    BaseStatusSignal.setUpdateFrequencyForAll(200, _driveVoltage, _drivePosition, _driveVelocity, _steeringAzimuth,
-        _steeringPosition);
+    BaseStatusSignal.setUpdateFrequencyForAll(200, _drivePosition, _driveVelocity, _steeringAzimuth);
+    BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
     ParentDevice.optimizeBusUtilizationForAll(_driveMotor, _steeringMotor, _encoder);
   }
 
@@ -127,9 +127,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Motion Magic Configuration
     MotionMagicConfigs motionMagic = new MotionMagicConfigs();
-    motionMagic.MotionMagicCruiseVelocity = 100; // rotations per second (tune this)
-    motionMagic.MotionMagicAcceleration = 200; // rotations per second^2 (tune this)
-    motionMagic.MotionMagicJerk = 1600; // rotations per second^3 (tune this)
+    motionMagic.MotionMagicCruiseVelocity = 15; // rotations per second
+    motionMagic.MotionMagicAcceleration = 100; // rotations per second^2
+    motionMagic.MotionMagicJerk = 1000; // rotations per second^3
     config.MotionMagic = motionMagic;
 
     // Closed Loop Configuration
@@ -234,13 +234,14 @@ public class SwerveModuleReal implements ISwerveModule {
 
   @Override
   public void updateInputs(SwerveModuleInputsAutoLogged inputs) {
-    // Refresh all status signals to get the latest values from the hardware
+    // Refresh odometry-critical status signals to get the latest values from the hardware
     // CANIVore timesync pattern: https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/api-usage/status-signals.html#canivore-timesync
-    BaseStatusSignal.waitForAll(0.020, _driveVoltage, _drivePosition, _driveVelocity, _steeringAzimuth,
-        _steeringPosition);
+    BaseStatusSignal.waitForAll(0.010, _drivePosition, _driveVelocity, _steeringAzimuth);
+
+    // Non-blocking refresh for telemetry-only signals
+    BaseStatusSignal.refreshAll(_driveVoltage, _steeringPosition);
 
     var az = getCurrentAzimuth();
-
     inputs.ModuleState.angle = az;
     inputs.ModuleState.speedMetersPerSecond = getCurrentVelocity().in(MetersPerSecond);
     inputs.ModulePosition.angle = az;

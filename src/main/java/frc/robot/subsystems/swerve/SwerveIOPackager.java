@@ -1,5 +1,7 @@
 package frc.robot.subsystems.swerve;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -32,7 +34,7 @@ public class SwerveIOPackager {
   private ISwerveModule _frontLeftModule, _frontRightModule, _rearLeftModule, _rearRightModule;
 
   private GyroInputsAutoLogged _gyroInputs = new GyroInputsAutoLogged();
-  private SwerveModuleInputsAutoLogged[] m_moduleInputs = new SwerveModuleInputsAutoLogged[] {
+  private SwerveModuleInputsAutoLogged[] _moduleInputs = new SwerveModuleInputsAutoLogged[] {
       new SwerveModuleInputsAutoLogged(),
       new SwerveModuleInputsAutoLogged(),
       new SwerveModuleInputsAutoLogged(),
@@ -85,15 +87,15 @@ public class SwerveIOPackager {
    * Called periodically to update the swerve modules and gyro
    * @param swerveInputs
    */
-  public void updateInputs(SwerveSubsystemInputs swerveInputs) {
-    _frontLeftModule.updateInputs(m_moduleInputs[0]);
-    // Logger.processInputs("Drivetrain/FLModule", m_moduleInputs[0]);
-    _frontRightModule.updateInputs(m_moduleInputs[1]);
-    // Logger.processInputs("Drivetrain/FRModule", m_moduleInputs[1]);
-    _rearLeftModule.updateInputs(m_moduleInputs[2]);
-    // Logger.processInputs("Drivetrain/RLModule", m_moduleInputs[2]);
-    _rearRightModule.updateInputs(m_moduleInputs[3]);
-    // Logger.processInputs("Drivetrain/RRModule", m_moduleInputs[3]);
+  public void updateInputs(SwerveSubsystemInputsAutoLogged swerveInputs) {
+    _frontLeftModule.updateInputs(_moduleInputs[0]);
+    Logger.processInputs("Swerve/Modules/FL", _moduleInputs[0]);
+    _frontRightModule.updateInputs(_moduleInputs[1]);
+    Logger.processInputs("Swerve/Modules/FR", _moduleInputs[1]);
+    _rearLeftModule.updateInputs(_moduleInputs[2]);
+    Logger.processInputs("Swerve/Modules/RL", _moduleInputs[2]);
+    _rearRightModule.updateInputs(_moduleInputs[3]);
+    Logger.processInputs("Swerve/Modules/RR", _moduleInputs[3]);
 
     swerveInputs.ModuleStates = getModuleStates();
     swerveInputs.RobotRelativeChassisSpeeds = Kinematics.toChassisSpeeds(getModuleStates());
@@ -219,10 +221,10 @@ public class SwerveIOPackager {
    */
   public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[] {
-        m_moduleInputs[0].ModuleState,
-        m_moduleInputs[1].ModuleState,
-        m_moduleInputs[2].ModuleState,
-        m_moduleInputs[3].ModuleState,
+        _moduleInputs[0].ModuleState,
+        _moduleInputs[1].ModuleState,
+        _moduleInputs[2].ModuleState,
+        _moduleInputs[3].ModuleState,
     };
   }
 
@@ -231,10 +233,10 @@ public class SwerveIOPackager {
    */
   public SwerveModulePosition[] getModulePositions() {
     return new SwerveModulePosition[] {
-        m_moduleInputs[0].ModulePosition,
-        m_moduleInputs[1].ModulePosition,
-        m_moduleInputs[2].ModulePosition,
-        m_moduleInputs[3].ModulePosition,
+        _moduleInputs[0].ModulePosition,
+        _moduleInputs[1].ModulePosition,
+        _moduleInputs[2].ModulePosition,
+        _moduleInputs[3].ModulePosition,
     };
   }
 }
