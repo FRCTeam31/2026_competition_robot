@@ -23,6 +23,8 @@ public class TurretMap {
         public static final double YAW_MAX_MANUAL_SPEED = 1;
         public static final double PITCH_MAX_MANUAL_SPEED = 1;
 
+        public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
+
         public static final int FLYWHEEL_LEFT_CANID = 0;
         public static final int FLYWHEEL_RIGHT_CANID = 0;
         public static final boolean FLYWHEEL_LEFT_INVERTED = false;

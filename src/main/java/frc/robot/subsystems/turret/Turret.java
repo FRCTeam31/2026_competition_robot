@@ -22,6 +22,7 @@ import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
@@ -290,6 +291,30 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
+     * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
+     * @param limelightInputs
+     * @return true if correction was applied, false otherwise
+     */
+    private boolean correctTurretYaw(LimelightCameraInputsAutoLogged limelightInputs) {
+        if (limelightInputs.TargetHorizontalOffset == null) {
+            return false;
+        }
+
+        var horizontalError = limelightInputs.TargetHorizontalOffset;
+        if (Math.abs(horizontalError.getDegrees()) < TurretMap.TURRET_CORRECTION_THRESHOLD_DEGREES) {
+            return false;
+        }
+
+        double errorRotations = horizontalError.getDegrees() / 360.0;
+        double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
+        double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
+
+        _turret.controlYaw(_yawControl.withPosition(correctedPositionRotations));
+
+        return true;
+    }
+
+    /**
      * Controls turret yaw and hood based on the current targeting state.
      * 
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
@@ -306,16 +331,24 @@ public class Turret extends LoggedSubsystem {
                 _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
-                // aimVector.getYaw() is field-relative (degrees), but the turret motor
-                // position is robot-relative. Subtract the robot's heading to convert.
-                var fieldYawDeg = aimVector.getYaw();
-                fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
-                var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
-                var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
-                _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
+                var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE && correctTurretYaw(limelightInputs);
+
+                // Calculate the yaw if no correction was applied
+                if (!correctionApplied) {
+                    // aimVector.getYaw() is field-relative (degrees), but the turret motor
+                    // position is robot-relative. Subtract the robot's heading to convert.
+                    var fieldYawDeg = aimVector.getYaw();
+                    fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+
+                    var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
+                    var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
+
+                    _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
+                }
 
                 // var pitch = aimVector.getPitch();
-                // <hood pitch implementation>
+                // TODO: complete hood pitch implementation
                 break;
             case STOPPED:
             default:
