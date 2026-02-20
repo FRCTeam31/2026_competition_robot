@@ -296,6 +296,12 @@ public class Turret extends LoggedSubsystem {
      * @return true if correction was applied, false otherwise
      */
     private boolean correctTurretYaw(LimelightCameraInputsAutoLogged limelightInputs) {
+        // Only correct when targeting the hub
+        boolean isTargetingHub = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose) == null;
+        if (!isTargetingHub) {
+            return false;
+        }
+
         if (limelightInputs.TargetHorizontalOffset == null) {
             return false;
         }
