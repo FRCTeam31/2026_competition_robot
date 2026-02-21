@@ -1,6 +1,5 @@
 package org.prime.util;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,12 +10,14 @@ public class Normalizer {
     private final double max;
 
     public Normalizer(List<Double> data) {
-        double tempMin = Double.MIN_VALUE;
-        double tempMax = Double.MAX_VALUE;
+        double tempMin = Double.MAX_VALUE;
+        double tempMax = Double.MIN_VALUE;
 
-        for (double v: data) {
-            if (v < tempMin) tempMin = v;
-            if (v > tempMax) tempMax = v;
+        for (double v : data) {
+            if (v < tempMin)
+                tempMin = v;
+            if (v > tempMax)
+                tempMax = v;
         }
 
         this.min = tempMin;
@@ -24,7 +25,8 @@ public class Normalizer {
     }
 
     public double normalize(double value) {
-        if (max == min) return 0;
+        if (max == min)
+            return 0;
         return (value - min) / (max - min);
     }
 
@@ -33,11 +35,8 @@ public class Normalizer {
     }
 
     public List<Double> normalizeAll(List<Double> data) {
-        List<Double> result = new ArrayList<>(data.size());
-        for (int i = 0; i < data.size(); i++) {
-            result.set(i, normalize(data.get(i)));
-        }
-
-        return result;
+        return data.stream()
+                .map(this::normalize)
+                .toList();
     }
 }
