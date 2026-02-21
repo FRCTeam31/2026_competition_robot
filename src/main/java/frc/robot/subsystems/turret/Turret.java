@@ -10,6 +10,8 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -21,9 +23,12 @@ import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.FieldTargets.TargetData;
+import frc.robot.FieldTargets.TargetType;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 /**
@@ -89,6 +94,10 @@ public class Turret extends LoggedSubsystem {
     private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
+
+    // PID Controllers
+    private final PIDController _hoodPIDController = TurretMap.HOOD_PID
+            .createPIDController(Robot.defaultPeriodSecs);
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
@@ -216,16 +225,23 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
-        if (inputs.TargetingState == TargetingState.AUTO) {
-            var turretPose = getTurretPose();
-            var target = resolveAutoTarget(turretPose);
+        // Override turret control if the robot is in a dead zone
+        if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
+            _turret.controlHood(-1); // Set hood to full speed downwards, check this
+            _turret.setFeederSpeed(0); // Set feed to 0
+            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
+        } else {
+            if (inputs.TargetingState == TargetingState.AUTO) {
+                var turretPose = getTurretPose();
+                var target = resolveAutoTarget(turretPose);
 
-            calculateTurretVectorFromRobotPose(target, turretPose);
+                calculateTurretVectorFromRobotPose(target, turretPose);
+            }
+
+            actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
+            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
+            actOnFeedState(inputs.FeedState);
         }
-
-        actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
-        actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
-        actOnFeedState(inputs.FeedState);
     }
 
     /**
@@ -238,11 +254,14 @@ public class Turret extends LoggedSubsystem {
      * @return The resolved target {@link Pose3d} (hub or passing position)
      */
     private Pose3d resolveAutoTarget(Pose3d turretPose) {
-        var target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
-        if (target == null) {
-            // We are not in the neutral zone, target the hub.
-            target = FieldTargets.GetHubPosition();
+        var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
+
+        if (target.targetType() == TargetType.kDead) {
+            recordOutput("Target Pose", (Pose3d) null);
+            recordOutput("Optimal Fuel Trajectory", (Pose3d) null);
+            return null;
         }
+
         recordOutput("Target Pose", target);
 
         double velocityX = _mutNominalTargetVector.getX();
@@ -255,8 +274,8 @@ public class Turret extends LoggedSubsystem {
 
         // Calculate total flight time from horizontal distance and horizontal speed
         double horizontalSpeed = Math.hypot(velocityX, velocityY);
-        double deltaX = target.getX() - initialX;
-        double deltaY = target.getY() - initialY;
+        double deltaX = target.targetPose().getX() - initialX;
+        double deltaY = target.targetPose().getY() - initialY;
         double distance = Math.hypot(deltaX, deltaY);
         double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
 
@@ -287,7 +306,7 @@ public class Turret extends LoggedSubsystem {
         }
 
         recordOutput("Optimal Fuel Trajectory", trajectory);
-        return target;
+        return target.targetPose();
     }
 
     /**
@@ -297,7 +316,8 @@ public class Turret extends LoggedSubsystem {
      */
     private boolean correctTurretYaw(LimelightCameraInputsAutoLogged limelightInputs) {
         // Only correct when targeting the hub
-        boolean isTargetingHub = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose) == null;
+        boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
+                .targetType() == TargetType.kHub;
         if (!isTargetingHub) {
             return false;
         }
@@ -327,6 +347,8 @@ public class Turret extends LoggedSubsystem {
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
      */
     private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
+        var inputs = SuperStructure.Turret;
+
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
@@ -353,8 +375,10 @@ public class Turret extends LoggedSubsystem {
                     _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
                 }
 
-                // var pitch = aimVector.getPitch();
-                // TODO: complete hood pitch implementation
+                var pitch = aimVector.getPitch();
+                var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), pitch);
+                output = MathUtil.clamp(output, -1, 1); // Limit PID output
+                _turret.controlHood(output);
                 break;
             case STOPPED:
             default:

@@ -9,7 +9,7 @@ public interface ITurret {
 
     public void controlYaw(ControlRequest controlRequest);
 
-    public void controlHood(double speed);
+    public void controlHood(double percentOut);
 
     public void setFeederSpeed(double speed);
 

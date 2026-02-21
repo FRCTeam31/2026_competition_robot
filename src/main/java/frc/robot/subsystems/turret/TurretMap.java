@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import java.util.Map;
 
 import org.prime.control.ExtendedPIDConstants;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 
 public class TurretMap {
         // Feature flags
@@ -39,6 +41,7 @@ public class TurretMap {
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
         //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
+        public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
 
         public static final int FEEDER_CANID = 0;
         public static final boolean FEEDER_INVERTED = false;
@@ -68,6 +71,13 @@ public class TurretMap {
                                         Map.entry(7.0, 800.0),
                                         Map.entry(8.0, 900.0),
                                         Map.entry(9.0, 1000.0));
+
+        public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
+                        RadiansPerSecond);
+
+        public static final int HOOD_CAN_ID = 0;
+
+        public static final boolean HOOD_INVERTED = false;
 
         // Limelight offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)
         // Positive X is forward, Y is left, Z is up from turret rotation center
