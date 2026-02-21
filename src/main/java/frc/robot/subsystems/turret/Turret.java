@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.subsystems.turret.TurretUtilities;
+import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -95,9 +96,10 @@ public class Turret extends LoggedSubsystem {
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
 
-    // PID Controllers
+    // Controllers
     private final PIDController _hoodPIDController = TurretMap.HOOD_PID
             .createPIDController(Robot.defaultPeriodSecs);
+    private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
@@ -225,14 +227,18 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
+        var turretPose = getTurretPose();
+
         // Override turret control if the robot is in a dead zone
         if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
-            _turret.controlHood(-1); // Set hood to full speed downwards, check this
+            var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), 0); // Move hood to 0 degrees
+            output = MathUtil.clamp(output, -1, 1); // Limit PID output
+            _turret.controlHood(output);
             _turret.setFeederSpeed(0); // Set feed to 0
             actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
+            resolveAutoTarget(turretPose); // Update logging with null target
         } else {
             if (inputs.TargetingState == TargetingState.AUTO) {
-                var turretPose = getTurretPose();
                 var target = resolveAutoTarget(turretPose);
 
                 calculateTurretVectorFromRobotPose(target, turretPose);
@@ -407,10 +413,12 @@ public class Turret extends LoggedSubsystem {
                 if (targetingState == TargetingState.MANUAL) {
                     _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
                 } else {
-                    // Temp relation between flywheel speed and fuel velocity, will be replaced
-                    // with a more concrete relation after testing
                     var targetVelocity = aimVector.getMagnitude();
-                    var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
+                    // Interpolate the flywheel velocity using the target velocity and hood angle
+                    var targetFlywheelOmega = _flywheelController.calculate(
+                            targetVelocity,
+                            SuperStructure.Turret.HoodAngle.in(Degrees)
+                    );
                     _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
                 }
                 break;

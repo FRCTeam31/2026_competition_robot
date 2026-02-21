@@ -78,8 +78,9 @@ public class FieldTargets {
             Neutral_North_Zone.getCenter().getTranslation(),
             Neutral_South_Zone.getCenter().getTranslation());
 
-    private static final Rectangle2d Red_Alliance_Dead_Zone = new Rectangle2d(null, null);
-    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(null, null);
+    // TODO: Set dead zones
+    private static final Rectangle2d Red_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
+    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
 
     public record TargetData(Pose3d targetPose, TargetType targetType) {
     }
@@ -87,7 +88,6 @@ public class FieldTargets {
     /**
      * Returns the passing position that the turret should aim towards based on the neutral-zone position of the robot.
      * If the robot is not in the neutral zone at all, returns null.
-     * @param robotAlliance
      * @param robotPosition
      * @return
      */
@@ -98,7 +98,7 @@ public class FieldTargets {
             return new TargetData(new Pose3d(GetNeutralPassingPosition(robotPosition)), TargetType.kFarPassing);
         }
 
-        if (Red_Alliance_Dead_Zone.contains(robotTranslation) || Blue_Alliance_Dead_Zone.contains(robotTranslation)) {
+        if (InDeadZone(robotPosition)) {
             return new TargetData(null, TargetType.kDead);
         }
 

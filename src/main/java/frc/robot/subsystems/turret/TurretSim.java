@@ -1,10 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
-import java.lang.reflect.Array;
-
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -12,9 +7,11 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Robot;
+
+import static edu.wpi.first.units.Units.*;
 
 @SuppressWarnings("unused")
 public class TurretSim implements ITurret {
@@ -44,7 +41,7 @@ public class TurretSim implements ITurret {
         _hoodMotor = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(
                         DCMotor.getNeo550(1),
-                        4e-6,
+                        4e-6, // MOI from AI, will likely have little effect
                         1),
                 DCMotor.getNeo550(1),
                 0, 0);
@@ -110,7 +107,10 @@ public class TurretSim implements ITurret {
         inputs.TurretRotation = Rotation2d.fromRotations(_turretPositionRotations);
         inputs.TurretRotationResetSwitch = (_turretPositionRotations <= 0.001);
         inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
-        inputs.HoodAngle = _hoodMotor.getAngularPosition();
+        inputs.HoodAngle = Angle.ofBaseUnits(
+                _hoodMotor.getAngularPosition().in(Radians) * TurretMap.HOOD_GEAR_RADIUS.in(Meters),
+                Radians // Check units
+        );
     }
 
     @Override

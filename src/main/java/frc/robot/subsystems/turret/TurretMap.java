@@ -1,8 +1,12 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Millimeters;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+import java.util.List;
 import java.util.Map;
 
+import edu.wpi.first.units.measure.Distance;
 import org.prime.control.ExtendedPIDConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -13,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
+import org.prime.util.IDWController;
 
 public class TurretMap {
         // Feature flags
@@ -78,6 +83,12 @@ public class TurretMap {
         public static final int HOOD_CAN_ID = 0;
 
         public static final boolean HOOD_INVERTED = false;
+        public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
+        public static final List<IDWController.Entry> FLYWHEEL_IDW_ENTRIES = List.of(
+                new IDWController.Entry(0, 0, 0), // Example implementation, will replace wil real data
+                new IDWController.Entry(1, 1, 1) // Target Velocity, Hood Angle (in degrees), Flywheel Velocity
+                // ...
+        );
 
         // Limelight offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)
         // Positive X is forward, Y is left, Z is up from turret rotation center
