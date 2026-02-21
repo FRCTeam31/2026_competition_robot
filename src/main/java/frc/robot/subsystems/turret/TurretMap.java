@@ -85,7 +85,7 @@ public class TurretMap {
         public static final boolean HOOD_INVERTED = false;
         public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
         public static final List<IDWController.Entry> FLYWHEEL_IDW_ENTRIES = List.of(
-                new IDWController.Entry(0, 0, 0), // Example implementation, will replace wil real data
+                new IDWController.Entry(0, 0, 0), // Example implementation, will replace with real data
                 new IDWController.Entry(1, 1, 1) // Target Velocity, Hood Angle (in degrees), Flywheel Velocity
                 // ...
         );
