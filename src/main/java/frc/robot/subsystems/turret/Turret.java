@@ -5,12 +5,15 @@ import java.util.function.DoubleSupplier;
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretUtilities;
+import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -23,8 +26,12 @@ import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.FieldTargets.TargetData;
+import frc.robot.FieldTargets.TargetType;
 import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 /**
@@ -90,6 +97,11 @@ public class Turret extends LoggedSubsystem {
     private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
+
+    // Controllers
+    private final PIDController _hoodPIDController = TurretMap.HOOD_PID
+            .createPIDController(Robot.defaultPeriodSecs);
+    private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
@@ -240,16 +252,27 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
-        if (inputs.TargetingState == TargetingState.AUTO) {
-            var turretPose = getTurretPose();
-            var target = resolveAutoTarget(turretPose);
+        var turretPose = getTurretPose();
 
-            calculateTurretVectorFromRobotPose(target, turretPose);
+        // Override turret control if the robot is in a dead zone
+        if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
+            var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), 0); // Move hood to 0 degrees
+            output = MathUtil.clamp(output, -1, 1); // Limit PID output
+            _turret.controlHood(output);
+            _turret.setFeederSpeed(0); // Set feed to 0
+            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
+            resolveAutoTarget(turretPose); // Update logging with null target
+        } else {
+            if (inputs.TargetingState == TargetingState.AUTO) {
+                var target = resolveAutoTarget(turretPose);
+
+                calculateTurretVectorFromRobotPose(target, turretPose);
+            }
+
+            actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
+            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
+            actOnFeedState(inputs.FeedState);
         }
-
-        actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
-        actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
-        actOnFeedState(inputs.FeedState);
     }
 
     /**
@@ -262,11 +285,14 @@ public class Turret extends LoggedSubsystem {
      * @return The resolved target {@link Pose3d} (hub or passing position)
      */
     private Pose3d resolveAutoTarget(Pose3d turretPose) {
-        var target = FieldTargets.GetPassingPosition(SuperStructure.Swerve.EstimatedRobotPose);
-        if (target == null) {
-            // We are not in the neutral zone, target the hub.
-            target = FieldTargets.GetCurrentAllianceHubPosition();
+        var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
+
+        if (target.targetType() == TargetType.kDead) {
+            recordOutput("Target Pose", (Pose3d) null);
+            recordOutput("Optimal Fuel Trajectory", (Pose3d) null);
+            return null;
         }
+
         recordOutput("Target Pose", target);
 
         double velocityX = _mutNominalTargetVector.getX();
@@ -279,8 +305,8 @@ public class Turret extends LoggedSubsystem {
 
         // Calculate total flight time from horizontal distance and horizontal speed
         double horizontalSpeed = Math.hypot(velocityX, velocityY);
-        double deltaX = target.getX() - initialX;
-        double deltaY = target.getY() - initialY;
+        double deltaX = target.targetPose().getX() - initialX;
+        double deltaY = target.targetPose().getY() - initialY;
         double distance = Math.hypot(deltaX, deltaY);
         double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
 
@@ -311,7 +337,38 @@ public class Turret extends LoggedSubsystem {
         }
 
         recordOutput("Optimal Fuel Trajectory", trajectory);
-        return target;
+        return target.targetPose();
+    }
+
+    /**
+     * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
+     * @param limelightInputs
+     * @return true if correction was applied, false otherwise
+     */
+    private boolean correctTurretYaw(LimelightCameraInputsAutoLogged limelightInputs) {
+        // Only correct when targeting the hub
+        boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
+                .targetType() == TargetType.kHub;
+        if (!isTargetingHub) {
+            return false;
+        }
+
+        if (limelightInputs.TargetHorizontalOffset == null) {
+            return false;
+        }
+
+        var horizontalError = limelightInputs.TargetHorizontalOffset;
+        if (Math.abs(horizontalError.getDegrees()) < TurretMap.TURRET_CORRECTION_THRESHOLD_DEGREES) {
+            return false;
+        }
+
+        double errorRotations = horizontalError.getDegrees() / 360.0;
+        double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
+        double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
+
+        _turret.controlYaw(_yawControl.withPosition(correctedPositionRotations));
+
+        return true;
     }
 
     /**
@@ -321,6 +378,8 @@ public class Turret extends LoggedSubsystem {
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
      */
     private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
+        var inputs = SuperStructure.Turret;
+
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
@@ -331,16 +390,26 @@ public class Turret extends LoggedSubsystem {
                 _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
-                // aimVector.getYaw() is field-relative (degrees), but the turret motor
-                // position is robot-relative. Subtract the robot's heading to convert.
-                var fieldYawDeg = aimVector.getYaw();
-                fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
-                var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
-                var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
-                _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
+                var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE && correctTurretYaw(limelightInputs);
 
-                // var pitch = aimVector.getPitch();
-                // <hood pitch implementation>
+                // Calculate the yaw if no correction was applied
+                if (!correctionApplied) {
+                    // aimVector.getYaw() is field-relative (degrees), but the turret motor
+                    // position is robot-relative. Subtract the robot's heading to convert.
+                    var fieldYawDeg = aimVector.getYaw();
+                    fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+
+                    var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
+                    var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
+
+                    _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
+                }
+
+                var pitch = aimVector.getPitch();
+                var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), pitch);
+                output = MathUtil.clamp(output, -1, 1); // Limit PID output
+                _turret.controlHood(output);
                 break;
             case STOPPED:
             default:
@@ -369,10 +438,11 @@ public class Turret extends LoggedSubsystem {
                 if (targetingState == TargetingState.MANUAL) {
                     _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
                 } else {
-                    // Temp relation between flywheel speed and fuel velocity, will be replaced
-                    // with a more concrete relation after testing
                     var targetVelocity = aimVector.getMagnitude();
-                    var targetFlywheelOmega = (targetVelocity * (7 / 2)) / TurretMap.FLYWHEEL_RADIUS;
+                    // Interpolate the flywheel velocity using the target velocity and hood angle
+                    var targetFlywheelOmega = _flywheelController.calculate(
+                            targetVelocity,
+                            SuperStructure.Turret.HoodAngle.in(Degrees));
                     _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
                 }
                 break;

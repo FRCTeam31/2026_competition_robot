@@ -1,13 +1,17 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Robot;
+
+import static edu.wpi.first.units.Units.*;
 
 @SuppressWarnings("unused")
 public class TurretSim implements ITurret {
@@ -22,6 +26,9 @@ public class TurretSim implements ITurret {
     private double _turretVelocityRPS = 0;
     private boolean _isManualControl = false;
 
+    // DC Motor Simulation
+    private DCMotorSim _hoodMotor;
+
     // Hood and feeder state
     private double _hoodSpeed = 0;
     private double _feederSpeed = 0;
@@ -35,6 +42,13 @@ public class TurretSim implements ITurret {
     private static final double TURRET_ACCELERATION_RPS2 = 200.0 / TurretMap.TURRET_GEAR_RATIO;
 
     public TurretSim() {
+        _hoodMotor = new DCMotorSim(
+                LinearSystemId.createDCMotorSystem(
+                        DCMotor.getNeo550(1),
+                        4e-6, // MOI from AI, will likely have little effect
+                        1),
+                DCMotor.getNeo550(1),
+                0, 0);
     }
 
     /**
@@ -99,6 +113,11 @@ public class TurretSim implements ITurret {
         inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
         inputs.FlywheelVoltage = _flywheelVoltage;
         inputs.YawVoltage = _yawVoltage;
+
+        inputs.HoodAngle = Angle.ofBaseUnits(
+                _hoodMotor.getAngularPosition().in(Radians) * TurretMap.HOOD_GEAR_RADIUS.in(Meters),
+                Radians // Check units
+        );
     }
 
     @Override
@@ -123,8 +142,8 @@ public class TurretSim implements ITurret {
     }
 
     @Override
-    public void controlHood(double speed) {
-        _hoodSpeed = speed;
+    public void controlHood(double percentOut) {
+        _hoodMotor.setAngularVelocity(percentOut * TurretMap.HOOD_SIM_MAX_SPEED.magnitude());
     }
 
     @Override

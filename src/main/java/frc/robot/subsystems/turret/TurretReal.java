@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
@@ -20,6 +21,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
 
@@ -36,6 +38,7 @@ public class TurretReal implements ITurret {
         configureFlywheelMotors(TurretMap.FLYWHEEL_PID);
         configureSparkFeedMotor();
         configureTurretRotationMotor(TurretMap.TURRET_ROTATOR_PID);
+        configureHoodMotor();
     }
 
     private void configureFlywheelMotors(ExtendedPIDConstants pid) {
@@ -133,6 +136,14 @@ public class TurretReal implements ITurret {
         _turretRotator.clearStickyFaults();
     }
 
+    private void configureHoodMotor() {
+        _sparkHood = new SparkFlex(TurretMap.HOOD_CAN_ID, MotorType.kBrushless);
+        var sparkConfig = new SparkFlexConfig()
+                .inverted(TurretMap.HOOD_INVERTED);
+
+        _sparkHood.configure(sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
     @Override
     public void updateInputs(TurretInputsAutoLogged inputs) {
         inputs.TurretRotation = getTurretRotation();
@@ -140,6 +151,8 @@ public class TurretReal implements ITurret {
         inputs.FlywheelVelocity = getFlywheelVelocity();
         inputs.FlywheelVoltage = _flywheelLeft.getMotorVoltage().getValueAsDouble();
         inputs.YawVoltage = _turretRotator.getMotorVoltage().getValueAsDouble();
+
+        inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
     }
 
     private Rotation2d getTurretRotation() {
@@ -169,8 +182,8 @@ public class TurretReal implements ITurret {
     }
 
     @Override
-    public void controlHood(double speed) {
-        _sparkHood.set(speed);
+    public void controlHood(double percentOut) {
+        _sparkHood.set(percentOut);
     }
 
     @Override
