@@ -11,7 +11,7 @@ import java.util.Optional;
  *
  * <h2>Explanation</h2>
  * <p>IDW, formerly known as Inverse Distance Weighting, is a form of multidimensional interpolation which, while can
- * be used in infantile many dimensions, is simplified to two dimensions here. IDW is commonly used for applications
+ * be used in infinite many dimensions, is simplified to two dimensions here. IDW is commonly used for applications
  * such as geographical modeling and weather analysis, although it has some drawbacks namely slight skew towards large
  * collections of data points and regions of one value around secluded points.</p>
  *
@@ -27,6 +27,19 @@ import java.util.Optional;
  * data points at the extremes.</p>
  */
 public class IDWController {
+    /**
+     * <h2>Entry</h2>
+     * <p>An entry in a IDW data set. Requires two inputs, a and b, and an associated value.</p>
+     *
+     * <h3>Implementation</h3>
+     * <p>Data does not need to be normalized, although manual normalization will not cause issues. Data is
+     * automatically normalized on {@link IDWController} construction. The value component is not normalized, it will
+     * output with the same scale as the values in your data set.</p>
+     *
+     * @param a The first controller input
+     * @param b The second controller input
+     * @param value The associated value at this coordinate {@code (a,b)}
+     */
     public record Entry(double a, double b, double value) {}
 
     private final List<Entry> list;
@@ -35,7 +48,9 @@ public class IDWController {
     private final double power;
 
     /**
-     * Create a IDW controller with a data set and custom power.
+     * <h2>Constructor</h2>
+     * <p>Create a IDW controller with a data set and custom power.</p>
+     *
      * @param data The data set used in the construction of the IDW controller
      * @param power Power used in the IDW calculation
      */
@@ -58,17 +73,29 @@ public class IDWController {
     }
 
     /**
-     * Creates a IDW controller with the default power of 2
+     * <h2>Constructor: Default</h2>
+     * <p>Creates a IDW controller with the default power of 2.</p>
      */
     public IDWController(List<Entry> data) {
         this(data, 2);
     }
 
+    /**
+     * <h2>Calculate</h2>
+     * <p>Calculate the output of the controller based on the two inputs a and b.</p>
+     *
+     * @param a The first controller input
+     * @param b The second controller input
+     * @return The calculated value of the controller
+     */
     public double calculate(double a, double b) {
         var totalWeightedValue = 0.0;
         var totalWeight = 0.0;
 
-        Optional<Entry> match = list.stream().filter(e -> e.a == a && e.b == b).findFirst();
+        var normA = normalizerA.normalize(a);
+        var normB = normalizerB.normalize(b);
+
+        Optional<Entry> match = list.stream().filter(e -> e.a == normA && e.b == normB).findFirst();
         if (match.isPresent()) {
             return match.get().value;
         }
@@ -78,8 +105,8 @@ public class IDWController {
             var B = entry.b;
             var VALUE = entry.value;
 
-            var distA = A - normalizerA.normalize(a);
-            var distB = B - normalizerB.normalize(b);
+            var distA = A - normA;
+            var distB = B - normB;
             var dist = Math.hypot(distA, distB);
 
             var weight = 1 / Math.pow(dist, power);
