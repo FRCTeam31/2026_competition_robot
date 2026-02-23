@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
+import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
@@ -19,6 +20,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
@@ -113,6 +115,10 @@ public class Turret extends LoggedSubsystem {
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
+    // SysId characterization routines
+    private final SysIdRoutineHelper _flywheelSysId;
+    private final SysIdRoutineHelper _yawSysId;
+
     /**
      * Constructs the Turret subsystem, selecting the real or simulated IO layer
      * based on the current runtime environment.
@@ -122,6 +128,25 @@ public class Turret extends LoggedSubsystem {
         _turret = Robot.isReal()
                 ? new TurretReal()
                 : new TurretSim();
+
+        // Configure SysId routine for flywheel characterization
+        _flywheelSysId = new SysIdRoutineHelper(
+                this,
+                "TurretFlywheel",
+                (voltage) -> _turret.setFlywheelVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("flywheel")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
+                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity));
+
+        // Configure SysId routine for turret yaw characterization
+        _yawSysId = new SysIdRoutineHelper(
+                this,
+                "TurretYaw",
+                (voltage) -> _turret.setYawVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("yaw")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
+                        .angularPosition(Units.Rotations.of(
+                                SuperStructure.Turret.TurretRotation.getRotations())));
     }
 
     /**
@@ -417,8 +442,7 @@ public class Turret extends LoggedSubsystem {
                     // Interpolate the flywheel velocity using the target velocity and hood angle
                     var targetFlywheelOmega = _flywheelController.calculate(
                             targetVelocity,
-                            SuperStructure.Turret.HoodAngle.in(Degrees)
-                    );
+                            SuperStructure.Turret.HoodAngle.in(Degrees));
                     _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
                 }
                 break;
@@ -514,5 +538,29 @@ public class Turret extends LoggedSubsystem {
      */
     public Command setFeed(UptakeState state) {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret flywheel.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the flywheel
+     */
+    public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _flywheelSysId.getCommand(testType, direction);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret yaw rotation.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the turret yaw motor
+     */
+    public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _yawSysId.getCommand(testType, direction);
     }
 }

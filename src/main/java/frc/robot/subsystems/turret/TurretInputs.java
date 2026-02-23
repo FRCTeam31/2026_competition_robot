@@ -24,4 +24,8 @@ public class TurretInputs {
     public Turret.LockOnState YawLockedOnState = Turret.LockOnState.YAW_NOT_LOCKED_ON;
     public Turret.LockOnState FlywheelSpeedState = Turret.LockOnState.FLYWHEEL_NOT_AT_SPEED;
     public Turret.UptakeState FeedState = Turret.UptakeState.STOPPED;
+
+    // Sysid
+    public double FlywheelVoltage = 0;
+    public double YawVoltage = 0;
 }

@@ -10,7 +10,6 @@ import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -136,10 +135,22 @@ public class PhotonVisionCamera {
                     estStdDevs = VisionMap.kMultiTagStdDevs;
 
                 // Increase std devs based on (average) distance
-                if (numTags == 1 && avgDist > 4)
-                    estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-                else
-                    estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 30));
+                if (numTags == 1 && avgDist > 4) {
+                    estStdDevs = new double[] {
+                            Double.MAX_VALUE,
+                            Double.MAX_VALUE,
+                            Double.MAX_VALUE
+                    };
+                } else {
+                    // Vector multiplication of std devs by a distance multiplier that grows quadratically. 
+                    // The 30 in the denominator is a tunable constant that determines how quickly the std devs grow with distance.
+                    var distStdDevMultiplier = 1 + (avgDist * avgDist / 30);
+                    estStdDevs = new double[] {
+                            estStdDevs[0] * distStdDevMultiplier,
+                            estStdDevs[1] * distStdDevMultiplier,
+                            estStdDevs[2] * distStdDevMultiplier
+                    };
+                }
 
                 // If the estimation strategy was "lowest ambiguity", increase std devs to reflect the higher uncertainty of this method.
                 inputs.CurrentStdDevs = estStdDevs;
