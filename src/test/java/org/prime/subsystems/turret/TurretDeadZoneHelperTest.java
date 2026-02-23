@@ -122,7 +122,7 @@ class TurretDeadZoneHelperTest {
         @Test
         void targetInLiveZone_noDeadZoneCrossing_returnsTarget() {
             var helper = makeDefault();
-            // Current at 90°, target at 100° — simple move, no crossing
+            // Current at 90°, target at 100° -- simple move, no crossing
             double current = 90.0 / 360.0;
             double target = 100.0 / 360.0;
             double result = helper.computeLegalSetpoint(current, target);
@@ -164,7 +164,7 @@ class TurretDeadZoneHelperTest {
         @Test
         void longPathDoesNotCrossDeadZone_takesShortPath() {
             var helper = makeDefault();
-            // Current at 0°, target at 90° — 90° arc doesn't cross 170-190 DZ
+            // Current at 0°, target at 90° -- 90° arc doesn't cross 170-190 DZ
             double current = 0.0;
             double target = 90.0 / 360.0;
             double result = helper.computeLegalSetpoint(current, target);

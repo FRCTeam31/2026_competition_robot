@@ -64,7 +64,7 @@ public class TurretSim implements ITurret {
         // Position (MotionMagic) mode: trapezoidal motion toward the target position
         double error = _turretTargetPositionRotations - _turretPositionRotations;
 
-        // When the dead zone is enabled, do NOT wrap the error — the turret is not
+        // When the dead zone is enabled, do NOT wrap the error -- the turret is not
         // continuous. When disabled, wrap to [-0.5, 0.5] for continuous behaviour.
         if (!TurretMap.DEADZONE_ENABLED) {
             error = error - Math.round(error);
@@ -74,7 +74,7 @@ public class TurretSim implements ITurret {
             _turretPositionRotations = _turretTargetPositionRotations;
             _turretVelocityRPS = 0;
         } else {
-            // Calculate stopping distance (signed — how far we'd travel while decelerating to zero)
+            // Calculate stopping distance (signed -- how far we'd travel while decelerating to zero)
             double stoppingDistance = (_turretVelocityRPS * Math.abs(_turretVelocityRPS)) /
                     (2.0 * TURRET_ACCELERATION_RPS2);
 

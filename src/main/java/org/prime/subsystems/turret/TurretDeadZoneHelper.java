@@ -1,7 +1,7 @@
 package org.prime.subsystems.turret;
 
 /**
- * Utility for handling a turret dead zone — a physical arc that the turret
+ * Utility for handling a turret dead zone -- a physical arc that the turret
  * cannot traverse (e.g., where wiring passes through).
  *
  * <p>All public methods work in <b>rotations</b> (1 rotation = 360°) to match
@@ -12,7 +12,7 @@ package org.prime.subsystems.turret;
  * <h3>Coordinate convention</h3>
  * <ul>
  *   <li>The <em>live zone</em> is the arc from {@code DEADZONE_END} clockwise
- *       through 360/0 to {@code DEADZONE_START} — the region the turret may
+ *       through 360/0 to {@code DEADZONE_START} -- the region the turret may
  *       occupy.</li>
  *   <li>The <em>dead zone</em> is the complementary arc from {@code DEADZONE_START}
  *       to {@code DEADZONE_END}.</li>
@@ -20,14 +20,14 @@ package org.prime.subsystems.turret;
  *
  * <h3>Key behaviours</h3>
  * <ol>
- *   <li><b>Target remapping</b> — if the desired setpoint (normalised to one
+ *   <li><b>Target remapping</b> -- if the desired setpoint (normalised to one
  *       rotation) falls inside the dead zone it is clamped to the nearer edge.</li>
- *   <li><b>Path legality</b> — even when both current and target positions are
+ *   <li><b>Path legality</b> -- even when both current and target positions are
  *       in the live zone, the shortest-arc path may cross the dead zone.  In
  *       that case the helper returns a setpoint on the <em>same side</em> of
  *       the dead zone as the current position so the turret first travels to
  *       the edge, and the next cycle will continue around the legal way.</li>
- *   <li><b>Manual clamping</b> — manual duty-cycle input is zeroed if it would
+ *   <li><b>Manual clamping</b> -- manual duty-cycle input is zeroed if it would
  *       drive the turret into the dead zone from an edge.</li>
  * </ol>
  */
@@ -130,7 +130,7 @@ public class TurretDeadZoneHelper {
         double offset = offsetFromStart(norm); // 0..1, values < _dzSize are in DZ
 
         if (!isInDeadZone(currentRotations)) {
-            // Not in the dead zone — nothing to block
+            // Not in the dead zone -- nothing to block
             return false;
         }
 
@@ -149,7 +149,7 @@ public class TurretDeadZoneHelper {
             return true;
         }
 
-        // The input is driving OUT of the dead zone — allow it
+        // The input is driving OUT of the dead zone -- allow it
         return false;
     }
 

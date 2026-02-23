@@ -69,7 +69,7 @@ class TurretMathTest {
             SuperStructure.Turret.ShotCalculationState = Turret.LockOnState.SHOT_NOT_CALCULATED;
 
             Pose3d turretPose = new Pose3d(0, 0, TurretMap.TURRET_HEIGHT_ABOVE_GROUND, Rotation3d.kZero);
-            // Target extremely far away — will exceed FLYWHEEL_MAX_SPEED
+            // Target extremely far away -- will exceed FLYWHEEL_MAX_SPEED
             Pose3d targetPose = new Pose3d(200, 0, 100, Rotation3d.kZero);
 
             _turret.calculateTurretVectorFromRobotPose(targetPose, turretPose);

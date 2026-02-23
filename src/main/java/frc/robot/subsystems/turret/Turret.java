@@ -62,7 +62,7 @@ public class Turret extends LoggedSubsystem {
      * Each value represents one stage of the lock-on sequence.
      */
     public enum LockOnState {
-        /** Ballistics solution found — a valid aim vector exists. */
+        /** Ballistics solution found -- a valid aim vector exists. */
         SHOT_CALCULATED,
         /** No valid ballistics solution (target too far, degenerate geometry, etc.). */
         SHOT_NOT_CALCULATED,
