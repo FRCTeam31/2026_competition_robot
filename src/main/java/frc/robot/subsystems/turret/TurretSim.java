@@ -75,7 +75,7 @@ public class TurretSim implements ITurret {
             _turretPositionRotations = _turretTargetPositionRotations;
             _turretVelocityRPS = 0;
         } else {
-            // Calculate stopping distance (signed — how far we'd travel while decelerating to zero)
+            // Calculate stopping distance (signed -- how far we'd travel while decelerating to zero)
             double stoppingDistance = (_turretVelocityRPS * Math.abs(_turretVelocityRPS)) /
                     (2.0 * TURRET_ACCELERATION_RPS2);
 
