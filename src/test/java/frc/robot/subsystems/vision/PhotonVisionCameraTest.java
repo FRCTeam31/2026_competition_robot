@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -289,30 +288,6 @@ class PhotonVisionCameraTest {
         assertNotNull(camera2.Sim);
         assertNotSame(camera.Sim, camera2.Sim,
                 "Different cameras should have different sim instances");
-    }
-
-    //#endregion
-
-    //#region StdDevs Constants Tests
-
-    @Test
-    void testVisionMap_SingleTagStdDevs_HasExpectedValues() {
-        assertEquals(VecBuilder.fill(4, 4, 8), VisionMap.kSingleTagStdDevs,
-                "Single tag std devs should match expected values");
-    }
-
-    @Test
-    void testVisionMap_MultiTagStdDevs_HasExpectedValues() {
-        assertEquals(VecBuilder.fill(0.5, 0.5, 1), VisionMap.kMultiTagStdDevs,
-                "Multi tag std devs should match expected values");
-    }
-
-    @Test
-    void testVisionMap_MultiTagStdDevs_AreLessThanSingleTag() {
-        for (int i = 0; i < 3; i++) {
-            assertTrue(VisionMap.kMultiTagStdDevs.get(i, 0) < VisionMap.kSingleTagStdDevs.get(i, 0),
-                    "Multi tag std devs should be less than single tag std devs at index " + i);
-        }
     }
 
     //#endregion

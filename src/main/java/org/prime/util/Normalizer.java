@@ -10,8 +10,8 @@ public class Normalizer {
     private final double max;
 
     public Normalizer(List<Double> data) {
-        double tempMin = Double.MAX_VALUE;
-        double tempMax = Double.MIN_VALUE;
+        double tempMin = Double.POSITIVE_INFINITY;
+        double tempMax = Double.NEGATIVE_INFINITY;
 
         for (double v : data) {
             if (v < tempMin)

@@ -12,10 +12,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 
 /**
  * Static class containing field target positions and helper methods. Coordinates derived from Pathplanner field model.
  * Field origin is bottom-left corner with Blue Alliance on the left side when viewed from above.
+ * Based on welded field dimensions, not Andymark field.
+ * https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
  */
 public class FieldTargets {
     public enum TargetType {
@@ -28,27 +31,35 @@ public class FieldTargets {
     public static final AprilTagFieldLayout FieldTagLayout = AprilTagFieldLayout
             .loadField(AprilTagFields.kDefaultField);
 
-    public static final double FIELD_TOP = 8.084; // meters
-    public static final double FIELD_MIDDLE = FIELD_TOP / 2; // meters
-    public static final double FIELD_BOTTOM = 0; // meters
-    public static final double FIELD_LEFT = 0; // meters
-    public static final double FIELD_RIGHT = 16.561; // meters
-    public static final double HUB_HEIGHT = 1.8288; // meters (72")
-    //public static final double HUB_HEIGHT = 1.6764; // meters (66")
+    public static final double FIELD_TOP = Units.inchesToMeters(317.69);
+    public static final double FIELD_Y_MIDDLE = FIELD_TOP / 2;
+    public static final double FIELD_BOTTOM = 0;
+    public static final double FIELD_LEFT = 0;
+    public static final double FIELD_RIGHT = Units.inchesToMeters(651.22);
+    public static final double HUB_HEIGHT = Units.inchesToMeters(72);
+    public static final double HUB_SCORING_HEIGHT = Units.inchesToMeters(68);
+    public static final double ALLIANCE_ZONE_WIDTH = Units.inchesToMeters(156.61);
 
     private static final Pose3d Blue_Hub_Position = new Pose3d(
-            new Translation3d(4.618, 4.035, 1.8288), // 1.8288m (72") is the height of the top rim
+            new Translation3d(
+                    Units.inchesToMeters(182.11),
+                    FIELD_Y_MIDDLE,
+                    HUB_HEIGHT),
             Rotation3d.kZero);
     private static final Pose3d Red_Hub_Position = new Pose3d(
-            new Translation3d(11.919, 4.035, 1.6764),
+            new Translation3d(
+                    Units.inchesToMeters(469.11),
+                    FIELD_Y_MIDDLE,
+                    HUB_HEIGHT),
             Rotation3d.kZero);
 
-    public static Pose3d GetHubPosition() {
+    public static Pose3d GetCurrentAllianceHubPosition() {
         return Robot.onBlueAlliance()
                 ? Blue_Hub_Position
                 : Red_Hub_Position;
     }
 
+    // Passing positions
     private static final Pose3d Blue_North_Passing_Position = new Pose3d(
             new Translation3d(4.337, 5.553, 0),
             Rotation3d.kZero);
@@ -62,12 +73,15 @@ public class FieldTargets {
             new Translation3d(12.193, 2.527, 0),
             Rotation3d.kZero);
 
+    // Alliance zones
     private static final Rectangle2d Blue_Alliance_Zone = new Rectangle2d(
             new Translation2d(FIELD_LEFT, FIELD_BOTTOM),
-            new Translation2d(3.998, FIELD_TOP));
+            new Translation2d(ALLIANCE_ZONE_WIDTH, FIELD_TOP));
     private static final Rectangle2d Red_Alliance_Zone = new Rectangle2d(
-            new Translation2d(12.542, FIELD_BOTTOM),
+            new Translation2d(FIELD_RIGHT - ALLIANCE_ZONE_WIDTH, FIELD_BOTTOM),
             new Translation2d(FIELD_RIGHT, FIELD_TOP));
+
+    // Neutral zones
     private static final Rectangle2d Neutral_North_Zone = new Rectangle2d(
             new Translation2d(4.626, FIELD_TOP),
             Red_Hub_Position.getTranslation().toTranslation2d());
@@ -80,7 +94,8 @@ public class FieldTargets {
 
     // TODO: Set dead zones
     private static final Rectangle2d Red_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
-    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
+    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero,
+            Translation2d.kZero);
 
     public record TargetData(Pose3d targetPose, TargetType targetType) {
     }

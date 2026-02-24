@@ -3,6 +3,9 @@ package frc.robot.subsystems.turret;
 import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
+import org.prime.sysid.SysIdRoutineHelper;
+import org.prime.subsystems.turret.TurretDeadZoneHelper;
+import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
@@ -19,11 +22,14 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.vision.VisionMap;
+
 import frc.robot.FieldTargets.TargetData;
 import frc.robot.FieldTargets.TargetType;
 import frc.robot.subsystems.vision.VisionMap;
@@ -39,6 +45,7 @@ import static org.prime.util.PhysicsConstants.GRAVITY;
  */
 public class Turret extends LoggedSubsystem {
     private ITurret _turret;
+    private final TurretDeadZoneHelper _deadZoneHelper;
 
     /** Represents the desired operational state of the flywheel. */
     public enum FlywheelState {
@@ -65,7 +72,7 @@ public class Turret extends LoggedSubsystem {
      * Each value represents one stage of the lock-on sequence.
      */
     public enum LockOnState {
-        /** Ballistics solution found — a valid aim vector exists. */
+        /** Ballistics solution found -- a valid aim vector exists. */
         SHOT_CALCULATED,
         /** No valid ballistics solution (target too far, degenerate geometry, etc.). */
         SHOT_NOT_CALCULATED,
@@ -113,6 +120,10 @@ public class Turret extends LoggedSubsystem {
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
+    // SysId characterization routines
+    private final SysIdRoutineHelper _flywheelSysId;
+    private final SysIdRoutineHelper _yawSysId;
+
     /**
      * Constructs the Turret subsystem, selecting the real or simulated IO layer
      * based on the current runtime environment.
@@ -122,6 +133,29 @@ public class Turret extends LoggedSubsystem {
         _turret = Robot.isReal()
                 ? new TurretReal()
                 : new TurretSim();
+
+        _deadZoneHelper = new TurretDeadZoneHelper(
+                TurretMap.DEADZONE_START_DEGREES,
+                TurretMap.DEADZONE_END_DEGREES);
+
+        // Configure SysId routine for flywheel characterization
+        _flywheelSysId = new SysIdRoutineHelper(
+                this,
+                "TurretFlywheel",
+                (voltage) -> _turret.setFlywheelVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("flywheel")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
+                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity));
+
+        // Configure SysId routine for turret yaw characterization
+        _yawSysId = new SysIdRoutineHelper(
+                this,
+                "TurretYaw",
+                (voltage) -> _turret.setYawVoltage(voltage.in(Units.Volts)),
+                (log) -> log.motor("yaw")
+                        .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
+                        .angularPosition(Units.Rotations.of(
+                                SuperStructure.Turret.TurretRotation.getRotations())));
     }
 
     /**
@@ -320,7 +354,9 @@ public class Turret extends LoggedSubsystem {
      * @param limelightInputs
      * @return true if correction was applied, false otherwise
      */
-    private boolean correctTurretYaw(LimelightCameraInputsAutoLogged limelightInputs) {
+    private boolean aimTurretYawUsingLimelight() {
+        var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+
         // Only correct when targeting the hub
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
@@ -348,41 +384,51 @@ public class Turret extends LoggedSubsystem {
 
     /**
      * Controls turret yaw and hood based on the current targeting state.
+     * When the dead zone is enabled, all yaw commands are routed through
+     * {@link TurretDeadZoneHelper} so the turret never travels through
+     * the forbidden arc.
      * 
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
      */
     private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
-        var inputs = SuperStructure.Turret;
-
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
-                _turret.controlYaw(
-                        _yawManualControl.withOutput(TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble()));
+                var manualInput = TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble();
+
+                if (TurretMap.YAW_DEADZONE_ENABLED) {
+                    // If the turret is in the dead zone and the input would drive it
+                    // deeper in, block the input. Always allow rotating OUT.
+                    if (_deadZoneHelper.shouldBlockManualInput(
+                            SuperStructure.Turret.TurretRotation.getRotations(),
+                            manualInput)) {
+                        manualInput = 0;
+                    }
+                }
+
+                _turret.controlYaw(_yawManualControl.withOutput(manualInput));
 
                 // TODO: Limit hood motion based on current angle and max/min angle
                 _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
-                var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
-                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE && correctTurretYaw(limelightInputs);
+                // Calculate the yaw base on field position
+                // Aim vector is field-relative
+                var robotRelativeYawRotations = getRobotRelativeYawSetpoint(aimVector);
 
-                // Calculate the yaw if no correction was applied
+                // TODO: Use robot-relative field target estimate as a reference point and reject limelight input if it deviates too far from this.
+                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE &&
+                        aimTurretYawUsingLimelight();
+
+                // Use robot-relative yaw estimate if no limelight correction was applied
                 if (!correctionApplied) {
-                    // aimVector.getYaw() is field-relative (degrees), but the turret motor
-                    // position is robot-relative. Subtract the robot's heading to convert.
-                    var fieldYawDeg = aimVector.getYaw();
-                    fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
-
-                    var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
-                    var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
-
                     _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
                 }
 
+                // Aim hood based on the pitch angle from the aim vector
                 var pitch = aimVector.getPitch();
-                var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), pitch);
+                var output = _hoodPIDController.calculate(SuperStructure.Turret.HoodAngle.in(Degrees), pitch);
                 output = MathUtil.clamp(output, -1, 1); // Limit PID output
                 _turret.controlHood(output);
                 break;
@@ -392,6 +438,25 @@ public class Turret extends LoggedSubsystem {
                 _turret.controlYaw(_yawManualControl.withOutput(0));
                 break;
         }
+    }
+
+    private double getRobotRelativeYawSetpoint(MutVector aimVector) {
+        // aimVector.getYaw() is field-relative (degrees), but the turret motor
+        // position is robot-relative. Subtract the robot's heading to convert.
+        var fieldYawDeg = aimVector.getYaw();
+        fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+
+        var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
+        var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
+
+        if (TurretMap.YAW_DEADZONE_ENABLED) {
+            // Remap the desired setpoint so the turret never crosses the dead zone.
+            robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
+                    SuperStructure.Turret.TurretRotation.getRotations(),
+                    robotRelativeYawRotations);
+        }
+
+        return robotRelativeYawRotations;
     }
 
     /**
@@ -417,8 +482,7 @@ public class Turret extends LoggedSubsystem {
                     // Interpolate the flywheel velocity using the target velocity and hood angle
                     var targetFlywheelOmega = _flywheelController.calculate(
                             targetVelocity,
-                            SuperStructure.Turret.HoodAngle.in(Degrees)
-                    );
+                            SuperStructure.Turret.HoodAngle.in(Degrees));
                     _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
                 }
                 break;
@@ -514,5 +578,29 @@ public class Turret extends LoggedSubsystem {
      */
     public Command setFeed(UptakeState state) {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret flywheel.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the flywheel
+     */
+    public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _flywheelSysId.getCommand(testType, direction);
+    }
+
+    /**
+     * Returns a SysId characterization command for the turret yaw rotation.
+     *
+     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+     * @param direction FORWARD or REVERSE
+     * @return A command that runs the specified SysId test on the turret yaw motor
+     */
+    public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
+            SysIdRoutineHelper.TestDirection direction) {
+        return _yawSysId.getCommand(testType, direction);
     }
 }

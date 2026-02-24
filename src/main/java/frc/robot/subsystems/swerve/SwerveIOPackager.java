@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -185,6 +186,20 @@ public class SwerveIOPackager {
     _frontRightModule.stopMotors();
     _rearLeftModule.stopMotors();
     _rearRightModule.stopMotors();
+  }
+
+  /**
+   * Sets a voltage to all drive motors, locking steering at the specified angle.
+   * Used for SysId characterization of drive motors.
+   * 
+   * @param voltage The voltage to apply to each drive motor
+   * @param moduleAngle The heading to lock all modules at during the test
+   */
+  public void setDriveVoltageAllModules(double voltage, Rotation2d moduleAngle) {
+    _frontLeftModule.setDriveVoltage(voltage, moduleAngle);
+    _frontRightModule.setDriveVoltage(voltage, moduleAngle);
+    _rearLeftModule.setDriveVoltage(voltage, moduleAngle);
+    _rearRightModule.setDriveVoltage(voltage, moduleAngle);
   }
 
   /**

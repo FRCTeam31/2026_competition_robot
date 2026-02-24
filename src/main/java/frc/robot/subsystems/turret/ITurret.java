@@ -13,4 +13,9 @@ public interface ITurret {
 
     public void setFeederSpeed(double speed);
 
+    /** Sets raw voltage to the flywheel motor (for SysId characterization) */
+    public void setFlywheelVoltage(double volts);
+
+    /** Sets raw voltage to the turret yaw motor (for SysId characterization) */
+    public void setYawVoltage(double volts);
 }
