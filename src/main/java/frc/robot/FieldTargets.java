@@ -94,7 +94,8 @@ public class FieldTargets {
 
     // TODO: Set dead zones
     private static final Rectangle2d Red_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
-    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
+    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero,
+            Translation2d.kZero);
 
     public record TargetData(Pose3d targetPose, TargetType targetType) {
     }

@@ -130,7 +130,7 @@ public class TurretReal implements ITurret {
         motionMagic.MotionMagicJerk = 1600; // TODO: Tune this
         config.MotionMagic = motionMagic;
 
-        config.ClosedLoopGeneral.ContinuousWrap = true; // TODO: Determine if needed
+        config.ClosedLoopGeneral.ContinuousWrap = !TurretMap.YAW_DEADZONE_ENABLED;
 
         _turretRotator.getConfigurator().apply(config);
         _turretRotator.clearStickyFaults();
@@ -151,7 +151,6 @@ public class TurretReal implements ITurret {
         inputs.FlywheelVelocity = getFlywheelVelocity();
         inputs.FlywheelVoltage = _flywheelLeft.getMotorVoltage().getValueAsDouble();
         inputs.YawVoltage = _turretRotator.getMotorVoltage().getValueAsDouble();
-
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
     }
 
