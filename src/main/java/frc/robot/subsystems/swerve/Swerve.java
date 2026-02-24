@@ -14,16 +14,14 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.dashboard.DrivetrainDashboardSection;
-import frc.robot.oi.ImpactRumbleHelper;
 import frc.robot.Container;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
-import frc.robot.subsystems.vision.LimelightInputs;
-import frc.robot.subsystems.vision.LimelightNameEnum;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -32,11 +30,13 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
+import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
+import org.prime.subsystems.LoggedSubsystem;
+import org.prime.sysid.SysIdRoutineHelper;
 
-public class Swerve extends SubsystemBase {
+public class Swerve extends LoggedSubsystem {
 
   private DrivetrainDashboardSection _drivetrainDashboardSection;
   private ImpactRumbleHelper _rumbleHelper;
@@ -52,16 +52,19 @@ public class Swerve extends SubsystemBase {
   private PrimeHolonomicDriveController _primeHolonomicController;
   private RobotConfig _pathplannerRobotConfig;
 
+  // SysId characterization
+  private final SysIdRoutineHelper _driveSysId;
+
   /**
    * Creates a new Drivetrain.
    */
-  public Swerve(boolean isReal) {
+  public Swerve() {
     setName("Swerve");
 
     _rumbleHelper = new ImpactRumbleHelper();
 
     // Create swerve controller
-    _swervePackager = new SwerveIOPackager(isReal);
+    _swervePackager = new SwerveIOPackager();
     _swervePackager.updateInputs(SuperStructure.Swerve);
 
     // Configure AutoAlign
@@ -70,6 +73,29 @@ public class Swerve extends SubsystemBase {
     _drivetrainDashboardSection = new DrivetrainDashboardSection();
 
     configurePathPlanner();
+
+    // Configure SysId routine for drive motor characterization.
+    // All 4 modules are driven in unison, locked at 0° heading.
+    _driveSysId = new SysIdRoutineHelper(
+        this,
+        "SwerveDrive",
+        (voltage) -> _swervePackager.setDriveVoltageAllModules(
+            voltage.in(edu.wpi.first.units.Units.Volts), Rotation2d.fromDegrees(0)),
+        (log) -> {
+          var states = SuperStructure.Swerve.ModuleStates;
+          log.motor("drive-fl")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[0].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond));
+          log.motor("drive-fr")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[1].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond));
+          log.motor("drive-rl")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[2].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond));
+          log.motor("drive-rr")
+              .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[3].DriveMotorVoltage))
+              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond));
+        });
   }
 
   private void configurePathPlanner() {
@@ -137,7 +163,7 @@ public class Swerve extends SubsystemBase {
    */
   private void driveRobotRelative(ChassisSpeeds robotRelativeChassisSpeeds) {
     // If AutoAlign is enabled, override the input rotational speed to reach the setpoint
-    Logger.recordOutput(getName() + "/autoAlignCorrection", SuperStructure.Swerve.AutoAlignCorrection);
+    recordOutput("autoAlignCorrection", SuperStructure.Swerve.AutoAlignCorrection);
 
     robotRelativeChassisSpeeds.omegaRadiansPerSecond = SuperStructure.Swerve.UseAutoAlign
         ? SuperStructure.Swerve.AutoAlignCorrection
@@ -146,14 +172,14 @@ public class Swerve extends SubsystemBase {
     // Correct drift by taking the input speeds and converting them to a desired
     // per-period speed. This is known as "discretizing"
     robotRelativeChassisSpeeds = ChassisSpeeds.discretize(robotRelativeChassisSpeeds, 0.02);
-    Logger.recordOutput(getName() + "/desiredChassisSpeeds", robotRelativeChassisSpeeds);
+    recordOutput("desiredChassisSpeeds", robotRelativeChassisSpeeds);
 
     // Calculate the module states from the chassis speeds
     var swerveModuleStates = _swervePackager.Kinematics.toSwerveModuleStates(robotRelativeChassisSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveMap.Chassis.MaxSpeedMetersPerSecond);
 
     // Set the desired states for each module
-    Logger.recordOutput(getName() + "/desiredStates", swerveModuleStates);
+    recordOutput("desiredStates", swerveModuleStates);
     _swervePackager.setDesiredModuleStates(swerveModuleStates);
 
     // Update the gyro omega for simulation purposes
@@ -170,29 +196,33 @@ public class Swerve extends SubsystemBase {
     var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond);
     var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond);
 
-    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60))
-        && currentXVelocity.lt(MetersPerSecond.of(2))
-        && currentYVelocity.lt(MetersPerSecond.of(2));
+    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60)) &&
+        currentXVelocity.lt(MetersPerSecond.of(2)) &&
+        currentYVelocity.lt(MetersPerSecond.of(2));
 
-    Logger.recordOutput(getName() + "/withinPoseEstimationVelocity", withinPoseEstimationVelocity);
+    recordOutput("withinPoseEstimationVelocity", withinPoseEstimationVelocity);
     if (!withinPoseEstimationVelocity) {
       return;
     }
 
-    evaluatePoseEstimation(SuperStructure.Limelights.get(LimelightNameEnum.kFront));
-    evaluatePoseEstimation(SuperStructure.Limelights.get(LimelightNameEnum.kRear));
+    // evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
+      evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
+    }
   }
 
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluatePoseEstimation(LimelightInputs llInputs) {
+  @SuppressWarnings("unused")
+  private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
-    if (llInputs.BotPoseEstimate.tagCount == 0)
+    if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;
 
     if (llInputs.BotPoseEstimate.tagCount == 1 && llInputs.BotPoseEstimate.rawFiducials.length == 1) {
-      boolean isValidTarget = Vision.isAprilTagIdValid(llInputs.BotPoseEstimate.rawFiducials[0].id);
+      var target = llInputs.BotPoseEstimate.rawFiducials[0].id;
+      boolean isValidTarget = target >= 1 && target <= 22;
       boolean tooAmbiguous = llInputs.BotPoseEstimate.rawFiducials[0].ambiguity > .7;
       boolean tooFar = llInputs.BotPoseEstimate.rawFiducials[0].distToCamera > 3;
 
@@ -208,6 +238,20 @@ public class Swerve extends SubsystemBase {
         VecBuilder.fill(.5, .5, 9999999));
   }
 
+  private void evaluatePhotonPoseEstimation(PhotonCameraInputsAutoLogged photonInputs) {
+    // If no targets in view, reject the update
+    if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
+      return;
+
+    _swervePackager.addPoseEstimatorVisionMeasurement(
+        photonInputs.BotPoseEstimate,
+        photonInputs.TimestampSeconds,
+        VecBuilder.fill(
+            photonInputs.CurrentStdDevs[0],
+            photonInputs.CurrentStdDevs[1],
+            photonInputs.CurrentStdDevs[2]));
+  }
+
   // #endregion
 
   /**
@@ -218,26 +262,23 @@ public class Swerve extends SubsystemBase {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
     SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
-    // Logger.processInputs(getName(), SuperStructure.Swerve);
+    processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
     Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
+    Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
 
     // Update LEDs
-    Logger.recordOutput(getName() + "/autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
-    Logger.recordOutput(getName() + "/autoAlign/Setpoint", _autoAlign.getSetpoint());
-    Logger.recordOutput(getName() + "/autoAlign/AtSetpoint", _autoAlign.atSetpoint());
+    recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
+    recordOutput("autoAlign/Setpoint", _autoAlign.getSetpoint());
+    recordOutput("autoAlign/AtSetpoint", _autoAlign.atSetpoint());
 
     if (DriverStation.isAutonomousEnabled()) {
-      Logger.recordOutput(getName() + "/pp-translation-error", _primeHolonomicController.getTranslationError());
+      recordOutput("pp-translation-error", _primeHolonomicController.getTranslationError());
     }
 
-    // Update shuffleboard
-    if (DriverStation.isEnabled()) {
-      Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-      Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
-    }
-    Logger.recordOutput(getName() + "/estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
+    // Update dashboard
+    recordOutput("estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
     _drivetrainDashboardSection.setAutoAlignEnabled(SuperStructure.Swerve.UseAutoAlign);
     _drivetrainDashboardSection.setAutoAlignTarget(_autoAlign.getSetpoint());
 
@@ -248,7 +289,8 @@ public class Swerve extends SubsystemBase {
         SuperStructure.Swerve.GyroAccelZ,
         SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond,
         SwerveMap.Chassis.MaxSpeedMetersPerSecond);
-    Container.OperatorInterface.setDriverRumbleIntensity(_rumbleHelper.getRumbleIntensity());
+    Container.OperatorInterface.setControllerRumbleIntensity(Container.OperatorInterface.DriverController,
+        _rumbleHelper.getRumbleIntensity());
   }
 
   // #region Commands
@@ -379,6 +421,19 @@ public class Swerve extends SubsystemBase {
    */
   public Map<String, Command> getNamedCommands() {
     return Map.of();
+  }
+
+  /**
+   * Returns a SysId characterization command for all 4 swerve drive motors.
+   * Modules are locked at 0° heading and driven in unison.
+   *
+   * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
+   * @param direction FORWARD or REVERSE
+   * @return A command that runs the specified SysId test on the drive motors
+   */
+  public Command sysIdDriveCommand(SysIdRoutineHelper.TestType testType,
+      SysIdRoutineHelper.TestDirection direction) {
+    return _driveSysId.getCommand(testType, direction);
   }
   // #endregion
 }

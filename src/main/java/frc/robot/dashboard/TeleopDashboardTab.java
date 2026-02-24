@@ -3,16 +3,14 @@ package frc.robot.dashboard;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
-
 import frc.robot.Robot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.prime.dashboard.DashboardSection;
 
 public class TeleopDashboardTab extends DashboardSection {
         private final String _fieldName = "Field";
@@ -25,7 +23,7 @@ public class TeleopDashboardTab extends DashboardSection {
         private BooleanEvent _frontPoseEstimationEvent = null;
         private final String _rearPoseEstimationSwitchName = "R Pose Est.";
         private BooleanEvent _rearPoseEstimationEvent = null;
-        
+
         public TeleopDashboardTab() {
                 super("Driver");
 
@@ -39,7 +37,6 @@ public class TeleopDashboardTab extends DashboardSection {
                 putData(_fieldName, _fieldWidget);
         }
 
-
         public void setFieldRobotPose(Pose2d pose) {
                 _fieldWidget.setRobotPose(pose);
         }
@@ -50,6 +47,14 @@ public class TeleopDashboardTab extends DashboardSection {
 
         public void setFieldTargetPose(Pose2d pose) {
                 getFieldTargetPose().setPose(pose);
+        }
+
+        public FieldObject2d getFieldVisionEstimationPose() {
+                return _fieldWidget.getObject("VisionEstimation");
+        }
+
+        public void setFieldVisionEstimationPose(Pose2d pose) {
+                getFieldVisionEstimationPose().setPose(pose);
         }
 
         public FieldObject2d getFieldPath() {
