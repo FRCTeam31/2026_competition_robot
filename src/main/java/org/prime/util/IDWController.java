@@ -40,7 +40,8 @@ public class IDWController {
      * @param b The second controller input
      * @param value The associated value at this coordinate {@code (a,b)}
      */
-    public record Entry(double a, double b, double value) {}
+    public record Entry(double a, double b, double value) {
+    }
 
     private final List<Entry> list;
     private final Normalizer normalizerA;
