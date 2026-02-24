@@ -1,4 +1,25 @@
 {
-    "image": "wpilib/roborio-cross-ubuntu:2026-22.04-py314",
-    "features": {}
+  "name": "WPILib 2026 Development",
+  "image": "frcteam31/roborio-cross-ubuntu:2026",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.java"
+      ],
+      "settings": {
+        "java.home": "/usr/lib/jvm/java-17-openjdk-amd64",
+        "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk-amd64",
+        "wpilib.projectYear": "2026"
+      }
+    }
+  },
+  "remoteEnv": {
+    "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
+    "WPILIB_HOME": "/opt/wpilib/2026"
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postAttachCommand": "bash .devcontainer/post-attach.sh",
+  "features": {}
 }

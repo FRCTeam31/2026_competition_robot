@@ -21,6 +21,13 @@ import edu.wpi.first.math.util.Units;
  * https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
  */
 public class FieldTargets {
+    public enum TargetType {
+        kHub,
+        kPassing,
+        kFarPassing,
+        kDead
+    }
+
     public static final AprilTagFieldLayout FieldTagLayout = AprilTagFieldLayout
             .loadField(AprilTagFields.kDefaultField);
 
@@ -85,35 +92,46 @@ public class FieldTargets {
             Neutral_North_Zone.getCenter().getTranslation(),
             Neutral_South_Zone.getCenter().getTranslation());
 
+    // TODO: Set dead zones
+    private static final Rectangle2d Red_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero, Translation2d.kZero);
+    private static final Rectangle2d Blue_Alliance_Dead_Zone = new Rectangle2d(Translation2d.kZero,
+            Translation2d.kZero);
+
+    public record TargetData(Pose3d targetPose, TargetType targetType) {
+    }
+
     /**
      * Returns the passing position that the turret should aim towards based on the neutral-zone position of the robot.
      * If the robot is not in the neutral zone at all, returns null.
-     * @param robotAlliance
      * @param robotPosition
      * @return
      */
-    public static Pose3d GetPassingPosition(Pose2d robotPosition) {
+    public static TargetData GetTargetPosition(Pose2d robotPosition) {
         var robotTranslation = robotPosition.getTranslation();
 
         if (InEnemyScoringZone(robotPosition)) {
-            return new Pose3d(GetNeutralPassingPosition(robotPosition));
+            return new TargetData(new Pose3d(GetNeutralPassingPosition(robotPosition)), TargetType.kFarPassing);
+        }
+
+        if (InDeadZone(robotPosition)) {
+            return new TargetData(null, TargetType.kDead);
         }
 
         if (Robot.onRedAlliance()) {
             if (Neutral_North_Zone.contains(robotTranslation)) {
-                return Red_North_Passing_Position;
+                return new TargetData(Red_North_Passing_Position, TargetType.kPassing);
             } else if (Neutral_South_Zone.contains(robotTranslation)) {
-                return Red_South_Passing_Position;
+                return new TargetData(Red_South_Passing_Position, TargetType.kPassing);
             } else {
-                return null;
+                return new TargetData(Red_Hub_Position, TargetType.kHub);
             }
         } else {
             if (Neutral_North_Zone.contains(robotTranslation)) {
-                return Blue_North_Passing_Position;
+                return new TargetData(Blue_North_Passing_Position, TargetType.kPassing);
             } else if (Neutral_South_Zone.contains(robotTranslation)) {
-                return Blue_South_Passing_Position;
+                return new TargetData(Blue_South_Passing_Position, TargetType.kPassing);
             } else {
-                return null;
+                return new TargetData(Blue_Hub_Position, TargetType.kHub);
             }
         }
     }
@@ -122,6 +140,11 @@ public class FieldTargets {
         return Robot.onRedAlliance()
                 ? Blue_Alliance_Zone.contains(robotPosition.getTranslation())
                 : Red_Alliance_Zone.contains(robotPosition.getTranslation());
+    }
+
+    public static boolean InDeadZone(Pose2d robotPosition) {
+        var translation = robotPosition.getTranslation();
+        return Red_Alliance_Dead_Zone.contains(translation) || Blue_Alliance_Dead_Zone.contains(translation);
     }
 
     public static Pose2d GetNeutralPassingPosition(Pose2d robotPosition) {
