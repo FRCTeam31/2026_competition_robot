@@ -56,6 +56,9 @@ public class TurretReal implements ITurret {
         leftConfig.smartCurrentLimit(60);
         leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
 
+        // SparkMax closed-loop supports P, I, D, and velocityFF.
+        // kS (static friction) and kA (acceleration) from ExtendedPIDConstants are not
+        // directly supported by SparkMax onboard control and are intentionally omitted.
         leftConfig.closedLoop
                 .p(pid.kP)
                 .i(pid.kI)
@@ -67,6 +70,7 @@ public class TurretReal implements ITurret {
         // Configure right (follower) motor - follows left with opposite direction
         var rightConfig = new SparkMaxConfig();
         rightConfig.idleMode(IdleMode.kCoast);
+        rightConfig.smartCurrentLimit(60);
         rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
 
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
