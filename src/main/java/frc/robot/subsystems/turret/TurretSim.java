@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Robot;
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
@@ -13,7 +12,6 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.Robot;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -156,12 +154,8 @@ public class TurretSim implements ITurret {
     }
 
     @Override
-    public void controlFlywheel(ControlRequest request) {
-        // Extract the target velocity from known velocity control request types.
-        // For unrecognized types, the flywheel velocity is left unchanged.
-        if (request instanceof VelocityVoltage velocityRequest) {
-            _flywheelVelocityRPS = velocityRequest.Velocity;
-        }
+    public void controlFlywheel(double targetRotationsPerSecond) {
+        _flywheelVelocityRPS = targetRotationsPerSecond;
     }
 
     @Override

@@ -8,17 +8,20 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
@@ -29,8 +32,9 @@ public class TurretReal implements ITurret {
 
     private SparkFlex _sparkFeed;
     private SparkFlex _sparkHood;
-    private TalonFX _flywheelLeft;
-    private TalonFX _flywheelRight;
+    private SparkMax _flywheelLeft;
+    private SparkMax _flywheelRight;
+    private SparkClosedLoopController _flywheelClosedLoopController;
     private TalonFX _turretRotator;
     private DigitalInput _turretResetLimitSwitch;
 
@@ -42,50 +46,32 @@ public class TurretReal implements ITurret {
     }
 
     private void configureFlywheelMotors(ExtendedPIDConstants pid) {
-        _flywheelLeft = new TalonFX(TurretMap.FLYWHEEL_LEFT_CANID);
-        _flywheelRight = new TalonFX(TurretMap.FLYWHEEL_RIGHT_CANID);
-        TalonFXConfiguration leftConfig = new TalonFXConfiguration();
+        _flywheelLeft = new SparkMax(TurretMap.FLYWHEEL_LEFT_CANID, MotorType.kBrushless);
+        _flywheelRight = new SparkMax(TurretMap.FLYWHEEL_RIGHT_CANID, MotorType.kBrushless);
 
-        leftConfig.MotorOutput.Inverted = TurretMap.FLYWHEEL_LEFT_INVERTED
-                ? InvertedValue.CounterClockwise_Positive
-                : InvertedValue.Clockwise_Positive;
-        leftConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        // Configure left (leader) motor
+        var leftConfig = new SparkMaxConfig();
+        leftConfig.inverted(TurretMap.FLYWHEEL_LEFT_INVERTED);
+        leftConfig.idleMode(IdleMode.kCoast);
+        leftConfig.smartCurrentLimit(60);
+        leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
 
-        leftConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        leftConfig.CurrentLimits.StatorCurrentLimit = 80;
-        leftConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        leftConfig.CurrentLimits.SupplyCurrentLimit = 60;
+        leftConfig.closedLoop
+                .p(pid.kP)
+                .i(pid.kI)
+                .d(pid.kD)
+                .velocityFF(pid.kV);
 
-        leftConfig.Voltage.PeakForwardVoltage = 12;
-        leftConfig.Voltage.PeakReverseVoltage = -12;
+        _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        leftConfig.Feedback.SensorToMechanismRatio = 1;
-        leftConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
+        // Configure right (follower) motor - follows left with opposite direction
+        var rightConfig = new SparkMaxConfig();
+        rightConfig.idleMode(IdleMode.kCoast);
+        rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
 
-        Slot0Configs slot0 = new Slot0Configs();
-        slot0.kP = pid.kP;
-        slot0.kI = pid.kI;
-        slot0.kD = pid.kD;
-        slot0.kS = pid.kS;
-        slot0.kV = pid.kV;
-        slot0.kA = pid.kA;
-        leftConfig.Slot0 = slot0;
+        _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        leftConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = TurretMap.FLYWHEEL_RAMP_PERIOD;
-
-        leftConfig.HardwareLimitSwitch.ForwardLimitEnable = false;
-        leftConfig.HardwareLimitSwitch.ReverseLimitEnable = false;
-
-        _flywheelLeft.getConfigurator().apply(leftConfig);
-        _flywheelLeft.clearStickyFaults();
-
-        // Right is inverted follower
-        TalonFXConfiguration rightConfig = new TalonFXConfiguration();
-        rightConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-
-        _flywheelRight.getConfigurator().apply(rightConfig);
-
-        _flywheelRight.setControl(new Follower(_flywheelLeft.getDeviceID(), MotorAlignmentValue.Opposed));
+        _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
     }
 
     private void configureSparkFeedMotor() {
@@ -149,7 +135,7 @@ public class TurretReal implements ITurret {
         inputs.TurretRotation = getTurretRotation();
         inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
-        inputs.FlywheelVoltage = _flywheelLeft.getMotorVoltage().getValueAsDouble();
+        inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorVoltage().getValueAsDouble();
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
     }
@@ -162,17 +148,20 @@ public class TurretReal implements ITurret {
     }
 
     private MutAngularVelocity getFlywheelVelocity() {
-        var leftMotorVelocity = _flywheelLeft.getVelocity().getValueAsDouble();
-        var rightMotorVelocity = _flywheelRight.getVelocity().getValueAsDouble();
+        // SparkMax encoder returns RPM; convert to rotations per second
+        var leftMotorVelocityRPM = _flywheelLeft.getEncoder().getVelocity();
+        var rightMotorVelocityRPM = _flywheelRight.getEncoder().getVelocity();
 
-        var averageVelocity = (leftMotorVelocity + rightMotorVelocity) / 2;
+        var averageVelocityRPS = (leftMotorVelocityRPM + rightMotorVelocityRPM) / 2.0 / 60.0;
 
-        return RotationsPerSecond.mutable(averageVelocity);
+        return RotationsPerSecond.mutable(averageVelocityRPS);
     }
 
     @Override
-    public void controlFlywheel(ControlRequest request) {
-        _flywheelLeft.setControl(request);
+    public void controlFlywheel(double targetRotationsPerSecond) {
+        // SparkMax closed-loop velocity control expects RPM
+        double targetRPM = targetRotationsPerSecond * 60.0;
+        _flywheelClosedLoopController.setReference(targetRPM, ControlType.kVelocity);
     }
 
     @Override
@@ -193,6 +182,7 @@ public class TurretReal implements ITurret {
     @Override
     public void setFlywheelVoltage(double volts) {
         _flywheelLeft.setVoltage(volts);
+        // Right motor follows left automatically
     }
 
     @Override

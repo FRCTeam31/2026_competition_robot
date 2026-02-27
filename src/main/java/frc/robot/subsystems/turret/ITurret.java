@@ -5,7 +5,7 @@ import com.ctre.phoenix6.controls.ControlRequest;
 public interface ITurret {
     public void updateInputs(TurretInputsAutoLogged inputs);
 
-    public void controlFlywheel(ControlRequest controlRequest);
+    public void controlFlywheel(double targetRotationsPerSecond);
 
     public void controlYaw(ControlRequest controlRequest);
 

@@ -12,7 +12,6 @@ import org.prime.util.MutVector;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -97,7 +96,6 @@ public class Turret extends LoggedSubsystem {
     }
 
     // CTRE Control Requests
-    private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
     private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
     private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
     private double _manualFlywheelVelocityRPS;
@@ -434,7 +432,7 @@ public class Turret extends LoggedSubsystem {
                 break;
             case STOPPED:
             default:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(0));
+                _turret.controlFlywheel(0);
                 _turret.controlYaw(_yawManualControl.withOutput(0));
                 break;
         }
@@ -469,21 +467,21 @@ public class Turret extends LoggedSubsystem {
     private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
         switch (flywheelState) {
             case IDLE:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
+                _turret.controlFlywheel(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS);
                 break;
             case STOPPED:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(0));
+                _turret.controlFlywheel(0);
                 break;
             case SHOOTING:
                 if (targetingState == TargetingState.MANUAL) {
-                    _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
+                    _turret.controlFlywheel(_manualFlywheelVelocityRPS);
                 } else {
                     var targetVelocity = aimVector.getMagnitude();
                     // Interpolate the flywheel velocity using the target velocity and hood angle
                     var targetFlywheelOmega = _flywheelController.calculate(
                             targetVelocity,
                             SuperStructure.Turret.HoodAngle.in(Degrees));
-                    _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
+                    _turret.controlFlywheel(targetFlywheelOmega);
                 }
                 break;
         }
