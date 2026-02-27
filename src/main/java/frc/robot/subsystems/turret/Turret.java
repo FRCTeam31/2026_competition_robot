@@ -6,7 +6,6 @@ import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
 import org.prime.subsystems.turret.TurretUtilities;
-import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
@@ -14,8 +13,6 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -23,6 +20,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
@@ -30,12 +29,10 @@ import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.VisionMap;
 
-import frc.robot.FieldTargets.TargetData;
 import frc.robot.FieldTargets.TargetType;
-import frc.robot.subsystems.vision.VisionMap;
-import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 /**
@@ -103,9 +100,7 @@ public class Turret extends LoggedSubsystem {
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
 
-    // Controllers
-    private final PIDController _hoodPIDController = TurretMap.HOOD_PID
-            .createPIDController(Robot.defaultPeriodSecs);
+    // IDW Controller
     private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
 
     // Mutable Vectors
@@ -268,9 +263,7 @@ public class Turret extends LoggedSubsystem {
 
         // Override turret control if the robot is in a dead zone
         if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
-            var output = _hoodPIDController.calculate(inputs.HoodAngle.in(Degrees), 0); // Move hood to 0 degrees
-            output = MathUtil.clamp(output, -1, 1); // Limit PID output
-            _turret.controlHood(output);
+            _turret.controlHood(Angle.ofBaseUnits(0, Degrees));
             _turret.setFeederSpeed(0); // Set feed to 0
             actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
             resolveAutoTarget(turretPose); // Update logging with null target
@@ -413,7 +406,7 @@ public class Turret extends LoggedSubsystem {
                 _turret.controlYaw(_yawManualControl.withOutput(manualInput));
 
                 // TODO: Limit hood motion based on current angle and max/min angle
-                _turret.controlHood(TurretMap.PITCH_MAX_MANUAL_SPEED * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
+                _turret.setHoodPercentOut(TurretMap.PITCH_MAX_MANUAL_PERCENT_OUT * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
                 // Calculate the yaw base on field position
@@ -431,13 +424,11 @@ public class Turret extends LoggedSubsystem {
 
                 // Aim hood based on the pitch angle from the aim vector
                 var pitch = aimVector.getPitch();
-                var output = _hoodPIDController.calculate(SuperStructure.Turret.HoodAngle.in(Degrees), pitch);
-                output = MathUtil.clamp(output, -1, 1); // Limit PID output
-                _turret.controlHood(output);
+                _turret.controlHood(Angle.ofBaseUnits(pitch, Degrees));
                 break;
             case STOPPED:
             default:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(0));
+                _turret.controlFlywheel(AngularVelocity.ofBaseUnits(0, RotationsPerSecond));
                 _turret.controlYaw(_yawManualControl.withOutput(0));
                 break;
         }
@@ -472,21 +463,23 @@ public class Turret extends LoggedSubsystem {
     private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
         switch (flywheelState) {
             case IDLE:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
+                _turret.controlFlywheel(TurretMap.FLYWHEEL_IDLE_VELOCITY);
                 break;
             case STOPPED:
-                _turret.controlFlywheel(_flywheelControl.withVelocity(0));
+                _turret.controlFlywheel(AngularVelocity.ofBaseUnits(0, RotationsPerSecond));
                 break;
             case SHOOTING:
                 if (targetingState == TargetingState.MANUAL) {
-                    _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
+                    _turret.controlFlywheel(
+                            AngularVelocity.ofBaseUnits(_manualFlywheelVelocityRPS, RotationsPerSecond));
                 } else {
                     var targetVelocity = aimVector.getMagnitude();
                     // Interpolate the flywheel velocity using the target velocity and hood angle
-                    var targetFlywheelOmega = _flywheelController.calculate(
+                    var targetFlywheelOmegaRotationsPerSecond = _flywheelController.calculate(
                             targetVelocity,
                             SuperStructure.Turret.HoodAngle.in(Degrees));
-                    _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
+                    _turret.controlFlywheel(
+                            AngularVelocity.ofBaseUnits(targetFlywheelOmegaRotationsPerSecond, RotationsPerSecond));
                 }
                 break;
         }
