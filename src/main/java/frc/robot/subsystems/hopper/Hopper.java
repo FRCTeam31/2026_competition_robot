@@ -30,6 +30,10 @@ public class Hopper extends LoggedSubsystem {
         OFF
     }
 
+    private double maxIntakeFeedInwardsPercentOut = (HopperMap.INTAKE_FEED_INVERTED ? -1 : 1)
+            * HopperMap.MAX_INTAKE_FEED_PERCENT_OUT;
+    private double maxFeedInwardsPercentOut = (HopperMap.FEED_INVERTED ? -1 : 1) * HopperMap.MAX_FEED_PERCENT_OUT;
+
     public Hopper() {
         setName("Hopper");
 
@@ -42,10 +46,10 @@ public class Hopper extends LoggedSubsystem {
         // Feed motor control
         switch (inputs.TransferFeedState) {
             case INWARDS:
-                _hopper.setFeedSpeed(0.5);
+                _hopper.setFeedSpeed(maxFeedInwardsPercentOut);
                 break;
             case OUTWARDS:
-                _hopper.setFeedSpeed(-0.5);
+                _hopper.setFeedSpeed(-maxFeedInwardsPercentOut);
                 break;
             case STOPPED:
             default:
@@ -57,29 +61,26 @@ public class Hopper extends LoggedSubsystem {
         switch (inputs.IntakeControlState) {
             case IN:
             default:
-                _hopper.setHopper(DoubleSolenoid.Value.kReverse);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kReverse);
                 break;
             case OUT:
-                _hopper.setHopper(DoubleSolenoid.Value.kForward);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kForward);
                 break;
             case OFF:
-                _hopper.setHopper(DoubleSolenoid.Value.kOff);
                 _hopper.setIntakePosition(DoubleSolenoid.Value.kOff);
         }
 
         // Intake feed motor control
         switch (inputs.IntakeFeedState) {
             case INWARDS:
-                _hopper.setIntakeFeedSpeed(.5);
+                _hopper.setIntakeFeedSpeed(maxIntakeFeedInwardsPercentOut);
                 break;
             case OUTWARDS:
-                _hopper.setIntakeFeedSpeed(-.5);
+                _hopper.setIntakeFeedSpeed(-maxIntakeFeedInwardsPercentOut);
                 break;
             case STOPPED:
             default:
-                _hopper.stopIntake();
+                _hopper.setIntakeFeedSpeed(0);
                 break;
         }
 

@@ -39,6 +39,8 @@ public class TurretReal implements ITurret {
         configureSparkFeedMotor();
         configureTurretRotationMotor(TurretMap.TURRET_ROTATOR_PID);
         configureHoodMotor();
+
+        _turretResetLimitSwitch = new DigitalInput(2); // Placeholder
     }
 
     private void configureFlywheelMotors(ExtendedPIDConstants pid) {
@@ -199,5 +201,4 @@ public class TurretReal implements ITurret {
     public void setYawVoltage(double volts) {
         _turretRotator.setVoltage(volts);
     }
-
 }

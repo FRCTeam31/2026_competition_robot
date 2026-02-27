@@ -19,7 +19,7 @@ public class TurretInputs {
 
     //States
     public Turret.FlywheelState FlywheelState = Turret.FlywheelState.STOPPED;
-    public Turret.TargetingState TargetingState = Turret.TargetingState.AUTO;
+    public Turret.TargetingState TargetingState = Turret.TargetingState.STOPPED; // Set targeting to stopped for testing
     public Turret.LockOnState ShotCalculationState = Turret.LockOnState.SHOT_NOT_CALCULATED;
     public Turret.LockOnState YawLockedOnState = Turret.LockOnState.YAW_NOT_LOCKED_ON;
     public Turret.LockOnState FlywheelSpeedState = Turret.LockOnState.FLYWHEEL_NOT_AT_SPEED;

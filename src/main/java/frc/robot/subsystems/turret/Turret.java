@@ -124,6 +124,9 @@ public class Turret extends LoggedSubsystem {
     private final SysIdRoutineHelper _flywheelSysId;
     private final SysIdRoutineHelper _yawSysId;
 
+    private final double maxFeedInwardsPercentOut = (TurretMap.FEEDER_INVERTED ? -1 : 1)
+            * TurretMap.MAX_FEED_PERCENT_OUT;
+
     /**
      * Constructs the Turret subsystem, selecting the real or simulated IO layer
      * based on the current runtime environment.
@@ -497,10 +500,10 @@ public class Turret extends LoggedSubsystem {
     private void actOnFeedState(UptakeState feedState) {
         switch (feedState) {
             case FORWARDS:
-                _turret.setFeederSpeed(.5);
+                _turret.setFeederSpeed(maxFeedInwardsPercentOut);
                 break;
             case REVERSED:
-                _turret.setFeederSpeed(-.5);
+                _turret.setFeederSpeed(-maxFeedInwardsPercentOut);
                 break;
             case STOPPED:
             default:
