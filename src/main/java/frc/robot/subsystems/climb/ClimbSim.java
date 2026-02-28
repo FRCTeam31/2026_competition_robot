@@ -8,7 +8,6 @@ public class ClimbSim implements IClimb {
     private double _motorSpeed = 0;
     private double _motorPosition = 0;
 
-    private boolean _upperLimitSwitch = false;
     private boolean _lowerLimitSwitch = false;
 
     private DoubleSolenoid.Value _frictionBrakeState = DoubleSolenoid.Value.kOff;
@@ -35,9 +34,6 @@ public class ClimbSim implements IClimb {
         // Clamp position and trigger limit switches
         if (_motorPosition >= MAX_POSITION) {
             _motorPosition = MAX_POSITION;
-            _upperLimitSwitch = true;
-        } else {
-            _upperLimitSwitch = false;
         }
 
         if (_motorPosition <= MIN_POSITION) {
@@ -52,8 +48,11 @@ public class ClimbSim implements IClimb {
     public void updateInputs(ClimbInputsAutoLogged inputs) {
         updateSimulation(Robot.defaultPeriodSecs);
 
-        inputs.upperLimitSwitch = _upperLimitSwitch;
-        inputs.lowerLimitSwitch = _lowerLimitSwitch;
+        inputs.loweredLimitSwitch = _lowerLimitSwitch;
+
+        // Assuming _motorPosition is in rotations, will need to be changed if not
+        inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS
+                .times(_motorPosition * Math.PI * 2 / ClimbMap.CLIMB_MOTOR_GEAR_RATIO);
     }
 
     @Override
@@ -69,5 +68,10 @@ public class ClimbSim implements IClimb {
     @Override
     public void controlFrictionBrake(DoubleSolenoid.Value value) {
         _frictionBrakeState = value;
+    }
+
+    @Override
+    public void zeroEncoder() {
+        _motorPosition = 0;
     }
 }

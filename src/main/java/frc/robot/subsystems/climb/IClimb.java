@@ -10,4 +10,6 @@ public interface IClimb {
     public void controlSupport(DoubleSolenoid.Value value);
 
     public void controlFrictionBrake(DoubleSolenoid.Value value);
+
+    public void zeroEncoder();
 }
