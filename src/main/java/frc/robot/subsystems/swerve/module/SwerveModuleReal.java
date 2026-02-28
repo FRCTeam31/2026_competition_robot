@@ -68,7 +68,7 @@ public class SwerveModuleReal implements ISwerveModule {
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
 
-    BaseStatusSignal.setUpdateFrequencyForAll(200, _drivePosition, _driveVelocity, _steeringAzimuth);
+    BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
     ParentDevice.optimizeBusUtilizationForAll(_driveMotor, _steeringMotor, _encoder);
   }
