@@ -36,6 +36,7 @@ public class TurretReal implements ITurret {
     private SparkMax _sparkHood;
     private SparkFlex _flywheelLeft;
     private SparkFlex _flywheelRight;
+    // TODO: Convert to TalonSRX
     private TalonFX _turretRotator;
     private DigitalInput _turretResetLimitSwitch;
 

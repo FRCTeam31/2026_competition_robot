@@ -13,6 +13,7 @@ import org.prime.control.ExtendedPIDConstants;
 
 public class ClimbReal implements IClimb {
 
+    //TODO: Convert to SparkFlex
     private TalonFX _climbMotor;
     private DoubleSolenoid _frictionBrakeSolenoid;
     private DoubleSolenoid _supportSolenoid;
