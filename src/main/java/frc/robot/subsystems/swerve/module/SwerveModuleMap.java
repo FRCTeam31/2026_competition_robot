@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 public class SwerveModuleMap {
 
+  public String CANivoreBusName = "canivore";
+
   public int DriveMotorCanId;
   public int SteeringMotorCanId;
   public int CANCoderCanId;
