@@ -146,9 +146,6 @@ public class Container {
   public static Command setupClimb() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
         .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
-        // .andThen(Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS))
-        // .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-        // .andThen(Turret.setFeed(UptakeState.REVERSED))
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         .andThen(Climb.setClimb(ClimbState.UP))
         // Time to dump all fuel
@@ -157,8 +154,6 @@ public class Container {
         .andThen(Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
         .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.IN))
         // Time for intake to fully raise
-        .andThen(Commands.waitSeconds(1))
-        // Time for hopper to fully reverse extension
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setSupport(SupportState.LOWERED))
         .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
@@ -174,8 +169,8 @@ public class Container {
    */
   public static Command startClimbing() {
     return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
-        // Time for climb to fully lower
-        .andThen(Commands.waitSeconds(1))
+        // Wait until climb is fully lowered
+        .andThen(Commands.waitUntil(() -> SuperStructure.Climb.loweredLimitSwitch))
         .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
         .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
         .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)

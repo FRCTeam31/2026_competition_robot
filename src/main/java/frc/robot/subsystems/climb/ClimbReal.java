@@ -10,19 +10,18 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
-import org.prime.control.ExtendedPIDConstants;
 
 public class ClimbReal implements IClimb {
 
+    // Devices
     private SparkFlex _climbMotor;
     private DoubleSolenoid _frictionBrakeSolenoid;
     private DoubleSolenoid _supportSolenoid;
 
-    private DigitalInput _upperLimitSwitch;
-    private DigitalInput _lowerLimitSwitch;
+    private DigitalInput _limitSwitch;
 
     public ClimbReal() {
-        configureClimbMotor(ClimbMap.CLIMB_MOTOR_PID);
+        configureClimbMotor();
 
         _frictionBrakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FrictionBrakeForwardChannel,
@@ -32,11 +31,10 @@ public class ClimbReal implements IClimb {
                 Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.SUPPORT_FORWARD_CHANNEL,
                 ClimbMap.SUPPORT_REVERSE_CHANNEL);
 
-        _upperLimitSwitch = new DigitalInput(ClimbMap.UPPER_LIMIT_SWITCH_CHANNEL);
-        _lowerLimitSwitch = new DigitalInput(ClimbMap.LOWER_LIMIT_SWITCH_CHANNEL);
+        _limitSwitch = new DigitalInput(ClimbMap.LIMIT_SWITCH_CHANNEL);
     }
 
-    public void configureClimbMotor(ExtendedPIDConstants pid) {
+    public void configureClimbMotor() {
         _climbMotor = new SparkFlex(ClimbMap.CLIMB_MOTOR_CANID, MotorType.kBrushless);
         SparkFlexConfig config = new SparkFlexConfig();
 
@@ -44,8 +42,6 @@ public class ClimbReal implements IClimb {
         config.idleMode(IdleMode.kBrake);
 
         config.smartCurrentLimit(70, 60);
-
-        config.closedLoop.pid(pid.kP, pid.kI, pid.kD);
 
         config.closedLoopRampRate(ClimbMap.CLIMB_MOTOR_RAMP_PERIOD);
 
@@ -55,8 +51,9 @@ public class ClimbReal implements IClimb {
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {
-        inputs.upperLimitSwitch = _upperLimitSwitch.get();
-        inputs.lowerLimitSwitch = _lowerLimitSwitch.get();
+        inputs.loweredLimitSwitch = _limitSwitch.get();
+        inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS
+                .times(_climbMotor.getEncoder().getPosition() * Math.PI * 2);
     }
 
     @Override
@@ -72,6 +69,11 @@ public class ClimbReal implements IClimb {
     @Override
     public void controlFrictionBrake(DoubleSolenoid.Value value) {
         _frictionBrakeSolenoid.set(value);
+    }
+
+    @Override
+    public void zeroEncoder() {
+        _climbMotor.getEncoder().setPosition(0);
     }
 
 }
