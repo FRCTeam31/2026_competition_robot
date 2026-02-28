@@ -127,8 +127,8 @@ public class Climb extends LoggedSubsystem {
 
         var limitSwitchPressed = inputs.loweredLimitSwitch;
 
-        var climbingDownWrongly = climbingDown || limitSwitchPressed || regularFunction;
-        var climbingUpWrongly = climbingUp || limitSwitchPressed || invertedFunction;
+        var climbingDownWrongly = climbingDown && limitSwitchPressed && regularFunction;
+        var climbingUpWrongly = climbingUp && limitSwitchPressed && invertedFunction;
 
         if (climbingDownWrongly || climbingUpWrongly) {
             SuperStructure.Climb.climbState = ClimbState.STOPPED;
