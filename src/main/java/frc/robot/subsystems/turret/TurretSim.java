@@ -210,4 +210,9 @@ public class TurretSim implements ITurret {
     public void setHoodPercentOut(double percentOut) {
         _hoodMotor.setAngularVelocity(percentOut * TurretMap.HOOD_SIM_MAX_SPEED.in(RadiansPerSecond));
     }
+
+    @Override
+    public void setYawSensorPosition(Angle position) {
+        _turretPositionRotations = position.in(Rotations);
+    }
 }

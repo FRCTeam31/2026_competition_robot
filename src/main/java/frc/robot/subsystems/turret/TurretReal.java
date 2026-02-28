@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
+import org.prime.util.CTREConverter;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -25,6 +26,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
@@ -141,11 +143,6 @@ public class TurretReal implements ITurret {
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
     }
 
-    private int getRotatorEncoderTicksFromTurretYaw(Angle angle) {
-        var degrees = angle.in(Degrees);
-        return TurretMap.TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE * (int) degrees;
-    }
-
     private Rotation2d getTurretRotation() {
         var motorRotation = _turretRotator.getSelectedSensorPosition();
         var turretRotation = motorRotation / TurretMap.TURRET_GEAR_RATIO;
@@ -169,7 +166,8 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlYawAngle(Angle angle) {
-        _turretRotator.set(TalonSRXControlMode.Position, getRotatorEncoderTicksFromTurretYaw(angle));
+        _turretRotator.set(TalonSRXControlMode.Position,
+                CTREConverter.degreesToCANcoder(angle.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
     }
 
     @Override
@@ -203,5 +201,11 @@ public class TurretReal implements ITurret {
     @Override
     public void setHoodPercentOut(double percentOut) {
         _sparkHood.set(percentOut);
+    }
+
+    @Override
+    public void setYawSensorPosition(Angle position) {
+        _turretRotator.setSelectedSensorPosition(
+                CTREConverter.degreesToCANcoder(position.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
     }
 }

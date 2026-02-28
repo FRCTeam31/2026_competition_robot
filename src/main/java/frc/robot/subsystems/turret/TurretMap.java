@@ -2,6 +2,7 @@ package frc.robot.subsystems.turret;
 
 import java.util.Map;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Millimeters;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -18,6 +19,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import org.prime.util.IDWController;
 
@@ -27,6 +29,7 @@ public class TurretMap {
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final boolean YAW_DEADZONE_ENABLED = true;
+        public static final boolean USE_LIMELIGHT_YAW_CORRECTION = false;
 
         // ──────────────────────── Turret Yaw ────────────────────────────
         public static final int TURRET_ROTATOR_CANID = 17;
@@ -37,6 +40,7 @@ public class TurretMap {
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
         public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
+        public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise

@@ -18,6 +18,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
@@ -114,6 +115,9 @@ public class Turret extends LoggedSubsystem {
     private final SysIdRoutineHelper _flywheelSysId;
     private final SysIdRoutineHelper _yawSysId;
 
+    // Boolean Events
+    private BooleanEvent _turretYawResetSwitchEvent;
+
     private final double maxFeedInwardsPercentOut = (TurretMap.FEEDER_INVERTED ? -1 : 1)
             * TurretMap.MAX_FEED_PERCENT_OUT;
 
@@ -149,6 +153,12 @@ public class Turret extends LoggedSubsystem {
                         .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
                         .angularPosition(Units.Rotations.of(
                                 SuperStructure.Turret.TurretRotation.getRotations())));
+
+        _turretYawResetSwitchEvent = new BooleanEvent(Robot.EventLoop,
+                () -> SuperStructure.Turret.TurretRotationResetSwitch)
+                .debounce(0.5);
+
+        _turretYawResetSwitchEvent.ifHigh(() -> _turret.setYawSensorPosition(TurretMap.YAW_RESET_ANGLE));
     }
 
     /**
@@ -389,6 +399,7 @@ public class Turret extends LoggedSubsystem {
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
      */
+    @SuppressWarnings("unused")
     private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
@@ -416,7 +427,7 @@ public class Turret extends LoggedSubsystem {
                 var robotRelativeYawRotations = getRobotRelativeYawSetpoint(aimVector);
 
                 // TODO: Use robot-relative field target estimate as a reference point and reject limelight input if it deviates too far from this.
-                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE &&
+                boolean correctionApplied = TurretMap.USE_LIMELIGHT_YAW_CORRECTION &&
                         aimTurretYawUsingLimelight();
 
                 // Use robot-relative yaw estimate if no limelight correction was applied
