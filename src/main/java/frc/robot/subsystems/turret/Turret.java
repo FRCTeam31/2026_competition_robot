@@ -465,7 +465,7 @@ public class Turret extends LoggedSubsystem {
     private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
         switch (flywheelState) {
             case IDLE:
-                _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS;
+                _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
                 break;
             case STOPPED:
                 _targetFlywheelVelocityRPS = 0;
@@ -482,9 +482,9 @@ public class Turret extends LoggedSubsystem {
                     _targetFlywheelVelocityRPS = targetFlywheelOmegaRotationsPerSecond;
                 }
                 break;
-
-                _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
         }
+
+        _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
     }
 
     /**

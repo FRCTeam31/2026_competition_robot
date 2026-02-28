@@ -40,6 +40,9 @@ public class SwerveMap {
         public static final double DriveWheelCircumferenceMeters = Math.PI * DriveWheelDiameterMeters;
         public static final double SteeringGearRatio = 18.75;
 
+        // Feature Flags
+        public static final boolean USE_LIMELIGHT_POSE_ESTIMATION = false;
+
         // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
         public static final int DriveFreeCurrentLimit = 30;
