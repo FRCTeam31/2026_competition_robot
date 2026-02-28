@@ -32,6 +32,7 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
@@ -373,7 +374,7 @@ public class Turret extends LoggedSubsystem {
         double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
         double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
 
-        _turret.controlYaw(_yawControl.withPosition(correctedPositionRotations));
+        _turret.controlYawAngle(Angle.ofBaseUnits(correctedPositionRotations, Rotations));
 
         return true;
     }
@@ -391,7 +392,7 @@ public class Turret extends LoggedSubsystem {
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
-                var manualInput = TurretMap.YAW_MAX_MANUAL_SPEED * _yawSupplier.getAsDouble();
+                var manualInput = TurretMap.YAW_MAX_MANUAL_PERCENT_OUT * _yawSupplier.getAsDouble();
 
                 if (TurretMap.YAW_DEADZONE_ENABLED) {
                     // If the turret is in the dead zone and the input would drive it
@@ -403,7 +404,7 @@ public class Turret extends LoggedSubsystem {
                     }
                 }
 
-                _turret.controlYaw(_yawManualControl.withOutput(manualInput));
+                _turret.setYawPercentOut(manualInput);
 
                 // TODO: Limit hood motion based on current angle and max/min angle
                 _turret.setHoodPercentOut(TurretMap.PITCH_MAX_MANUAL_PERCENT_OUT * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
@@ -419,7 +420,7 @@ public class Turret extends LoggedSubsystem {
 
                 // Use robot-relative yaw estimate if no limelight correction was applied
                 if (!correctionApplied) {
-                    _turret.controlYaw(_yawControl.withPosition(robotRelativeYawRotations));
+                    _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
                 }
 
                 // Aim hood based on the pitch angle from the aim vector
@@ -429,7 +430,7 @@ public class Turret extends LoggedSubsystem {
             case STOPPED:
             default:
                 _turret.controlFlywheel(AngularVelocity.ofBaseUnits(0, RotationsPerSecond));
-                _turret.controlYaw(_yawManualControl.withOutput(0));
+                _turret.controlYawAngle(Angle.ofBaseUnits(0, Rotations));
                 break;
         }
     }

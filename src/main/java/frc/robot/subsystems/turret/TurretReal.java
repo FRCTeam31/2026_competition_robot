@@ -6,16 +6,16 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
+import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.TalonSRXConfiguration;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -36,9 +36,10 @@ public class TurretReal implements ITurret {
     private SparkMax _sparkHood;
     private SparkFlex _flywheelLeft;
     private SparkFlex _flywheelRight;
-    // TODO: Convert to TalonSRX
-    private TalonFX _turretRotator;
+    private TalonSRX _turretRotator;
     private DigitalInput _turretResetLimitSwitch;
+    private SparkClosedLoopController _flywheelClosedLoopController;
+    private SparkClosedLoopController _hoodClosedLoopController;
 
     public TurretReal() {
         configureFlywheelMotors(TurretMap.FLYWHEEL_PID);
@@ -53,23 +54,22 @@ public class TurretReal implements ITurret {
         _flywheelLeft = new SparkFlex(TurretMap.FLYWHEEL_LEFT_CANID, MotorType.kBrushless);
         _flywheelRight = new SparkFlex(TurretMap.FLYWHEEL_RIGHT_CANID, MotorType.kBrushless);
 
-        SparkFlexConfig leftConfig = new SparkFlexConfig();
+        SparkFlexConfig defaultConfig = new SparkFlexConfig();
+        defaultConfig.idleMode(IdleMode.kCoast);
+        defaultConfig.smartCurrentLimit(60, 40);
 
+        SparkFlexConfig rightConfig = defaultConfig;
+        rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
+
+        SparkFlexConfig leftConfig = defaultConfig;
         leftConfig.inverted(TurretMap.FLYWHEEL_LEFT_INVERTED);
-        leftConfig.idleMode(IdleMode.kCoast);
-
-        leftConfig.smartCurrentLimit(60, 40);
-
         leftConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
 
-        // Copy the left config but modify it to follow the left motor
-        SparkFlexConfig rightConfig = leftConfig;
-        rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
-
-        // Apply configuration
         _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
     }
 
     private void configureSparkFeedMotor() {
@@ -83,40 +83,34 @@ public class TurretReal implements ITurret {
     }
 
     private void configureTurretRotationMotor(ExtendedPIDConstants pid) {
-        _turretRotator = new TalonFX(TurretMap.TURRET_ROTATOR_CANID);
-        TalonFXConfiguration config = new TalonFXConfiguration();
+        _turretRotator = new TalonSRX(TurretMap.TURRET_ROTATOR_CANID);
+        TalonSRXConfiguration config = new TalonSRXConfiguration();
 
-        config.MotorOutput.Inverted = TurretMap.TURRET_ROTATOR_INVERTED
-                ? InvertedValue.CounterClockwise_Positive
-                : InvertedValue.Clockwise_Positive;
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        _turretRotator.setInverted(TurretMap.TURRET_ROTATOR_INVERTED);
+        _turretRotator.setNeutralMode(NeutralMode.Brake);
 
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 40;
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 40;
+        config.peakCurrentLimit = 40;
+        config.continuousCurrentLimit = 40;
+        config.peakCurrentDuration = 0;
+        _turretRotator.enableCurrentLimit(true);
 
-        Slot0Configs slot0 = new Slot0Configs();
+        SlotConfiguration slot0 = new SlotConfiguration();
         slot0.kP = pid.kP;
         slot0.kI = pid.kI;
         slot0.kD = pid.kD;
-        slot0.kS = pid.kS;
-        slot0.kV = pid.kV;
-        slot0.kA = pid.kA;
-        config.Slot0 = slot0;
+        slot0.kF = pid.kV;
+        config.slot0 = slot0;
 
-        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        config.Feedback.SensorToMechanismRatio = TurretMap.TURRET_GEAR_RATIO;
+        config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
 
-        MotionMagicConfigs motionMagic = new MotionMagicConfigs();
-        motionMagic.MotionMagicCruiseVelocity = 100; // TODO: Tune this
-        motionMagic.MotionMagicAcceleration = 200; // TODO: Tune this
-        motionMagic.MotionMagicJerk = 1600; // TODO: Tune this
-        config.MotionMagic = motionMagic;
+        // TODO: Determine if needed, if so convert to v5
+        // MotionMagicConfigs motionMagic = new MotionMagicConfigs();
+        // motionMagic.MotionMagicCruiseVelocity = 100; // TODO: Tune this
+        // motionMagic.MotionMagicAcceleration = 200; // TODO: Tune this
+        // motionMagic.MotionMagicJerk = 1600; // TODO: Tune this
+        // config.MotionMagic = motionMagic;
 
-        config.ClosedLoopGeneral.ContinuousWrap = !TurretMap.YAW_DEADZONE_ENABLED;
-
-        _turretRotator.getConfigurator().apply(config);
+        _turretRotator.configAllSettings(config);
         _turretRotator.clearStickyFaults();
     }
 
@@ -130,8 +124,11 @@ public class TurretReal implements ITurret {
         sparkConfig.smartCurrentLimit(40, 30);
 
         sparkConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
+        sparkConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
 
         _sparkHood.configure(sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        _hoodClosedLoopController = _sparkHood.getClosedLoopController();
     }
 
     @Override
@@ -139,13 +136,18 @@ public class TurretReal implements ITurret {
         inputs.TurretRotation = getTurretRotation();
         inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
-        inputs.FlywheelVoltage = _flywheelLeft.getBusVoltage();
-        inputs.YawVoltage = _turretRotator.getMotorVoltage().getValueAsDouble();
+        inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
+        inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
     }
 
+    private int getRotatorEncoderTicksFromTurretYaw(Angle angle) {
+        var degrees = angle.in(Degrees);
+        return TurretMap.TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE * (int) degrees;
+    }
+
     private Rotation2d getTurretRotation() {
-        var motorRotation = _turretRotator.getPosition().getValueAsDouble();
+        var motorRotation = _turretRotator.getSelectedSensorPosition();
         var turretRotation = motorRotation / TurretMap.TURRET_GEAR_RATIO;
 
         return Rotation2d.fromRotations(turretRotation);
@@ -162,17 +164,22 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlFlywheel(AngularVelocity velocity) {
-        _flywheelLeft.getClosedLoopController().setSetpoint(velocity.in(RotationsPerSecond), ControlType.kVelocity);
+        _flywheelClosedLoopController.setSetpoint(velocity.in(RotationsPerSecond), ControlType.kVelocity);
     }
 
     @Override
-    public void controlYaw(ControlRequest yawRequest) {
-        _turretRotator.setControl(yawRequest);
+    public void controlYawAngle(Angle angle) {
+        _turretRotator.set(TalonSRXControlMode.Position, getRotatorEncoderTicksFromTurretYaw(angle));
+    }
+
+    @Override
+    public void setYawPercentOut(double percentOut) {
+        _turretRotator.set(TalonSRXControlMode.PercentOutput, percentOut);
     }
 
     @Override
     public void controlHood(Angle angle) {
-        _sparkHood.getClosedLoopController().setSetpoint(angle.in(Degrees), ControlType.kPosition);
+        _hoodClosedLoopController.setSetpoint(angle.in(Degrees), ControlType.kPosition);
     }
 
     @Override
@@ -187,7 +194,10 @@ public class TurretReal implements ITurret {
 
     @Override
     public void setYawVoltage(double volts) {
-        _turretRotator.setVoltage(volts);
+        double busVoltage = _turretRotator.getBusVoltage();
+        double percentOutput = volts / busVoltage;
+
+        _turretRotator.set(TalonSRXControlMode.PercentOutput, percentOutput);
     }
 
     @Override

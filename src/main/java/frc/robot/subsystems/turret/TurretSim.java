@@ -171,15 +171,14 @@ public class TurretSim implements ITurret {
     }
 
     @Override
-    public void controlYaw(ControlRequest request) {
-        // Extract the target position from known position control request types.
-        if (request instanceof MotionMagicVoltage motionMagicRequest) {
-            _turretTargetPositionRotations = motionMagicRequest.Position;
-            _isManualControl = false;
-        } else if (request instanceof DutyCycleOut dutyCycleRequest) {
-            _turretManualSpeed = dutyCycleRequest.Output;
-            _isManualControl = true;
-        }
+    public void controlYawAngle(Angle angle) {
+        _turretTargetPositionRotations = angle.in(Rotations);
+        _isManualControl = false;
+    }
+
+    @Override
+    public void setYawPercentOut(double percentOut) {
+        _turretManualSpeed = percentOut;
     }
 
     @Override

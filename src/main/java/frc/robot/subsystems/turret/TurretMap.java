@@ -33,9 +33,10 @@ public class TurretMap {
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
-        public static final double YAW_MAX_MANUAL_SPEED = 1;
+        public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
+        public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise

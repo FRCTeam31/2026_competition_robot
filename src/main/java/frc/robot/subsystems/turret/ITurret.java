@@ -10,7 +10,9 @@ public interface ITurret {
 
     public void controlFlywheel(AngularVelocity velocity);
 
-    public void controlYaw(ControlRequest controlRequest);
+    public void controlYawAngle(Angle angle);
+
+    public void setYawPercentOut(double percentOut);
 
     public void controlHood(Angle angle);
 
