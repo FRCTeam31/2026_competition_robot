@@ -1,7 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import com.ctre.phoenix6.controls.ControlRequest;
-
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 

@@ -9,10 +9,6 @@ import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -94,10 +90,7 @@ public class Turret extends LoggedSubsystem {
         STOPPED
     }
 
-    // CTRE Control Requests
-    private final VelocityVoltage _flywheelControl = new VelocityVoltage(0);
-    private final MotionMagicVoltage _yawControl = new MotionMagicVoltage(0);
-    private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
+    // Manual Control
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
 
