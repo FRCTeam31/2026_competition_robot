@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.prime.dashboard.DashboardSection;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -34,6 +37,7 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 import frc.robot.subsystems.vision.photon.PhotonVision;
 import frc.robot.subsystems.turret.Turret.FlywheelState;
+import frc.robot.subsystems.turret.Turret.TargetingState;
 
 public class Container {
   public static TeleopDashboardTab TeleopDashboardSection;
@@ -215,4 +219,41 @@ public class Container {
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
   //#endregion
+
+  public static Command toggleShooterOn() {
+    return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.SHOOTING)
+        .andThen(Commands.waitUntil(Turret::flywheelAtSpeed))
+        .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.FORWARDS)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
+  }
+
+  public static Command toggleShooterOff() {
+    return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE)
+        .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED);
+  }
+
+  public static Command startAuto() {
+    return Commands.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.AUTO)
+        .andThen(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE);
+  }
+
+  public static Command toggleIntakeOn() {
+    return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT)
+        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS);
+  }
+
+  // public static Command toggleIntakeOff() {
+  //   return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN)
+  //       .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED);
+  // }
+
+  public static Map<String, Supplier<Command>> getNamedCommandSuppliers() {
+    return Map.of(
+        "Enable_Autonomous_Shooting", () -> toggleShooterOn(),
+        "Disable_Autonomous_Shooting", () -> toggleShooterOff(),
+        "Start_Auto", () -> startAuto(),
+        "Take_Out_And_Enable_Intake", () -> toggleIntakeOn());
+  }
+
 }

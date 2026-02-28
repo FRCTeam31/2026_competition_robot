@@ -64,6 +64,7 @@ public class TurretMap {
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED = 50;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
+        public static final double FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT = 5.0; // 5% tolerance
         public static final InterpolatingDoubleTreeMap DISTANCE_TO_FLYWHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(
                                         Map.entry(2.0, 300.0),

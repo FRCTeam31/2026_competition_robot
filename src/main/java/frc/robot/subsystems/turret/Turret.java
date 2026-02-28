@@ -36,6 +36,7 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 /**
@@ -102,6 +103,7 @@ public class Turret extends LoggedSubsystem {
     private final DutyCycleOut _yawManualControl = new DutyCycleOut(0);
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
+    private double _targetFlywheelVelocityRPS = 0;
 
     // Controllers
     private final PIDController _hoodPIDController = TurretMap.HOOD_PID
@@ -219,12 +221,19 @@ public class Turret extends LoggedSubsystem {
         }
     }
 
+    public boolean flywheelAtSpeed() {
+        double currentFlywheelVelocity = SuperStructure.Turret.FlywheelVelocity.in(RotationsPerSecond);
+        double toleranceRPS = _targetFlywheelVelocityRPS * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
+
+        return Math.abs(currentFlywheelVelocity - _targetFlywheelVelocityRPS) <= toleranceRPS;
+    }
+
     /**
-     * Computes the turret's field-relative 3D pose by applying its mounting offset
-     * and current rotation to the robot's estimated pose.
-     *
-     * @return The turret's pose in field coordinates
-     */
+    * Computes the turret's field-relative 3D pose by applying its mounting offset
+    * and current rotation to the robot's estimated pose.
+    *
+    * @return The turret's pose in field coordinates
+    */
     private Pose3d getTurretPose() {
         var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
 
@@ -469,13 +478,16 @@ public class Turret extends LoggedSubsystem {
     private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
         switch (flywheelState) {
             case IDLE:
+                _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS;
                 _turret.controlFlywheel(_flywheelControl.withVelocity(TurretMap.FLYWHEEL_IDLE_VELOCITY_RPS));
                 break;
             case STOPPED:
+                _targetFlywheelVelocityRPS = 0;
                 _turret.controlFlywheel(_flywheelControl.withVelocity(0));
                 break;
             case SHOOTING:
                 if (targetingState == TargetingState.MANUAL) {
+                    _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
                     _turret.controlFlywheel(_flywheelControl.withVelocity(_manualFlywheelVelocityRPS));
                 } else {
                     var targetVelocity = aimVector.getMagnitude();
@@ -483,6 +495,7 @@ public class Turret extends LoggedSubsystem {
                     var targetFlywheelOmega = _flywheelController.calculate(
                             targetVelocity,
                             SuperStructure.Turret.HoodAngle.in(Degrees));
+                    _targetFlywheelVelocityRPS = targetFlywheelOmega;
                     _turret.controlFlywheel(_flywheelControl.withVelocity(targetFlywheelOmega));
                 }
                 break;
