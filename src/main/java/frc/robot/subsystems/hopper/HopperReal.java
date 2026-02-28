@@ -7,29 +7,21 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
 
 public class HopperReal implements IHopper {
-    private DoubleSolenoid _hopperSolenoid;
     private DoubleSolenoid _intakeSolenoid;
     private SparkFlex _feedRollersSparkFlex;
     private SparkFlex _intakeFeedSparkFlex;
 
     public HopperReal() {
-        _hopperSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
-                Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.HopperForwardChannel,
-                HopperMap.HopperReverseChannel);
         _intakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.IntakeForwardChannel,
                 HopperMap.IntakeReverseChannel);
-        _feedRollersSparkFlex = new SparkFlex(HopperMap.CANID, MotorType.kBrushless);
+        _feedRollersSparkFlex = new SparkFlex(HopperMap.FEED_CAN_ID, MotorType.kBrushless);
+        _intakeFeedSparkFlex = new SparkFlex(HopperMap.INTAKE_CAN_ID, MotorType.kBrushless);
     }
 
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
 
-    }
-
-    @Override
-    public void setHopper(DoubleSolenoid.Value value) {
-        _hopperSolenoid.set(value);
     }
 
     @Override

@@ -1,11 +1,12 @@
 package frc.robot.subsystems.climb;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
@@ -13,7 +14,7 @@ import org.prime.control.ExtendedPIDConstants;
 
 public class ClimbReal implements IClimb {
 
-    private TalonFX _climbMotor;
+    private SparkFlex _climbMotor;
     private DoubleSolenoid _frictionBrakeSolenoid;
     private DoubleSolenoid _supportSolenoid;
 
@@ -36,43 +37,20 @@ public class ClimbReal implements IClimb {
     }
 
     public void configureClimbMotor(ExtendedPIDConstants pid) {
-        _climbMotor = new TalonFX(ClimbMap.CLIMB_MOTOR_CANID);
-        TalonFXConfiguration config = new TalonFXConfiguration();
+        _climbMotor = new SparkFlex(ClimbMap.CLIMB_MOTOR_CANID, MotorType.kBrushless);
+        SparkFlexConfig config = new SparkFlexConfig();
 
-        // TODO: Configure climb motor
+        config.inverted(ClimbMap.CLIMB_MOTOR_INVERTED);
+        config.idleMode(IdleMode.kBrake);
 
-        config.MotorOutput.Inverted = ClimbMap.CLIMB_MOTOR_INVERTED
-                ? InvertedValue.CounterClockwise_Positive
-                : InvertedValue.Clockwise_Positive;
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.smartCurrentLimit(70, 60);
 
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 80; // TODO: Determine
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 60; // TODO: Determine
+        config.closedLoop.pid(pid.kP, pid.kI, pid.kD);
 
-        config.Voltage.PeakForwardVoltage = 12;
-        config.Voltage.PeakReverseVoltage = -12;
+        config.closedLoopRampRate(ClimbMap.CLIMB_MOTOR_RAMP_PERIOD);
 
-        config.Feedback.SensorToMechanismRatio = ClimbMap.CLIMB_MOTOR_GEAR_RATIO;
-        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-
-        Slot0Configs slot0 = new Slot0Configs();
-        slot0.kP = pid.kP;
-        slot0.kI = pid.kI;
-        slot0.kD = pid.kD;
-        slot0.kS = pid.kS;
-        slot0.kV = pid.kV;
-        slot0.kA = pid.kA;
-        config.Slot0 = slot0;
-
-        config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ClimbMap.CLIMB_MOTOR_RAMP_PERIOD;
-
-        config.HardwareLimitSwitch.ForwardLimitEnable = false;
-        config.HardwareLimitSwitch.ReverseLimitEnable = false;
-
-        _climbMotor.getConfigurator().apply(config);
-        _climbMotor.clearStickyFaults();
+        _climbMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        _climbMotor.clearFaults();
     }
 
     @Override

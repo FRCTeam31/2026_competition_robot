@@ -51,6 +51,8 @@ public class OperatorInterface {
 
                 // TODO: Add rumble and light feedback to different climb states
                 // TODO: Figure out why the rumble is not WORKING
+                // TODO: Test full commands
+                // TODO: Add distance checks to climb
                 DriverController.start().and(DriverController.pov(Controls.up))
                                 .onTrue(Container.setupClimb()); //.andThen(rumbleControllerShort(DriverController)));
                 DriverController.start().and(DriverController.pov(Controls.left))
@@ -68,6 +70,31 @@ public class OperatorInterface {
                 DriverController.start().and(DriverController.rightBumper()).and(DriverController.leftBumper())
                                 .onTrue(Container.setIntakeStates(IntakeCombinedState.OUTWARDS))
                                 .onFalse(Container.setIntakeStates(IntakeCombinedState.INWARDS));
+
+                // -------------------------- TEST COMMANDS --------------------------
+
+                // These commands are for testing the functionality of specific subsystems. When using, comment out
+                // all other driver controls and uncomment the controls for the subsystem below that you would like to test.
+
+                // DriverController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                // DriverController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+
+                // DriverController.a().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
+                // DriverController.a().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
+
+                // DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
+                // DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+
+                // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
+                // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));
+
+                // DriverController.a().onTrue(Container.Climb.setSupport(SupportState.RAISED));
+                // DriverController.b().onTrue(Container.Climb.setSupport(SupportState.LOWERED));
+
+                // DriverController.a().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
+                // DriverController.b().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
+
+                // -------------------------------------------------------------------
 
         }
 

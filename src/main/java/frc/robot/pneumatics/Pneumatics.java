@@ -11,8 +11,8 @@ public class Pneumatics {
 
     public Pneumatics() {
         if (Robot.isReal()) {
-            _pcm = new PneumaticsControlModule(PneumaticsMap.PCMCanID);
-            _compressor = new Compressor(PneumaticsMap.PCMCanID, PneumaticsMap.PCMType);
+            _pcm = new PneumaticsControlModule(PneumaticsMap.PCM_CAN_ID);
+            _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsMap.PCM_TYPE);
 
             _compressor.enableDigital();
         }
@@ -23,11 +23,11 @@ public class Pneumatics {
     }
 
     public Integer getPneumaticsControlModuleId() {
-        return PneumaticsMap.PCMCanID;
+        return PneumaticsMap.PCM_CAN_ID;
     }
 
     public PneumaticsModuleType getPneumaticsControlModuleType() {
-        return PneumaticsMap.PCMType;
+        return PneumaticsMap.PCM_TYPE;
     }
 
     public Compressor getCompressor() {
