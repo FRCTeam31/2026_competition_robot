@@ -51,7 +51,8 @@ public class ClimbSim implements IClimb {
         inputs.loweredLimitSwitch = _lowerLimitSwitch;
 
         // Assuming _motorPosition is in rotations, will need to be changed if not
-        inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS.times(_motorPosition * Math.PI * 2);
+        inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS
+                .times(_motorPosition * Math.PI * 2 / ClimbMap.CLIMB_MOTOR_GEAR_RATIO);
     }
 
     @Override

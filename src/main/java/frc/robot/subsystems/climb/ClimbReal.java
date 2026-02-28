@@ -53,7 +53,7 @@ public class ClimbReal implements IClimb {
     public void updateInputs(ClimbInputsAutoLogged inputs) {
         inputs.loweredLimitSwitch = _limitSwitch.get();
         inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS
-                .times(_climbMotor.getEncoder().getPosition() * Math.PI * 2);
+                .times(_climbMotor.getEncoder().getPosition() * Math.PI * 2 / ClimbMap.CLIMB_MOTOR_GEAR_RATIO);
     }
 
     @Override
