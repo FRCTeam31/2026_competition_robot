@@ -148,6 +148,9 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     EventLoop.poll();
+
+    // Log recorded system pressure
+    Logger.recordOutput("Pnumatics System Pressure", Container.Pneumatics.getSystemPressure());
   }
 
   /**

@@ -11,9 +11,6 @@ public class ClimbMap {
     public static final boolean CLIMB_MOTOR_INVERTED = false;
     public static final double CLIMB_MOTOR_RAMP_PERIOD = 1;
 
-    // TODO: Implement pressure sensor reading
-    public static final int PRESSURE_SENSOR_CHANNEL = 0; // Not a placeholder, 0 is the correct channel
-
     public static final int FrictionBrakeForwardChannel = 8;
     public static final int FrictionBrakeReverseChannel = 9;
 
