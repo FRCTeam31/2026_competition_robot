@@ -11,9 +11,6 @@ public class ClimbMap {
 
     public static final ExtendedPIDConstants SUPPORT_MOTOR_PID = new ExtendedPIDConstants();
 
-    // TODO: Implement pressure sensor reading
-    public static final int PRESSURE_SENSOR_CHANNEL = 0; // Not a placeholder, 0 is the correct channel
-
     public static final int FrictionBrakeForwardChannel = 8;
     public static final int FrictionBrakeReverseChannel = 9;
 
