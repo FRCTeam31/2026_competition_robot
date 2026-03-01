@@ -10,8 +10,6 @@ import frc.robot.SuperStructure;
 public class Hopper extends LoggedSubsystem {
     private IHopper _hopper;
 
-    @SuppressWarnings("unused")
-
     public enum TransferFeedState { // For feeding in and out to the shooter
         INWARDS,
         OUTWARDS,
