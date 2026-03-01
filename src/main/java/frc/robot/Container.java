@@ -217,7 +217,9 @@ public class Container {
 
   public static Command toggleShooterOn() {
     return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.SHOOTING)
-        .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed))
+        .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed &&
+            SuperStructure.Turret.YawOnTarget &&
+            SuperStructure.Turret.HoodOnTarget))
         .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.FORWARDS)
         .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
   }
