@@ -22,6 +22,8 @@ public class LimeLightCamera implements AutoCloseable {
         inputs.BotPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(_limelightName);
         inputs.BotPoseEstimateMT2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(_limelightName);
         inputs.CurrentResults = LimelightHelpers.getLatestResults(_limelightName);
+        inputs.TargetValid = LimelightHelpers.getTV(_limelightName);
+        inputs.TagPoseRobotSpace = LimelightHelpers.getTargetPose3d_RobotSpace(_limelightName);
     }
 
     //#region Basic Targeting Data

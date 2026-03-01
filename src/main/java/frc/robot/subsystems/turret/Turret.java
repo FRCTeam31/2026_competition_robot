@@ -28,6 +28,7 @@ import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.vision.VisionMap;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers;
 
 import frc.robot.FieldTargets.TargetType;
 
@@ -265,13 +266,24 @@ public class Turret extends LoggedSubsystem {
             _turret.setFeederSpeed(0); // Set feed to 0
             resolveAutoTarget(turretPose); // Update logging with null target
         } else {
+            boolean limelightCorrectionApplied = false;
+
             if (inputs.TargetingState == TargetingState.AUTO) {
                 var target = resolveAutoTarget(turretPose);
+
+                // Prefer limelight-corrected target when available
+                if (TurretMap.USE_LIMELIGHT_TARGETING) {
+                    var limelightTarget = getLimelightCorrectedTargetPose();
+                    if (limelightTarget.isPresent()) {
+                        target = limelightTarget.get();
+                        limelightCorrectionApplied = true;
+                    }
+                }
 
                 calculateTurretVectorFromRobotPose(target, turretPose);
             }
 
-            actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
+            actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector, limelightCorrectionApplied);
             actOnFeedState(inputs.FeedState);
         }
 
@@ -345,16 +357,15 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Computes a limelight-corrected yaw setpoint based on the horizontal offset
-     * from the limelight target. Returns an empty result when correction is not
-     * applicable (wrong target type, no target visible, or error below threshold).
+     * Computes a limelight-corrected field-relative target pose by using the 3D pose
+     * of the detected apriltag in robot-space. The apriltag sits on the side of the hub,
+     * so we translate behind it by 23.5 inches to reach the hub center, override the Z
+     * height to {@link FieldTargets#HUB_HEIGHT}, and convert from robot-space to field-space.
      *
-     * @return An {@link OptionalDouble} containing the corrected yaw setpoint in
-     *         rotations, or empty if no correction should be applied
+     * @return An {@link Optional} containing the corrected field-relative hub {@link Pose3d},
+     *         or empty if the limelight has no valid target or the robot is not targeting the hub
      */
-    private Optional<Double> getLimelightYawCorrectionRotations() {
-        var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
-
+    private Optional<Pose3d> getLimelightCorrectedTargetPose() {
         // Only correct when targeting the hub
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
@@ -362,20 +373,39 @@ public class Turret extends LoggedSubsystem {
             return Optional.empty();
         }
 
-        if (limelightInputs.TargetHorizontalOffset == null) {
+        var llInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+
+        // Check if the limelight has a valid target
+        if (!llInputs.TargetValid) {
             return Optional.empty();
         }
 
-        var horizontalError = limelightInputs.TargetHorizontalOffset;
-        if (Math.abs(horizontalError.getDegrees()) < TurretMap.TURRET_CORRECTION_THRESHOLD_DEGREES) {
+        // Get the apriltag pose in robot-space
+        if (llInputs.TagPoseRobotSpace.getTranslation().getNorm() < 1e-6) {
             return Optional.empty();
         }
 
-        double errorRotations = horizontalError.getDegrees() / 360.0;
-        double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
-        double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
+        // Translate behind the apriltag by 23.5 inches to reach the hub center.
+        // The tag's X axis points out of the tag face, so translating in -X moves behind it.
+        var behindTagTransform = new Transform3d(
+                new Translation3d(-edu.wpi.first.math.util.Units.inchesToMeters(23.5), 0, 0),
+                Rotation3d.kZero);
+        var hubCenterRobotSpace = llInputs.TagPoseRobotSpace.plus(behindTagTransform);
 
-        return Optional.of(correctedPositionRotations);
+        // Convert from robot-space to field-space using the robot's estimated pose
+        var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
+        var hubCenterFieldSpace = hubCenterRobotSpace.relativeTo(new Pose3d()).plus(
+                new Transform3d(robotPose.getTranslation(), robotPose.getRotation()));
+
+        // Override Z to the known hub height
+        var correctedTarget = new Pose3d(
+                new Translation3d(
+                        hubCenterFieldSpace.getX(),
+                        hubCenterFieldSpace.getY(),
+                        FieldTargets.HUB_HEIGHT),
+                Rotation3d.kZero); // We don't care about the rotation for aiming, and it can be noisy from the limelight, so just set it to zero
+
+        return Optional.of(correctedTarget);
     }
 
     /**
@@ -386,8 +416,10 @@ public class Turret extends LoggedSubsystem {
      * 
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
+     * @param limelightCorrectionApplied Whether the aim vector was computed from a limelight-corrected target
      */
-    private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
+    private void actOnTargetingState(TargetingState targetingState, MutVector aimVector,
+            boolean limelightCorrectionApplied) {
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
             case MANUAL:
@@ -413,19 +445,7 @@ public class Turret extends LoggedSubsystem {
                 // Aim vector is field-relative
                 var robotRelativeYawRotations = getRobotRelativeYawSetpoint(aimVector);
 
-                // Prefer limelight-corrected yaw when available, fall back to field-oriented estimate
-                // TODO: Use robot-relative field target estimate as a reference point and reject limelight input if it deviates too far from this.
-                var yawSetpointRotations = robotRelativeYawRotations;
-                boolean limelightCorrectionApplied = false;
-                if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
-                    var limelightCorrection = getLimelightYawCorrectionRotations();
-                    if (limelightCorrection.isPresent()) {
-                        yawSetpointRotations = limelightCorrection.get();
-                        limelightCorrectionApplied = true;
-                    }
-                }
-
-                _turret.controlYawAngle(Angle.ofBaseUnits(yawSetpointRotations, Rotations));
+                _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
 
                 // Aim hood based on the pitch angle from the aim vector
                 var pitch = aimVector.getPitch();

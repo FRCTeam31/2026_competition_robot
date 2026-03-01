@@ -29,7 +29,7 @@ public class TurretMap {
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final boolean YAW_DEADZONE_ENABLED = true;
-        public static final boolean USE_LIMELIGHT_YAW_CORRECTION = false;
+        public static final boolean USE_LIMELIGHT_TARGETING = false;
 
         // ──────────────────────── Turret Yaw ────────────────────────────
         public static final int TURRET_ROTATOR_CANID = 17;
