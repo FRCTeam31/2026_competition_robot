@@ -137,7 +137,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     DataLogManager.log("Robot disabled");
-    CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
+    // CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
   }
 
   /**
@@ -162,7 +162,7 @@ public class Robot extends LoggedRobot {
     if (_autonomousCommand != null)
       _autonomousCommand.cancel();
 
-    _autonomousCommand = Container.AutoChooser.getSelected();
+    // _autonomousCommand = Container.AutoChooser.getSelected();
 
     if (_autonomousCommand == null || _autonomousCommand == Commands.none()) {
       DriverStation.reportError("[ERROR] >> No auto command selected", false);
@@ -173,7 +173,7 @@ public class Robot extends LoggedRobot {
       }
 
       // Schedule the auto command
-      CommandScheduler.getInstance().schedule(_autonomousCommand);
+      // CommandScheduler.getInstance().schedule(_autonomousCommand);
     }
   }
 
@@ -185,12 +185,12 @@ public class Robot extends LoggedRobot {
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
 
-    if (_autonomousCommand != null) {
-      // Cancel the auto command if it's still running
-      _autonomousCommand.cancel();
-    } else {
-      Container.Swerve.resetGyro();
-    }
+    // if (_autonomousCommand != null) {
+    //   // Cancel the auto command if it's still running
+    //   _autonomousCommand.cancel();
+    // } else {
+    //   Container.Swerve.resetGyro();
+    // }
   }
 
   /**

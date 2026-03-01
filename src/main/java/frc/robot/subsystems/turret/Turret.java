@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
@@ -586,7 +587,8 @@ public class Turret extends LoggedSubsystem {
      * @return A command that updates {@link SuperStructure.Turret#FeedState} when scheduled
      */
     public Command setFeed(UptakeState state) {
-        return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
+        return this.runOnce(() -> SuperStructure.Turret.FeedState = state).andThen(Commands
+                .runOnce(() -> System.out.println("Changed to: " + SuperStructure.Turret.FeedState.toString())));
     }
 
     /**
@@ -611,5 +613,9 @@ public class Turret extends LoggedSubsystem {
     public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
         return _yawSysId.getCommand(testType, direction);
+    }
+
+    public Command setYawAngleTEST(Angle angle) {
+        return Commands.runOnce(() -> _turret.controlYawAngle(angle));
     }
 }

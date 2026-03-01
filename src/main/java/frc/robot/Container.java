@@ -64,36 +64,36 @@ public class Container {
   public static void initialize() {
     try {
       // Create dashboard sections
-      AutoDashboardSection = new DashboardSection("Auto");
-      TeleopDashboardSection = new TeleopDashboardTab();
-      CommandsDashboardSection = new DashboardSection("Commands");
-      TestDashboardSection = new DashboardSection("Test");
+      // AutoDashboardSection = new DashboardSection("Auto");
+      // TeleopDashboardSection = new TeleopDashboardTab();
+      // CommandsDashboardSection = new DashboardSection("Commands");
+      // TestDashboardSection = new DashboardSection("Test");
 
       // Create subsystems
-      LEDs = new PwmLEDs();
+      // LEDs = new PwmLEDs();
 
-      LimelightVision = new LimelightVision();
-      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
-      PhotonVision = new PhotonVision();
-      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
-      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+      // LimelightVision = new LimelightVision();
+      // LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+      // PhotonVision = new PhotonVision();
+      // PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      // PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
 
-      Swerve = new Swerve();
+      // Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
-      Climb = new Climb();
+      // Climb = new Climb();
       Turret = new Turret();
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
       OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);
-      OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
+      // OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
 
       // Register the named commands from each subsystem that may be used in PathPlanner
-      NamedCommands.registerCommands(Swerve.getNamedCommands());
+      // NamedCommands.registerCommands(Swerve.getNamedCommands());
 
       // Build an auto chooser. This will use Commands.none() as the default option.
-      AutoChooser = AutoBuilder.buildAutoChooser();
-      SmartDashboard.putData("Auto Chooser", AutoChooser);
+      // AutoChooser = AutoBuilder.buildAutoChooser();
+      // SmartDashboard.putData("Auto Chooser", AutoChooser);
     } catch (Exception e) {
       DriverStation.reportError("[ERROR] >> Failed to initialize Container: " + e.getMessage(), e.getStackTrace());
     }

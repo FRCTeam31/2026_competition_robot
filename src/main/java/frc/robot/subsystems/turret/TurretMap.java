@@ -35,11 +35,11 @@ public class TurretMap {
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
-        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
+        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(
+                        1023 / ((180 / 360) * 4096 * TURRET_GEAR_RATIO), 0, 0);
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
-        public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
         public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
