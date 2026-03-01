@@ -116,7 +116,6 @@ public class Turret extends LoggedSubsystem {
 
     // SysId characterization routines
     private final SysIdRoutineHelper _flywheelSysId;
-    private final SysIdRoutineHelper _yawSysId;
 
     // Boolean Events
     private BooleanEvent _turretYawResetSwitchEvent;
@@ -146,16 +145,6 @@ public class Turret extends LoggedSubsystem {
                 (log) -> log.motor("flywheel")
                         .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
                         .angularVelocity(SuperStructure.Turret.FlywheelVelocity));
-
-        // Configure SysId routine for turret yaw characterization
-        _yawSysId = new SysIdRoutineHelper(
-                this,
-                "TurretYaw",
-                (voltage) -> _turret.setYawVoltage(voltage.in(Units.Volts)),
-                (log) -> log.motor("yaw")
-                        .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
-                        .angularPosition(Units.Rotations.of(
-                                SuperStructure.Turret.TurretRotation.getRotations())));
 
         _turretYawResetSwitchEvent = new BooleanEvent(Robot.EventLoop,
                 () -> SuperStructure.Turret.TurretRotationResetSwitch)
@@ -639,17 +628,5 @@ public class Turret extends LoggedSubsystem {
     public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
         return _flywheelSysId.getCommand(testType, direction);
-    }
-
-    /**
-     * Returns a SysId characterization command for the turret yaw rotation.
-     *
-     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
-     * @param direction FORWARD or REVERSE
-     * @return A command that runs the specified SysId test on the turret yaw motor
-     */
-    public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
-            SysIdRoutineHelper.TestDirection direction) {
-        return _yawSysId.getCommand(testType, direction);
     }
 }
