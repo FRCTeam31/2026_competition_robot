@@ -25,6 +25,11 @@ public class TurretInputs {
     public Turret.LockOnState FlywheelSpeedState = Turret.LockOnState.FLYWHEEL_NOT_AT_SPEED;
     public Turret.UptakeState FeedState = Turret.UptakeState.STOPPED;
 
+    // On-target flags (computed by IO layer each update cycle)
+    public boolean FlywheelAtTargetSpeed = false;
+    public boolean YawOnTarget = false;
+    public boolean HoodOnTarget = false;
+
     // Sysid
     public double FlywheelVoltage = 0;
     public double YawVoltage = 0;

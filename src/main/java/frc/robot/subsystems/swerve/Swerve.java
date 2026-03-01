@@ -219,7 +219,6 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  @SuppressWarnings("unused")
   private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)

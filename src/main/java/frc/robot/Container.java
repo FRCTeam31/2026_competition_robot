@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
-import frc.robot.subsystems.PwmLEDs;
+import frc.robot.subsystems.leds.PwmLEDs;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
@@ -217,7 +217,7 @@ public class Container {
 
   public static Command toggleShooterOn() {
     return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.SHOOTING)
-        .andThen(Commands.waitUntil(Turret::flywheelAtSpeed))
+        .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed))
         .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.FORWARDS)
         .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
   }

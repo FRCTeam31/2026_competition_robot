@@ -36,9 +36,12 @@ public class TurretMap {
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
+        public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 100; // sensor units per 100ms // TODO: Tune
+        public static final double YAW_MOTION_MAGIC_ACCELERATION = 200; // sensor units per 100ms per second // TODO: Tune
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
+        public static final double YAW_ON_TARGET_TOLERANCE_DEGREES = 2.0;
         public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
         public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
 
@@ -96,7 +99,11 @@ public class TurretMap {
         //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
+        public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM // TODO: Tune
+        public static final double HOOD_MAX_MOTION_MAX_ACCELERATION = 200; // RPM per second // TODO: Tune
+        public static final double HOOD_MAX_MOTION_ALLOWED_ERROR = 0.5; // degrees // TODO: Tune
         public static final double PITCH_MAX_MANUAL_PERCENT_OUT = 0.2; // TODO: Tune
+        public static final double HOOD_ON_TARGET_TOLERANCE_DEGREES = 1.0;
         public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
         public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
                         RadiansPerSecond);

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
 import org.prime.subsystems.LoggedSubsystem;
@@ -24,6 +25,7 @@ import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.vision.VisionMap;
 
 import frc.robot.FieldTargets.TargetType;
@@ -95,6 +97,7 @@ public class Turret extends LoggedSubsystem {
     private double _manualFlywheelVelocityRPS;
     private double _manualYawInput;
     private double _targetFlywheelVelocityRPS = 0;
+    private boolean _yawSetpointInDeadZone = false;
 
     // IDW Controller
     private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
@@ -220,13 +223,6 @@ public class Turret extends LoggedSubsystem {
         } catch (Exception e) {
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
         }
-    }
-
-    public boolean flywheelAtSpeed() {
-        double currentFlywheelVelocity = SuperStructure.Turret.FlywheelVelocity.in(RotationsPerSecond);
-        double toleranceRPS = _targetFlywheelVelocityRPS * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
-
-        return Math.abs(currentFlywheelVelocity - _targetFlywheelVelocityRPS) <= toleranceRPS;
     }
 
     /**
@@ -358,36 +354,37 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
-     * @param limelightInputs
-     * @return true if correction was applied, false otherwise
+     * Computes a limelight-corrected yaw setpoint based on the horizontal offset
+     * from the limelight target. Returns an empty result when correction is not
+     * applicable (wrong target type, no target visible, or error below threshold).
+     *
+     * @return An {@link OptionalDouble} containing the corrected yaw setpoint in
+     *         rotations, or empty if no correction should be applied
      */
-    private boolean aimTurretYawUsingLimelight() {
+    private Optional<Double> getLimelightYawCorrectionRotations() {
         var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
 
         // Only correct when targeting the hub
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
         if (!isTargetingHub) {
-            return false;
+            return Optional.empty();
         }
 
         if (limelightInputs.TargetHorizontalOffset == null) {
-            return false;
+            return Optional.empty();
         }
 
         var horizontalError = limelightInputs.TargetHorizontalOffset;
         if (Math.abs(horizontalError.getDegrees()) < TurretMap.TURRET_CORRECTION_THRESHOLD_DEGREES) {
-            return false;
+            return Optional.empty();
         }
 
         double errorRotations = horizontalError.getDegrees() / 360.0;
         double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
         double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
 
-        _turret.controlYawAngle(Angle.ofBaseUnits(correctedPositionRotations, Rotations));
-
-        return true;
+        return Optional.of(correctedPositionRotations);
     }
 
     /**
@@ -399,7 +396,6 @@ public class Turret extends LoggedSubsystem {
      * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
      * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
      */
-    @SuppressWarnings("unused")
     private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
         switch (targetingState) {
             // TODO: Implement pitch control once CAD finalizes turret
@@ -422,22 +418,30 @@ public class Turret extends LoggedSubsystem {
                 _turret.setHoodPercentOut(TurretMap.PITCH_MAX_MANUAL_PERCENT_OUT * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
                 break;
             case AUTO:
-                // Calculate the yaw base on field position
+                // Calculate the yaw based on field position
                 // Aim vector is field-relative
                 var robotRelativeYawRotations = getRobotRelativeYawSetpoint(aimVector);
 
+                // Prefer limelight-corrected yaw when available, fall back to field-oriented estimate
                 // TODO: Use robot-relative field target estimate as a reference point and reject limelight input if it deviates too far from this.
-                boolean correctionApplied = TurretMap.USE_LIMELIGHT_YAW_CORRECTION &&
-                        aimTurretYawUsingLimelight();
-
-                // Use robot-relative yaw estimate if no limelight correction was applied
-                if (!correctionApplied) {
-                    _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
+                var yawSetpointRotations = robotRelativeYawRotations;
+                boolean limelightCorrectionApplied = false;
+                if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
+                    var limelightCorrection = getLimelightYawCorrectionRotations();
+                    if (limelightCorrection.isPresent()) {
+                        yawSetpointRotations = limelightCorrection.get();
+                        limelightCorrectionApplied = true;
+                    }
                 }
+
+                _turret.controlYawAngle(Angle.ofBaseUnits(yawSetpointRotations, Rotations));
 
                 // Aim hood based on the pitch angle from the aim vector
                 var pitch = aimVector.getPitch();
                 _turret.controlHood(Angle.ofBaseUnits(pitch, Degrees));
+
+                // Update LED patterns based on auto-targeting state
+                updateAutoTargetingLEDs(limelightCorrectionApplied);
                 break;
             case STOPPED:
             default:
@@ -457,13 +461,49 @@ public class Turret extends LoggedSubsystem {
         var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
 
         if (TurretMap.YAW_DEADZONE_ENABLED) {
+            // Check if the unclamped setpoint would land in the dead zone
+            _yawSetpointInDeadZone = _deadZoneHelper.isInDeadZone(robotRelativeYawRotations);
+
             // Remap the desired setpoint so the turret never crosses the dead zone.
             robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(),
                     robotRelativeYawRotations);
+        } else {
+            _yawSetpointInDeadZone = false;
         }
 
         return robotRelativeYawRotations;
+    }
+
+    /**
+     * Updates the LED strip pattern to reflect the current auto-targeting state.
+     * <ul>
+     *   <li><b>Dead zone conflict</b> — red fast blink</li>
+     *   <li><b>All on-target with limelight correction</b> — green fast scroll up</li>
+     *   <li><b>All on-target without limelight (field-oriented only)</b> — blue fast scroll up</li>
+     *   <li><b>Shot calculated but not fully on-target</b> — yellow fast blink</li>
+     * </ul>
+     *
+     * @param limelightCorrectionApplied {@code true} if the yaw setpoint came from limelight correction
+     */
+    private void updateAutoTargetingLEDs(boolean limelightCorrectionApplied) {
+        if (SuperStructure.Turret.ShotCalculationState != LockOnState.SHOT_CALCULATED) {
+            return;
+        }
+
+        boolean allOnTarget = SuperStructure.Turret.FlywheelAtTargetSpeed
+                && SuperStructure.Turret.YawOnTarget
+                && SuperStructure.Turret.HoodOnTarget;
+
+        if (_yawSetpointInDeadZone) {
+            Container.LEDs.setAllSectionPatterns(LEDPatterns.RedFastBlink);
+        } else if (allOnTarget && limelightCorrectionApplied) {
+            Container.LEDs.setAllSectionPatterns(LEDPatterns.GreenScrollUpFast);
+        } else if (allOnTarget) {
+            Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueScrollUpFast);
+        } else {
+            Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowFastBlink);
+        }
     }
 
     /**
