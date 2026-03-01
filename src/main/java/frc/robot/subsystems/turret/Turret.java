@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
@@ -258,11 +259,10 @@ public class Turret extends LoggedSubsystem {
     private void actOnState(TurretInputsAutoLogged inputs) {
         var turretPose = getTurretPose();
 
-        // Override turret control if the robot is in a dead zone
-        if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
+        // Override turret control if the robot is in a dead zone and we're on the field
+        if (DriverStation.isFMSAttached() && FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
             _turret.controlHood(Angle.ofBaseUnits(0, Degrees));
             _turret.setFeederSpeed(0); // Set feed to 0
-            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
             resolveAutoTarget(turretPose); // Update logging with null target
         } else {
             if (inputs.TargetingState == TargetingState.AUTO) {
@@ -272,9 +272,11 @@ public class Turret extends LoggedSubsystem {
             }
 
             actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
-            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
             actOnFeedState(inputs.FeedState);
         }
+
+        // Still Control flywheel regardless
+        actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
     }
 
     /**
