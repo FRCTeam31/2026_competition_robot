@@ -6,7 +6,6 @@ import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.climb.Climb.ClimbControlState;
-import frc.robot.subsystems.climb.Climb.ClimbInversionState;
 import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
 import frc.robot.subsystems.climb.Climb.SupportState;
@@ -20,7 +19,7 @@ public class ClimbInputs {
     public SupportState SupportState = Climb.SupportState.RAISED;
     public FrictionBrakeState FrictionBrakeState = Climb.FrictionBrakeState.RELEASED;
     public ClimbControlState ClimbControlState = Climb.ClimbControlState.RESET;
-    public ClimbInversionState ClimbInversionState = Climb.ClimbInversionState.REGULAR_FUNCTION;
+    public boolean IsInverted = false;
 
     // Readings
     public boolean LowerLimitSwitch = true;

@@ -81,7 +81,7 @@ public class Container {
       // Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
-      // Climb = new Climb();
+      Climb = new Climb();
       Turret = new Turret();
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
