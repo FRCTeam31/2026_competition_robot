@@ -248,7 +248,7 @@ public class Container {
   }
 
   public static Command toggleClimbArmOn() {
-    return Commands.runOnce(() -> SuperStructure.Climb.supportState = SupportState.RAISED);
+    return Commands.runOnce(() -> SuperStructure.Climb.SupportState = SupportState.RAISED);
   }
 
   // public static Command toggleIntakeOff() {
