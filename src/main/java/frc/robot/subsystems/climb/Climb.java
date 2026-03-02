@@ -71,22 +71,24 @@ public class Climb extends LoggedSubsystem {
      */
     private void actOnState(ClimbInputsAutoLogged inputs) {
         // Motor control
-        var brakeReleased = inputs.FrictionBrakeState == FrictionBrakeState.RELEASED;
-
-        if (!brakeReleased) {
-            // Never drive the motor while the brake is applied
-            _climb.stopClimb();
-        } else if (inputs.ClimbState == ClimbState.UP) {
-            _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
-        } else if (inputs.ClimbState == ClimbState.DOWN) {
-            _climb.setClimbPosition(ClimbMap.RETRACTED_ROTATIONS);
-        } else {
-            _climb.stopClimb();
-        }
 
         // Zero the encoder when the limit switch is pressed, regardless of climb state
         if (inputs.LowerLimitSwitch) {
+            _climb.stopClimb(); // Ensure we don't try to drive into the limit switch on the next cycle
             _climb.zeroEncoder();
+        } else {
+            var brakeReleased = inputs.FrictionBrakeState == FrictionBrakeState.RELEASED;
+
+            if (!brakeReleased) {
+                // Never drive the motor while the brake is applied
+                _climb.stopClimb();
+            } else if (inputs.ClimbState == ClimbState.UP) {
+                _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
+            } else if (inputs.ClimbState == ClimbState.DOWN) {
+                _climb.setClimbPosition(ClimbMap.RETRACTED_ROTATIONS);
+            } else {
+                _climb.stopClimb();
+            }
         }
 
         // Solenoid control
