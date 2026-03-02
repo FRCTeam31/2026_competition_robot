@@ -5,17 +5,14 @@ import frc.robot.Robot;
 
 /**
  * Simulation implementation of the Climb subsystem IO.
- * Models motor position with friction brake lockout and limit switch triggering at bounds.
+ * Models MAXMotion position control by moving toward a target position each timestep.
  */
 public class ClimbSim implements IClimb {
 
-    // Simulated position bounds
-    private static final double MAX_POSITION = 1.0; // Adjust to match physical range
-    private static final double MIN_POSITION = 0.0;
-
     // Simulated device state
-    private double _motorSpeed = 0;
+    private double _targetRotations = 0;
     private double _motorPosition = 0;
+    private boolean _isStopped = true;
     private boolean _lowerLimitSwitch = false;
     private DoubleSolenoid.Value _frictionBrakeState = DoubleSolenoid.Value.kOff;
     @SuppressWarnings("unused")
@@ -25,28 +22,30 @@ public class ClimbSim implements IClimb {
     }
 
     /**
-     * Advances the simulation by one timestep. Only moves the motor if the
-     * friction brake is not engaged. Clamps position and triggers limit switches.
-     *
-     * @param timestepSeconds the simulation timestep (typically 0.02s)
+     * Advances the simulation by one timestep. Moves toward the target position
+     * at the configured cruise velocity, unless the friction brake is engaged.
      */
     private void updateSimulation(double timestepSeconds) {
-        // Only allow motor to run if friction brake is not engaged
-        if (_frictionBrakeState != DoubleSolenoid.Value.kForward) {
-            _motorPosition += _motorSpeed * timestepSeconds;
+        // Don't move if stopped or friction brake is engaged
+        if (_isStopped || _frictionBrakeState == DoubleSolenoid.Value.kForward) {
+            return;
         }
 
-        // Clamp position and trigger limit switches
-        if (_motorPosition >= MAX_POSITION) {
-            _motorPosition = MAX_POSITION;
-        }
+        // Simulate movement toward target at cruise velocity
+        double error = _targetRotations - _motorPosition;
+        double maxStep = ClimbMap.MAX_MOTION_MAX_VELOCITY * timestepSeconds;
 
-        if (_motorPosition <= MIN_POSITION) {
-            _motorPosition = MIN_POSITION;
-            _lowerLimitSwitch = true;
+        if (Math.abs(error) <= maxStep) {
+            _motorPosition = _targetRotations;
         } else {
-            _lowerLimitSwitch = false;
+            _motorPosition += Math.signum(error) * maxStep;
         }
+
+        // Clamp to soft limits
+        _motorPosition = Math.max(ClimbMap.REVERSE_SOFT_LIMIT, Math.min(ClimbMap.FORWARD_SOFT_LIMIT, _motorPosition));
+
+        // Trigger lower limit switch near home
+        _lowerLimitSwitch = _motorPosition <= ClimbMap.RETRACTED_ROTATIONS;
     }
 
     @Override
@@ -54,15 +53,18 @@ public class ClimbSim implements IClimb {
         updateSimulation(Robot.defaultPeriodSecs);
 
         inputs.LowerLimitSwitch = _lowerLimitSwitch;
-
-        // Assuming _motorPosition is in rotations, will need to be changed if not
-        inputs.DistanceExtended = ClimbMap.CLIMB_PULLEY_RADIUS
-                .times(_motorPosition * Math.PI * 2 / ClimbMap.CLIMB_MOTOR_GEAR_RATIO);
+        inputs.MotorRotations = _motorPosition;
     }
 
     @Override
-    public void controlClimb(double speed) {
-        _motorSpeed = speed;
+    public void setClimbPosition(double rotations) {
+        _targetRotations = rotations;
+        _isStopped = false;
+    }
+
+    @Override
+    public void stopClimb() {
+        _isStopped = true;
     }
 
     @Override

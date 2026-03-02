@@ -1,7 +1,5 @@
 package frc.robot.subsystems.climb;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -11,7 +9,8 @@ import frc.robot.SuperStructure;
 
 /**
  * Climb subsystem responsible for raising and lowering the robot's climbing mechanism.
- * Manages the climb motor, support solenoid, and friction brake solenoid.
+ * Uses MAXMotion position control for the climb motor, and manages the support
+ * solenoid and friction brake solenoid.
  */
 public class Climb extends LoggedSubsystem {
 
@@ -65,38 +64,28 @@ public class Climb extends LoggedSubsystem {
     // #region Private Methods
 
     /**
-     * Stops the climb motor and sets the climb state to STOPPED.
-     */
-    private void stopClimber() {
-        SuperStructure.Climb.ClimbState = ClimbState.STOPPED;
-        _climb.controlClimb(0);
-    }
-
-    /**
      * Acts on the current climb state to control the motor, support solenoid, and friction brake.
+     * The motor uses MAXMotion position control — UP goes to full extension, DOWN goes to home.
      *
      * @param inputs The current climb inputs from {@link SuperStructure}
      */
     private void actOnState(ClimbInputsAutoLogged inputs) {
         // Motor control
-        var atUpperLimit = Math.abs(ClimbMap.MAX_CLIMB_EXTENSION.in(Meters)
-                - inputs.DistanceExtended.in(Meters)) <= ClimbMap.CLIMB_AT_SETPOINT_ERROR.in(Meters);
-        var atLowerLimit = inputs.LowerLimitSwitch;
         var brakeReleased = inputs.FrictionBrakeState == FrictionBrakeState.RELEASED;
 
         if (!brakeReleased) {
             // Never drive the motor while the brake is applied
-            stopClimber();
-        } else if (inputs.ClimbState == ClimbState.UP && !atUpperLimit) {
-            _climb.controlClimb(ClimbMap.MAX_CLIMB_MOTOR_PERCENT_OUT);
-        } else if (inputs.ClimbState == ClimbState.DOWN && !atLowerLimit) {
-            _climb.controlClimb(-ClimbMap.MAX_CLIMB_MOTOR_PERCENT_OUT);
+            _climb.stopClimb();
+        } else if (inputs.ClimbState == ClimbState.UP) {
+            _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
+        } else if (inputs.ClimbState == ClimbState.DOWN) {
+            _climb.setClimbPosition(ClimbMap.RETRACTED_ROTATIONS);
         } else {
-            stopClimber();
+            _climb.stopClimb();
         }
 
         // Zero the encoder when the limit switch is pressed, regardless of climb state
-        if (atLowerLimit) {
+        if (inputs.LowerLimitSwitch) {
             _climb.zeroEncoder();
         }
 
