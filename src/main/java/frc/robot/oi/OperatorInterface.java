@@ -17,6 +17,8 @@ import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.Container;
 import frc.robot.Container.IntakeCombinedState;
 import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.Climb.ClimbState;
+import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
@@ -62,14 +64,14 @@ public class OperatorInterface {
                 // // TODO: Figure out why the rumble is not WORKING
                 // // TODO: Test full commands
                 // // TODO: Add distance checks to climb
-                DriverController.start().and(DriverController.pov(Controls.up))
-                                .onTrue(Container.setupClimb()); //.andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.left))
-                                .onTrue(Container.startClimbing()); //.andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.down))
-                                .onTrue(Container.stopClimbing()); //.andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.right))
-                                .onTrue(Container.resetRobotAfterClimb()); //.andThen(rumbleControllerShort(DriverController)));
+                // DriverController.start().and(DriverController.pov(Controls.up))
+                //                 .onTrue(Container.setupClimb()); //.andThen(rumbleControllerShort(DriverController)));
+                // DriverController.start().and(DriverController.pov(Controls.left))
+                //                 .onTrue(Container.startClimbing()); //.andThen(rumbleControllerShort(DriverController)));
+                // DriverController.start().and(DriverController.pov(Controls.down))
+                //                 .onTrue(Container.stopClimbing()); //.andThen(rumbleControllerShort(DriverController)));
+                // DriverController.start().and(DriverController.pov(Controls.right))
+                //                 .onTrue(Container.resetRobotAfterClimb()); //.andThen(rumbleControllerShort(DriverController)));
 
                 // DriverController.x().and(DriverController.pov(Controls.up))
                 //                 .onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
@@ -85,11 +87,11 @@ public class OperatorInterface {
                 // These commands are for testing the functionality of specific subsystems. When using, comment out
                 // all other driver controls and uncomment the controls for the subsystem below that you would like to test.
 
-                DriverController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
-                DriverController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                // DriverController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                // DriverController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
-                DriverController.b().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
-                DriverController.b().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                // DriverController.b().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
+                // DriverController.b().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // DriverController.a().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
                 // DriverController.a().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
@@ -103,8 +105,21 @@ public class OperatorInterface {
                 // DriverController.a().onTrue(Container.Climb.setSupport(SupportState.RAISED));
                 // DriverController.b().onTrue(Container.Climb.setSupport(SupportState.LOWERED));
 
-                DriverController.a().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
-                DriverController.b().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
+                // -- CLIMB TEST COMMANDS --
+
+                // Use these to manually test climb functionality before moving on to combined Commands
+                // After all subsystems arer shown to work, test the normal combined climb Commands
+
+                DriverController.a().onTrue(Container.Climb.setClimb(ClimbState.UP));
+                DriverController.a().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
+
+                DriverController.b().onTrue(Container.Climb.setClimb(ClimbState.DOWN));
+                DriverController.b().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
+
+                DriverController.x().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
+                DriverController.y().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
+
+                // -------------------------
 
                 // DriverController.a().onTrue(
                 //                 Commands.runOnce(() -> _currentTurretAngleTEST.plus(Angle.ofBaseUnits(10, Degrees)))
