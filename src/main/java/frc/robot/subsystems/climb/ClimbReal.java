@@ -1,89 +1,93 @@
 package frc.robot.subsystems.climb;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
-import org.prime.control.ExtendedPIDConstants;
 
+/**
+ * Real hardware implementation of the Climb subsystem IO.
+ * Controls a SparkFlex motor with MAXMotion position control,
+ * two double solenoids (friction brake and support), and a digital limit switch.
+ */
 public class ClimbReal implements IClimb {
 
-    private TalonFX _climbMotor;
+    // Devices
+    private SparkFlex _climbMotor;
+    private SparkClosedLoopController _closedLoopController;
     private DoubleSolenoid _frictionBrakeSolenoid;
     private DoubleSolenoid _supportSolenoid;
-
-    private DigitalInput _upperLimitSwitch;
-    private DigitalInput _lowerLimitSwitch;
+    private DigitalInput _limitSwitch;
 
     public ClimbReal() {
-        configureClimbMotor(ClimbMap.CLIMB_MOTOR_PID);
+        configureClimbMotor();
 
         _frictionBrakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
-                Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FrictionBrakeForwardChannel,
-                ClimbMap.FrictionBrakeReverseChannel);
+                Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FRICTION_BRAKE_FORWARD_CHANNEL,
+                ClimbMap.FRICTION_BRAKE_REVERSE_CHANNEL);
 
         _supportSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.SUPPORT_FORWARD_CHANNEL,
                 ClimbMap.SUPPORT_REVERSE_CHANNEL);
 
-        _upperLimitSwitch = new DigitalInput(ClimbMap.UPPER_LIMIT_SWITCH_CHANNEL);
-        _lowerLimitSwitch = new DigitalInput(ClimbMap.LOWER_LIMIT_SWITCH_CHANNEL);
+        _limitSwitch = new DigitalInput(ClimbMap.LIMIT_SWITCH_CHANNEL);
     }
 
-    public void configureClimbMotor(ExtendedPIDConstants pid) {
-        _climbMotor = new TalonFX(ClimbMap.CLIMB_MOTOR_CANID);
-        TalonFXConfiguration config = new TalonFXConfiguration();
+    /** Configures the SparkFlex climb motor with MAXMotion position control, soft limits, and current limits. */
+    private void configureClimbMotor() {
+        _climbMotor = new SparkFlex(ClimbMap.CLIMB_MOTOR_CANID, MotorType.kBrushless);
+        var config = new SparkFlexConfig();
+        var pid = ClimbMap.CLIMB_PID;
 
-        // TODO: Configure climb motor
+        config.inverted(ClimbMap.CLIMB_MOTOR_INVERTED);
+        config.idleMode(IdleMode.kBrake);
+        config.smartCurrentLimit(70, 60);
 
-        config.MotorOutput.Inverted = ClimbMap.CLIMB_MOTOR_INVERTED
-                ? InvertedValue.CounterClockwise_Positive
-                : InvertedValue.Clockwise_Positive;
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        // PID + feedforward for position control
+        config.closedLoop.pid(pid.kP, pid.kI, pid.kD);
+        config.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
 
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 80; // TODO: Determine
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 60; // TODO: Determine
+        // MAXMotion configuration for smooth position control
+        config.closedLoop.maxMotion
+                .cruiseVelocity(ClimbMap.MAX_MOTION_MAX_VELOCITY)
+                .maxAcceleration(ClimbMap.MAX_MOTION_MAX_ACCELERATION)
+                .allowedProfileError(ClimbMap.MAX_MOTION_ALLOWED_ERROR);
 
-        config.Voltage.PeakForwardVoltage = 12;
-        config.Voltage.PeakReverseVoltage = -12;
+        // Soft limits to prevent the motor from over-extending or over-retracting
+        config.softLimit
+                .forwardSoftLimit(ClimbMap.FORWARD_SOFT_LIMIT)
+                .forwardSoftLimitEnabled(true)
+                .reverseSoftLimit(ClimbMap.REVERSE_SOFT_LIMIT)
+                .reverseSoftLimitEnabled(true);
 
-        config.Feedback.SensorToMechanismRatio = ClimbMap.CLIMB_MOTOR_GEAR_RATIO;
-        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
+        _climbMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        _climbMotor.clearFaults();
 
-        Slot0Configs slot0 = new Slot0Configs();
-        slot0.kP = pid.kP;
-        slot0.kI = pid.kI;
-        slot0.kD = pid.kD;
-        slot0.kS = pid.kS;
-        slot0.kV = pid.kV;
-        slot0.kA = pid.kA;
-        config.Slot0 = slot0;
-
-        config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ClimbMap.CLIMB_MOTOR_RAMP_PERIOD;
-
-        config.HardwareLimitSwitch.ForwardLimitEnable = false;
-        config.HardwareLimitSwitch.ReverseLimitEnable = false;
-
-        _climbMotor.getConfigurator().apply(config);
-        _climbMotor.clearStickyFaults();
+        _closedLoopController = _climbMotor.getClosedLoopController();
     }
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {
-        inputs.upperLimitSwitch = _upperLimitSwitch.get();
-        inputs.lowerLimitSwitch = _lowerLimitSwitch.get();
+        inputs.LowerLimitSwitch = _limitSwitch.get();
+        inputs.MotorRotations = _climbMotor.getEncoder().getPosition();
     }
 
     @Override
-    public void controlClimb(double speed) {
-        _climbMotor.set(speed);
+    public void setClimbPosition(double rotations) {
+        _closedLoopController.setSetpoint(rotations, ControlType.kMAXMotionPositionControl);
+    }
+
+    @Override
+    public void stopClimb() {
+        _climbMotor.stopMotor();
     }
 
     @Override
@@ -96,4 +100,8 @@ public class ClimbReal implements IClimb {
         _frictionBrakeSolenoid.set(value);
     }
 
+    @Override
+    public void zeroEncoder() {
+        _climbMotor.getEncoder().setPosition(0);
+    }
 }

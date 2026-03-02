@@ -1,17 +1,20 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Robot;
+import frc.robot.SuperStructure;
+
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Robot;
 
@@ -41,6 +44,14 @@ public class TurretSim implements ITurret {
     private double _flywheelVoltage = 0;
     private double _yawVoltage = 0;
 
+    // Stored setpoints for on-target calculations
+    private double _targetFlywheelVelocityRPS = 0;
+    private double _targetYawDegrees = 0;
+    private double _targetHoodDegrees = 0;
+
+    // PID Controllers
+    private PIDController _hoodController;
+
     // Simulated turret motion constants
     private static final double TURRET_CRUISE_VELOCITY_RPS = 100.0 / TurretMap.TURRET_GEAR_RATIO;
     private static final double TURRET_ACCELERATION_RPS2 = 200.0 / TurretMap.TURRET_GEAR_RATIO;
@@ -57,6 +68,8 @@ public class TurretSim implements ITurret {
                         1),
                 DCMotor.getNeo550(1),
                 0, 0);
+
+        _hoodController = TurretMap.HOOD_PID.createPIDController(Robot.defaultPeriodSecs);
     }
 
     /**
@@ -153,32 +166,41 @@ public class TurretSim implements ITurret {
                 _hoodMotor.getAngularPosition().in(Radians) * TurretMap.HOOD_GEAR_RADIUS.in(Meters),
                 Radians // Check units
         );
+
+        // Compute on-target flags
+        double flywheelToleranceRPS = _targetFlywheelVelocityRPS
+                * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
+        inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RotationsPerSecond)
+                - _targetFlywheelVelocityRPS) <= flywheelToleranceRPS;
+        inputs.YawOnTarget = Math.abs(inputs.TurretRotation.getDegrees()
+                - _targetYawDegrees) <= TurretMap.YAW_ON_TARGET_TOLERANCE_DEGREES;
+        inputs.HoodOnTarget = Math.abs(inputs.HoodAngle.in(Degrees)
+                - _targetHoodDegrees) <= TurretMap.HOOD_ON_TARGET_TOLERANCE_DEGREES;
     }
 
     @Override
-    public void controlFlywheel(ControlRequest request) {
-        // Extract the target velocity from known velocity control request types.
-        // For unrecognized types, the flywheel velocity is left unchanged.
-        if (request instanceof VelocityVoltage velocityRequest) {
-            _flywheelVelocityRPS = velocityRequest.Velocity;
-        }
+    public void controlFlywheel(AngularVelocity velocity) {
+        _targetFlywheelVelocityRPS = velocity.in(RotationsPerSecond);
+        _flywheelVelocityRPS = _targetFlywheelVelocityRPS;
     }
 
     @Override
-    public void controlYaw(ControlRequest request) {
-        // Extract the target position from known position control request types.
-        if (request instanceof MotionMagicVoltage motionMagicRequest) {
-            _turretTargetPositionRotations = motionMagicRequest.Position;
-            _isManualControl = false;
-        } else if (request instanceof DutyCycleOut dutyCycleRequest) {
-            _turretManualSpeed = dutyCycleRequest.Output;
-            _isManualControl = true;
-        }
+    public void controlYawAngle(Angle angle) {
+        _targetYawDegrees = angle.in(Degrees);
+        _turretTargetPositionRotations = angle.in(Rotations);
+        _isManualControl = false;
     }
 
     @Override
-    public void controlHood(double percentOut) {
-        _hoodMotor.setAngularVelocity(percentOut * TurretMap.HOOD_SIM_MAX_SPEED.magnitude());
+    public void setYawPercentOut(double percentOut) {
+        _turretManualSpeed = percentOut;
+    }
+
+    @Override
+    public void controlHood(Angle angle) {
+        _targetHoodDegrees = angle.in(Degrees);
+        var output = _hoodController.calculate(SuperStructure.Turret.HoodAngle.in(Degrees), _targetHoodDegrees);
+        _hoodMotor.setInputVoltage(output);
     }
 
     @Override
@@ -198,5 +220,15 @@ public class TurretSim implements ITurret {
         _yawVoltage = volts;
         _turretManualSpeed = volts / 12.0;
         _isManualControl = true;
+    }
+
+    @Override
+    public void setHoodPercentOut(double percentOut) {
+        _hoodMotor.setAngularVelocity(percentOut * TurretMap.HOOD_SIM_MAX_SPEED.in(RadiansPerSecond));
+    }
+
+    @Override
+    public void setYawSensorPosition(Angle position) {
+        _turretPositionRotations = position.in(Rotations);
     }
 }

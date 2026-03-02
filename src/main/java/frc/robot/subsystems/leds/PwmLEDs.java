@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.leds;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,14 +21,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class PwmLEDs extends SubsystemBase {
-    public static class LEDMap {
-        public static final int PwmPort = 9;
-        public static final int PixelsPerSection = 8;
-        public static final int SectionCount = 4;
-        public static final int TotalPixels = PixelsPerSection * SectionCount;
-        public static final int MaxLoopErrorsBeforeShutdown = 3;
-    }
-
     private final ScheduledExecutorService _updateLoopExecutor = Executors.newScheduledThreadPool(1);
     private AddressableLED _led;
     private AddressableLEDBuffer _ledBuffer;

@@ -1,36 +1,41 @@
 package frc.robot.pneumatics;
 
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.PneumaticsControlModule;
+import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.Robot;
 
 public class Pneumatics {
-    private PneumaticsControlModule _pcm;
+    private PneumaticHub _pcm;
     private Compressor _compressor;
 
     public Pneumatics() {
         if (Robot.isReal()) {
-            _pcm = new PneumaticsControlModule(PneumaticsMap.PCMCanID);
-            _compressor = new Compressor(PneumaticsMap.PCMCanID, PneumaticsMap.PCMType);
+            _pcm = new PneumaticHub(PneumaticsMap.PCM_CAN_ID);
+            _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
 
-            _compressor.enableDigital();
+            // TODO: Check these values
+            _compressor.enableHybrid(70, 120);
         }
     }
 
-    public PneumaticsControlModule getPneumaticsControlModule() {
+    public PneumaticHub getPneumaticsControlModule() {
         return _pcm;
     }
 
     public Integer getPneumaticsControlModuleId() {
-        return PneumaticsMap.PCMCanID;
+        return PneumaticsMap.PCM_CAN_ID;
     }
 
     public PneumaticsModuleType getPneumaticsControlModuleType() {
-        return PneumaticsMap.PCMType;
+        return PneumaticsModuleType.REVPH;
     }
 
     public Compressor getCompressor() {
         return _compressor;
+    }
+
+    public double getSystemPressure() {
+        return _pcm.getPressure(PneumaticsMap.PRESSURE_SENSOR_CHANNEL);
     }
 }

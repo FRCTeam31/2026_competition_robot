@@ -189,6 +189,7 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Processes vision estimations when within a certain velocity threshold
    */
+  @SuppressWarnings("unused")
   private void processVisionEstimations() {
     // (1 rad/s is about 60 degrees/s)
     var currentRotationalVelocity = RadiansPerSecond
@@ -205,7 +206,11 @@ public class Swerve extends LoggedSubsystem {
       return;
     }
 
-    // evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    if (SuperStructure.VisionLimelights.containsKey(VisionMap.LimelightTurretName)
+        && SwerveMap.USE_LIMELIGHT_POSE_ESTIMATION) {
+      evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    }
+
     if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
       evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
     }
@@ -214,7 +219,6 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  @SuppressWarnings("unused")
   private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)

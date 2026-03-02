@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 @SuppressWarnings("unused")
 public class HopperSim implements IHopper {
 
-    private DoubleSolenoid.Value _hopperState = DoubleSolenoid.Value.kOff;
     private DoubleSolenoid.Value _intakeState = DoubleSolenoid.Value.kOff;
 
     private double _feedRollersSpeed = 0;
@@ -17,11 +16,6 @@ public class HopperSim implements IHopper {
     @Override
     public void updateInputs(HopperInputsAutoLogged inputs) {
         // Mirror any logged inputs here if fields are added to HopperInputsAutoLogged
-    }
-
-    @Override
-    public void setHopper(DoubleSolenoid.Value value) {
-        _hopperState = value;
     }
 
     @Override

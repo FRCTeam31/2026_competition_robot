@@ -7,19 +7,20 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
 
 public class HopperReal implements IHopper {
-    private DoubleSolenoid _hopperSolenoid;
     private DoubleSolenoid _intakeSolenoid;
-    private SparkFlex _feedRollersSparkFlex;
+    private SparkFlex _upperFeedSparkFlex;
+    private SparkFlex _lowerFeedSparkFlex;
     private SparkFlex _intakeFeedSparkFlex;
 
     public HopperReal() {
-        _hopperSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
-                Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.HopperForwardChannel,
-                HopperMap.HopperReverseChannel);
         _intakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), HopperMap.IntakeForwardChannel,
                 HopperMap.IntakeReverseChannel);
-        _feedRollersSparkFlex = new SparkFlex(HopperMap.CANID, MotorType.kBrushless);
+
+        _upperFeedSparkFlex = new SparkFlex(HopperMap.UPPER_FEED_CAN_ID, MotorType.kBrushless);
+        _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
+
+        _intakeFeedSparkFlex = new SparkFlex(HopperMap.INTAKE_CAN_ID, MotorType.kBrushless);
     }
 
     @Override
@@ -28,18 +29,15 @@ public class HopperReal implements IHopper {
     }
 
     @Override
-    public void setHopper(DoubleSolenoid.Value value) {
-        _hopperSolenoid.set(value);
-    }
-
-    @Override
     public void setFeedSpeed(double speed) {
-        _feedRollersSparkFlex.set(speed);
+        _upperFeedSparkFlex.set(speed);
+        _lowerFeedSparkFlex.set(speed);
     }
 
     @Override
     public void feedStop() {
-        _feedRollersSparkFlex.stopMotor();
+        _upperFeedSparkFlex.stopMotor();
+        _lowerFeedSparkFlex.stopMotor();
     }
 
     @Override
