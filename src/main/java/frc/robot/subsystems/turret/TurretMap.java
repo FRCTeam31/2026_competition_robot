@@ -30,11 +30,12 @@ public class TurretMap {
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final boolean YAW_DEADZONE_ENABLED = true;
         public static final boolean USE_LIMELIGHT_TARGETING = false;
+        public static final boolean USE_LIMELIGHT_YAW_CORRECTION = false;
 
         // ──────────────────────── Turret Yaw ────────────────────────────
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
-        public static final double TURRET_GEAR_RATIO = 10;
+        public static final double TURRET_GEAR_RATIO = 200;
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
         public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 100; // sensor units per 100ms // TODO: Tune
         public static final double YAW_MOTION_MAGIC_ACCELERATION = 200; // sensor units per 100ms per second // TODO: Tune
