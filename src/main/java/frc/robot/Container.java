@@ -93,8 +93,8 @@ public class Container {
       // NamedCommands.registerCommands(Swerve.getNamedCommands());
 
       // Build an auto chooser. This will use Commands.none() as the default option.
-      // AutoChooser = AutoBuilder.buildAutoChooser();
-      // SmartDashboard.putData("Auto Chooser", AutoChooser);
+      AutoChooser = AutoBuilder.buildAutoChooser();
+      AutoDashboardSection.putData("Auto Chooser", AutoChooser);
     } catch (Exception e) {
       DriverStation.reportError("[ERROR] >> Failed to initialize Container: " + e.getMessage(), e.getStackTrace());
     }
