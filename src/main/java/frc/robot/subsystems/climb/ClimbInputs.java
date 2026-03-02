@@ -1,26 +1,23 @@
 package frc.robot.subsystems.climb;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import org.littletonrobotics.junction.AutoLog;
 
-import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.climb.Climb.ClimbControlState;
-import frc.robot.subsystems.climb.Climb.ClimbInversionState;
 import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
 import frc.robot.subsystems.climb.Climb.SupportState;
 
+/** AdvantageKit-logged inputs for the Climb subsystem. */
 @AutoLog
 public class ClimbInputs {
+
     // States
-    public Climb.ClimbState climbState = ClimbState.STOPPED;
-    public Climb.SupportState supportState = SupportState.RAISED;
-    public Climb.FrictionBrakeState frictionBrakeState = FrictionBrakeState.RELEASED;
-    public Climb.ClimbControlState climbControlState = ClimbControlState.RESET;
-    public Climb.ClimbInversionState climbInversionState = ClimbInversionState.REGULAR_FUNCTION;
+    public ClimbState ClimbState = Climb.ClimbState.STOPPED;
+    public SupportState SupportState = Climb.SupportState.RAISED;
+    public FrictionBrakeState FrictionBrakeState = Climb.FrictionBrakeState.RELEASED;
+    public ClimbControlState ClimbControlState = Climb.ClimbControlState.RESET;
 
     // Readings
-    public boolean loweredLimitSwitch = true;
-    public Distance climberExtension = Distance.ofBaseUnits(0, Meters);
+    public boolean LowerLimitSwitch = true;
+    public double MotorRotations = 0;
 }
