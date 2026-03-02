@@ -70,25 +70,24 @@ public class Climb extends LoggedSubsystem {
      * @param inputs The current climb inputs from {@link SuperStructure}
      */
     private void actOnState(ClimbInputsAutoLogged inputs) {
-        // Motor control
-
         // Zero the encoder when the limit switch is pressed, regardless of climb state
         if (inputs.LowerLimitSwitch) {
-            _climb.stopClimb(); // Ensure we don't try to drive into the limit switch on the next cycle
             _climb.zeroEncoder();
-        } else {
-            var brakeReleased = inputs.FrictionBrakeState == FrictionBrakeState.RELEASED;
+        }
 
-            if (!brakeReleased) {
-                // Never drive the motor while the brake is applied
-                _climb.stopClimb();
-            } else if (inputs.ClimbState == ClimbState.UP) {
-                _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
-            } else if (inputs.ClimbState == ClimbState.DOWN) {
-                _climb.setClimbPosition(ClimbMap.RETRACTED_ROTATIONS);
-            } else {
-                _climb.stopClimb();
-            }
+        // Motor control
+        var brakeReleased = inputs.FrictionBrakeState == FrictionBrakeState.RELEASED;
+
+        if (!brakeReleased) {
+            // Never drive the motor while the brake is applied
+            _climb.stopClimb();
+        } else if (inputs.ClimbState == ClimbState.UP) {
+            _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
+        } else if (inputs.ClimbState == ClimbState.DOWN && !inputs.LowerLimitSwitch) {
+            // Only allow downward movement if the limit switch is not pressed
+            _climb.setClimbPosition(ClimbMap.RETRACTED_ROTATIONS);
+        } else {
+            _climb.stopClimb();
         }
 
         // Solenoid control
