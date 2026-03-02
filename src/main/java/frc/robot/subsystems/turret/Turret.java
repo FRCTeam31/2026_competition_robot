@@ -1,7 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import java.util.function.DoubleSupplier;
-
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
@@ -101,10 +99,6 @@ public class Turret extends LoggedSubsystem {
     private final MutVector _mutNominalTargetVector = new MutVector();
     private final MutVector _mutRobotVelocityVector = new MutVector();
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
-
-    // Manual Control Suppliers
-    private DoubleSupplier _yawSupplier;
-    private DoubleSupplier _pitchSupplier;
 
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
@@ -234,24 +228,6 @@ public class Turret extends LoggedSubsystem {
                 new Rotation3d(SuperStructure.Turret.TurretRotation));
 
         return robotPose.plus(turretTransform);
-    }
-
-    /**
-     * Sets the supplier used to read manual yaw input from the operator controller.
-     *
-     * @param supplier A {@link DoubleSupplier} providing yaw input in the range [-1, 1]
-     */
-    public void setYawSupplier(DoubleSupplier supplier) {
-        _yawSupplier = supplier;
-    }
-
-    /**
-     * Sets the supplier used to read manual pitch/hood input from the operator controller.
-     *
-     * @param supplier A {@link DoubleSupplier} providing pitch input in the range [-1, 1]
-     */
-    public void setPitchSupplier(DoubleSupplier supplier) {
-        _pitchSupplier = supplier;
     }
 
     /**

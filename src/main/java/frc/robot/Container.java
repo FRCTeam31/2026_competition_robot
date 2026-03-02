@@ -64,7 +64,7 @@ public class Container {
   public static void initialize() {
     try {
       // Create dashboard sections
-      // AutoDashboardSection = new DashboardSection("Auto");
+      AutoDashboardSection = new DashboardSection("Auto");
       // TeleopDashboardSection = new TeleopDashboardTab();
       // CommandsDashboardSection = new DashboardSection("Commands");
       // TestDashboardSection = new DashboardSection("Test");
