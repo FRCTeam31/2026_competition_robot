@@ -148,7 +148,7 @@ public class Container {
   }
 
   public static Command setupClimb() {
-    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_IN_PROGRESS)
+    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.SETUP_IN_PROGRESS)
         .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         .andThen(Climb.setClimb(ClimbState.UP))
@@ -160,9 +160,9 @@ public class Container {
         // Time for intake to fully raise
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setSupport(SupportState.LOWERED))
-        .andThen(Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.SETUP_DONE))
+        .andThen(Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.SETUP_DONE))
         .andThen(OperatorInterface.rumbleControllerShort(OperatorInterface.DriverController))
-        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.RESET)
+        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.RESET)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
@@ -172,12 +172,12 @@ public class Container {
    * @return Command
    */
   public static Command startClimbing() {
-    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_UP)
+    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_UP)
         // Wait until climb is fully lowered
-        .andThen(Commands.waitUntil(() -> SuperStructure.Climb.loweredLimitSwitch))
+        .andThen(Commands.waitUntil(() -> SuperStructure.Climb.LowerLimitSwitch))
         .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
-        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.HAS_CLIMBED)
-        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.HAS_CLIMBED)
+        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.SETUP_DONE)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
@@ -187,13 +187,13 @@ public class Container {
    * @return Command
    */
   public static Command stopClimbing() {
-    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DOWN)
+    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_DOWN)
         .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
         // Time for brake to fully release
         .andThen(Commands.waitSeconds(1))
         .andThen(Climb.setClimb(ClimbState.UP))
-        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.CLIMBING_DONE)
-        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.HAS_CLIMBED)
+        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_DONE)
+        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.HAS_CLIMBED)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
@@ -203,14 +203,14 @@ public class Container {
    * @return Command
    */
   public static Command resetRobotAfterClimb() {
-    return Commands.runOnce(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESETTING)
+    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.RESETTING)
         .andThen(Climb.setSupport(SupportState.RAISED))
         // Time for support to fully raise
         .andThen(Commands.waitSeconds(1))
         .andThen(homeRobotCommand())
-        .andThen(() -> SuperStructure.Climb.climbControlState = ClimbControlState.RESET)
-        .onlyIf(() -> SuperStructure.Climb.climbControlState == ClimbControlState.CLIMBING_DONE ||
-            SuperStructure.Climb.climbControlState == ClimbControlState.SETUP_DONE)
+        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.RESET)
+        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.CLIMBING_DONE ||
+            SuperStructure.Climb.ClimbControlState == ClimbControlState.SETUP_DONE)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
   //#endregion

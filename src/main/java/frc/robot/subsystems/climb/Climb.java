@@ -1,40 +1,46 @@
 package frc.robot.subsystems.climb;
 
-import edu.wpi.first.wpilibj2.command.Command;
-
 import static edu.wpi.first.units.Units.Meters;
 
 import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
+/**
+ * Climb subsystem responsible for raising and lowering the robot's climbing mechanism.
+ * Manages the climb motor, support solenoid, and friction brake solenoid.
+ * Uses {@link BooleanEvent}s to handle limit switch and setpoint safety stops.
+ */
 public class Climb extends LoggedSubsystem {
-    private IClimb _climb;
 
+    // #region Enums
+
+    /** Represents the desired direction of the climb motor. */
     public enum ClimbState {
         UP,
         STOPPED,
         DOWN
     }
 
+    /** Represents the desired state of the support solenoid. */
     public enum SupportState {
         RAISED,
         LOWERED
     }
 
+    /** Represents the desired state of the friction brake solenoid. */
     public enum FrictionBrakeState {
         APPLIED,
         RELEASED
     }
 
     /**
-     * Represents the current state in the
-     * climbing process used to restrict climb
-     * commands from running out of order or
-     * at the same time
+     * Represents the current state in the climbing process.
+     * Used to restrict climb commands from running out of order or at the same time.
      */
     public enum ClimbControlState {
         RESET,
@@ -47,14 +53,23 @@ public class Climb extends LoggedSubsystem {
         CLIMBING_DONE
     }
 
+    /** Tracks whether the climb motor direction has become inverted relative to commanded direction. */
     public enum ClimbInversionState {
         REGULAR_FUNCTION,
         HAS_BECOME_INVERTED
     }
 
-    // BooleanEvents
+    // #endregion
+
+    // #region Fields
+
+    private IClimb _climb;
     private BooleanEvent _limitSwitchRising;
     private BooleanEvent _climbAtSetpointRising;
+
+    // #endregion
+
+    // #region Constructor
 
     public Climb() {
         setName("Climb");
@@ -66,24 +81,32 @@ public class Climb extends LoggedSubsystem {
         setupClimbAtSetpointBooleanEvent();
     }
 
+    // #endregion
+
+    // #region Private Methods
+
+    /**
+     * Configures the limit switch {@link BooleanEvent} to stop the climber and
+     * detect motor inversion when the limit switch transitions from unpressed to pressed.
+     */
     private void setupLimitSwitchBooleanEvent() {
         // May need to add a short debounce to this if we notice the limit switch getting untriggered,
         // then immediately triggered again when down
-        _limitSwitchRising = new BooleanEvent(Robot.EventLoop, () -> SuperStructure.Climb.loweredLimitSwitch).rising();
+        _limitSwitchRising = new BooleanEvent(Robot.EventLoop, () -> SuperStructure.Climb.LowerLimitSwitch).rising();
 
         // Triggers when the limit switch goes from false (unpressed) to true (pressed)
         // Prevents the climber from being stopped when moving away from the limit switch or ignoring the limit switch when
         // unexpectedly moving inversely of commanded
         _limitSwitchRising.ifHigh(() -> {
             // Stop the climber
-            SuperStructure.Climb.climbState = ClimbState.STOPPED;
+            SuperStructure.Climb.ClimbState = ClimbState.STOPPED;
             _climb.controlClimb(0);
 
-            var climbingUp = SuperStructure.Climb.climbState == ClimbState.UP;
-            var climbingDown = SuperStructure.Climb.climbState == ClimbState.DOWN;
+            var climbingUp = SuperStructure.Climb.ClimbState == ClimbState.UP;
+            var climbingDown = SuperStructure.Climb.ClimbState == ClimbState.DOWN;
 
-            var regularFunction = SuperStructure.Climb.climbInversionState == ClimbInversionState.REGULAR_FUNCTION;
-            var invertedFunction = SuperStructure.Climb.climbInversionState == ClimbInversionState.HAS_BECOME_INVERTED;
+            var regularFunction = SuperStructure.Climb.ClimbInversionState == ClimbInversionState.REGULAR_FUNCTION;
+            var invertedFunction = SuperStructure.Climb.ClimbInversionState == ClimbInversionState.HAS_BECOME_INVERTED;
 
             // The limit switch has become pressed when the climb should be moving upwards
             // Has become inverted
@@ -94,49 +117,59 @@ public class Climb extends LoggedSubsystem {
             var climbingDownWrongly = climbingDown && invertedFunction;
 
             if (climbingUpWrongly) {
-                SuperStructure.Climb.climbInversionState = ClimbInversionState.HAS_BECOME_INVERTED;
+                SuperStructure.Climb.ClimbInversionState = ClimbInversionState.HAS_BECOME_INVERTED;
             } else if (climbingDownWrongly) {
-                SuperStructure.Climb.climbInversionState = ClimbInversionState.REGULAR_FUNCTION;
+                SuperStructure.Climb.ClimbInversionState = ClimbInversionState.REGULAR_FUNCTION;
             }
         });
     }
 
+    /**
+     * Configures the setpoint {@link BooleanEvent} to stop the climber when
+     * the extension is within a preset range of the maximum extension.
+     */
     private void setupClimbAtSetpointBooleanEvent() {
         // Check how far the climb is from maximum extension, triggering if within a preset range
         _climbAtSetpointRising = new BooleanEvent(Robot.EventLoop, () -> {
-            var error = ClimbMap.MAX_CLIMB_EXTENSION.in(Meters) - SuperStructure.Climb.climberExtension.in(Meters);
+            var error = ClimbMap.MAX_CLIMB_EXTENSION.in(Meters) - SuperStructure.Climb.DistanceExtended.in(Meters);
             return Math.abs(error) <= ClimbMap.CLIMB_AT_SETPOINT_ERROR.in(Meters);
         });
 
         // Stop the climber if near the max extension, will be a lot faster to tune than PID and should be reliable enough
         _climbAtSetpointRising.ifHigh(() -> {
-            SuperStructure.Climb.climbState = ClimbState.STOPPED;
+            SuperStructure.Climb.ClimbState = ClimbState.STOPPED;
             _climb.controlClimb(0);
         });
     }
 
+    /**
+     * Acts on the current climb state to control the motor, support solenoid, and friction brake.
+     * Handles inversion correction, limit switch safety, and encoder zeroing.
+     *
+     * @param inputs The current climb inputs from {@link SuperStructure}
+     */
     private void actOnState(ClimbInputsAutoLogged inputs) {
 
-        var inversionCorrectionSign = inputs.climbInversionState == ClimbInversionState.HAS_BECOME_INVERTED ? -1 : 1;
+        var inversionCorrectionSign = inputs.ClimbInversionState == ClimbInversionState.HAS_BECOME_INVERTED ? -1 : 1;
 
-        var climbingUp = inputs.climbState == ClimbState.UP;
-        var climbingDown = inputs.climbState == ClimbState.DOWN;
+        var climbingUp = inputs.ClimbState == ClimbState.UP;
+        var climbingDown = inputs.ClimbState == ClimbState.DOWN;
 
-        var regularFunction = inputs.climbInversionState == ClimbInversionState.REGULAR_FUNCTION;
-        var invertedFunction = inputs.climbInversionState == ClimbInversionState.HAS_BECOME_INVERTED;
+        var regularFunction = inputs.ClimbInversionState == ClimbInversionState.REGULAR_FUNCTION;
+        var invertedFunction = inputs.ClimbInversionState == ClimbInversionState.HAS_BECOME_INVERTED;
 
-        var limitSwitchPressed = inputs.loweredLimitSwitch;
+        var limitSwitchPressed = inputs.LowerLimitSwitch;
 
         var climbingDownWrongly = climbingDown && limitSwitchPressed && regularFunction;
         var climbingUpWrongly = climbingUp && limitSwitchPressed && invertedFunction;
 
         if (climbingDownWrongly || climbingUpWrongly) {
-            SuperStructure.Climb.climbState = ClimbState.STOPPED;
+            SuperStructure.Climb.ClimbState = ClimbState.STOPPED;
             _climb.controlClimb(0);
 
             // Ensure the friction brake is not applied before moving the climber
-        } else if (inputs.frictionBrakeState == FrictionBrakeState.RELEASED) {
-            switch (inputs.climbState) {
+        } else if (inputs.FrictionBrakeState == FrictionBrakeState.RELEASED) {
+            switch (inputs.ClimbState) {
                 case UP:
                     _climb.controlClimb(ClimbMap.MAX_CLIMB_MOTOR_PERCENT_OUT * inversionCorrectionSign
                             * (ClimbMap.CLIMB_MOTOR_INVERTED ? -1 : 1));
@@ -152,7 +185,7 @@ public class Climb extends LoggedSubsystem {
             }
         } else {
             // Default to a speed of 0 and set the state to STOPPED when above "if" statements are false
-            SuperStructure.Climb.climbState = ClimbState.STOPPED;
+            SuperStructure.Climb.ClimbState = ClimbState.STOPPED;
             _climb.controlClimb(0);
         }
 
@@ -161,15 +194,19 @@ public class Climb extends LoggedSubsystem {
             _climb.zeroEncoder();
         }
 
-        _climb.controlSupport(inputs.supportState == SupportState.RAISED
+        _climb.controlSupport(inputs.SupportState == SupportState.RAISED
                 ? DoubleSolenoid.Value.kReverse
                 : DoubleSolenoid.Value.kForward);
 
-        _climb.controlFrictionBrake(inputs.frictionBrakeState == FrictionBrakeState.APPLIED
+        _climb.controlFrictionBrake(inputs.FrictionBrakeState == FrictionBrakeState.APPLIED
                 ? DoubleSolenoid.Value.kForward
                 : DoubleSolenoid.Value.kReverse);
 
     }
+
+    // #endregion
+
+    // #region Periodic
 
     @Override
     public void periodic() {
@@ -179,33 +216,38 @@ public class Climb extends LoggedSubsystem {
         actOnState(SuperStructure.Climb);
     }
 
+    // #endregion
+
     // #region Commands
 
     /**
-     * Sets the climb motor state
+     * Sets the climb motor state.
+     *
      * @param state The desired climb state (UP, DOWN, STOPPED)
      * @return Command to set the state
      */
     public Command setClimb(ClimbState state) {
-        return this.runOnce(() -> SuperStructure.Climb.climbState = state);
+        return this.runOnce(() -> SuperStructure.Climb.ClimbState = state);
     }
 
     /**
-     * Sets the support solenoid state
+     * Sets the support solenoid state.
+     *
      * @param state The desired support state (RAISED, LOWERED)
      * @return Command to set the state
      */
     public Command setSupport(SupportState state) {
-        return this.runOnce(() -> SuperStructure.Climb.supportState = state);
+        return this.runOnce(() -> SuperStructure.Climb.SupportState = state);
     }
 
     /**
-     * Sets the friction brake state
+     * Sets the friction brake state.
+     *
      * @param state The desired brake state (APPLIED, RELEASED)
      * @return Command to set the state
      */
     public Command setBrake(FrictionBrakeState state) {
-        return this.runOnce(() -> SuperStructure.Climb.frictionBrakeState = state);
+        return this.runOnce(() -> SuperStructure.Climb.FrictionBrakeState = state);
     }
 
     // #endregion

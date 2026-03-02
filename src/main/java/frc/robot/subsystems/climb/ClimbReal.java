@@ -4,28 +4,32 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
 
+/**
+ * Real hardware implementation of the Climb subsystem IO.
+ * Controls a SparkFlex motor, two double solenoids (friction brake and support),
+ * and a digital limit switch.
+ */
 public class ClimbReal implements IClimb {
 
     // Devices
     private SparkFlex _climbMotor;
     private DoubleSolenoid _frictionBrakeSolenoid;
     private DoubleSolenoid _supportSolenoid;
-
     private DigitalInput _limitSwitch;
 
     public ClimbReal() {
         configureClimbMotor();
 
         _frictionBrakeSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
-                Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FrictionBrakeForwardChannel,
-                ClimbMap.FrictionBrakeReverseChannel);
+                Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.FRICTION_BRAKE_FORWARD_CHANNEL,
+                ClimbMap.FRICTION_BRAKE_REVERSE_CHANNEL);
 
         _supportSolenoid = new DoubleSolenoid(Container.Pneumatics.getPneumaticsControlModuleId(),
                 Container.Pneumatics.getPneumaticsControlModuleType(), ClimbMap.SUPPORT_FORWARD_CHANNEL,
@@ -34,15 +38,14 @@ public class ClimbReal implements IClimb {
         _limitSwitch = new DigitalInput(ClimbMap.LIMIT_SWITCH_CHANNEL);
     }
 
-    public void configureClimbMotor() {
+    /** Configures the SparkFlex climb motor with brake mode and current limits. */
+    private void configureClimbMotor() {
         _climbMotor = new SparkFlex(ClimbMap.CLIMB_MOTOR_CANID, MotorType.kBrushless);
         SparkFlexConfig config = new SparkFlexConfig();
 
         config.inverted(ClimbMap.CLIMB_MOTOR_INVERTED);
         config.idleMode(IdleMode.kBrake);
-
         config.smartCurrentLimit(70, 60);
-
         config.closedLoopRampRate(ClimbMap.CLIMB_MOTOR_RAMP_PERIOD);
 
         _climbMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -51,8 +54,8 @@ public class ClimbReal implements IClimb {
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {
-        inputs.loweredLimitSwitch = _limitSwitch.get();
-        inputs.climberExtension = ClimbMap.CLIMB_PULLEY_RADIUS
+        inputs.LowerLimitSwitch = _limitSwitch.get();
+        inputs.DistanceExtended = ClimbMap.CLIMB_PULLEY_RADIUS
                 .times(_climbMotor.getEncoder().getPosition() * Math.PI * 2 / ClimbMap.CLIMB_MOTOR_GEAR_RATIO);
     }
 
@@ -75,5 +78,4 @@ public class ClimbReal implements IClimb {
     public void zeroEncoder() {
         _climbMotor.getEncoder().setPosition(0);
     }
-
 }

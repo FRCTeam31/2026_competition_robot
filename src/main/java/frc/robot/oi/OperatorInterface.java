@@ -17,6 +17,7 @@ import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.Container;
 import frc.robot.Container.IntakeCombinedState;
 import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
