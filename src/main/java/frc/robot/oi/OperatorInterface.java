@@ -43,8 +43,7 @@ public class OperatorInterface {
                 OperatorController = new SupplierXboxController(Controls.OPERATOR_PORT);
         }
 
-        public void bindDriverControls(Swerve swerve, LimelightVision vision, Turret turret, Climb climb,
-                        Hopper hopper) {
+        public void bindDriverControls() {
                 // var controlProfile = DriverController.getSwerveControlProfile(
                 //                 OIMap.DefaultDriveControlStyle,
                 //                 SwerveMap.Control.DriveDeadband,
@@ -133,8 +132,7 @@ public class OperatorInterface {
 
         }
 
-        public void bindOperatorControls(Swerve swerve, LimelightVision vision, Turret turret, Climb climb,
-                        Hopper hopper) {
+        public void bindOperatorControls() {
                 // Changes the vision mode for the turret limelight. 
                 // OperatorController.start()
                 //                 .onTrue(vision.setProcessingPipeline(VisionMap.LimelightTurretName, 1))

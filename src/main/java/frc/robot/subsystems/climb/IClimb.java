@@ -13,11 +13,16 @@ public interface IClimb {
     public void updateInputs(ClimbInputsAutoLogged inputs);
 
     /**
-     * Sets the climb motor speed.
+     * Commands the climb motor to a position setpoint using MAXMotion.
      *
-     * @param speed Percent output in the range [-1, 1]
+     * @param rotations The target position in motor rotations
      */
-    public void controlClimb(double speed);
+    public void setClimbPosition(double rotations);
+
+    /**
+     * Stops the climb motor and holds the current position.
+     */
+    public void stopClimb();
 
     /**
      * Sets the support solenoid state.

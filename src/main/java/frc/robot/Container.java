@@ -83,10 +83,11 @@ public class Container {
       Hopper = new Hopper();
       Climb = new Climb();
       Turret = new Turret();
+
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
-      OperatorInterface.bindDriverControls(Swerve, LimelightVision, Turret, Climb, Hopper);
-      // OperatorInterface.bindOperatorControls(Swerve, LimelightVision, Turret, Climb, Hopper);
+      OperatorInterface.bindDriverControls();
+      OperatorInterface.bindOperatorControls();
 
       // Register the named commands from each subsystem that may be used in PathPlanner
       // NamedCommands.registerCommands(Swerve.getNamedCommands());
