@@ -115,6 +115,20 @@ public class TurretMap {
         public static final double MAX_FEED_PERCENT_OUT = 0.4;
         public static final double FEEDER_VELOCITY_CONVERSION_FACTOR = 1.0;
 
+        // ──────────────────────── Manual Mode Steps ──────────────────────
+        /** Amount to adjust the flywheel speed per button press in MANUAL mode (RPS) */
+        public static final double MANUAL_FLYWHEEL_STEP_RPS = 2.0;
+        /** Amount to adjust the hood angle per button press in MANUAL mode (degrees) */
+        public static final double MANUAL_HOOD_STEP_DEGREES = 1.0;
+        /** Amount to adjust the turret yaw per button press in MANUAL mode (degrees) */
+        public static final double MANUAL_YAW_STEP_DEGREES = 5.0;
+
+        // ──────────────────────── Home Positions ─────────────────────────
+        /** Yaw home position in degrees (180° = straight back) */
+        public static final double YAW_HOME_DEGREES = 180.0;
+        /** Hood home angle in degrees (fully up / hood lowered) */
+        public static final double HOOD_HOME_DEGREES = HOOD_MAX_ANGLE_DEGREES;
+
         // ──────────────────────── Shot Targeting ─────────────────────────
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
         public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
