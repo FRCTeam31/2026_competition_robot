@@ -510,10 +510,11 @@ public class Turret extends LoggedSubsystem {
     /**
      * Updates LED patterns based on the current operating mode and firing state.
      * <ul>
-     *   <li><b>AUTO + FIRING + all on-target</b>: green fast scroll (shooting!)</li>
+     *   <li><b>AUTO + FIRING + all on-target</b>: green two-tone fast (shooting!)</li>
+     *   <li><b>AUTO + FIRING + shot not calculable</b>: red quick flash (constraint failure)</li>
      *   <li><b>AUTO + FIRING + seeking</b>: yellow fast blink (locking on)</li>
      *   <li><b>AUTO + IDLE</b>: blue slow blink (ready, auto mode)</li>
-     *   <li><b>MANUAL + FIRING</b>: yellow fast scroll (manual shooting)</li>
+     *   <li><b>MANUAL + FIRING</b>: yellow two-tone fast (manual shooting)</li>
      *   <li><b>MANUAL + IDLE</b>: blue fast blink (ready, manual mode)</li>
      * </ul>
      */
@@ -523,10 +524,13 @@ public class Turret extends LoggedSubsystem {
 
         boolean firing = inputs.FiringState == FiringState.FIRING;
         boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        boolean shotFailed = inputs.ShotCalculationState == LockOnState.SHOT_NOT_CALCULATED;
 
         if (inputs.OperatingMode == OperatingMode.AUTO) {
             if (firing && allOnTarget) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.GreenScrollUpFast);
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.GreenTwoToneFast);
+            } else if (firing && shotFailed) {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.RedQuickFlash);
             } else if (firing) {
                 Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowFastBlink);
             } else {
@@ -534,7 +538,7 @@ public class Turret extends LoggedSubsystem {
             }
         } else { // MANUAL
             if (firing) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowScrollUpFast);
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowTwoToneFast);
             } else {
                 Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueFastBlink);
             }
