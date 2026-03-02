@@ -19,7 +19,6 @@ public class ClimbInputs {
     public SupportState SupportState = Climb.SupportState.RAISED;
     public FrictionBrakeState FrictionBrakeState = Climb.FrictionBrakeState.RELEASED;
     public ClimbControlState ClimbControlState = Climb.ClimbControlState.RESET;
-    public boolean IsInverted = false;
 
     // Readings
     public boolean LowerLimitSwitch = true;
