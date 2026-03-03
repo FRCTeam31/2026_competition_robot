@@ -7,6 +7,18 @@
         {
           "type": "path",
           "data": {
+            "pathName": "Hmidleftballsin"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "Hleftballsin"
           }
         },
@@ -19,7 +31,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 4.0
+            "waitTime": 0.5
           }
         },
         {
@@ -56,6 +68,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Left",
+  "folder": "Middle",
   "choreoAuto": false
 }

@@ -7,25 +7,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Hleftballsin"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CleftToLeftShoot"
+            "pathName": "Hrightballsout"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 4.0
+            "waitTime": 0.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "LeftShootToLeftSetup"
+            "pathName": "Hrightballsout"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CrightToRightShoot"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightShootToRightSetup"
           }
         },
         {
@@ -37,7 +49,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftSetupToClimb"
+            "pathName": "RightSetupToClimb"
           }
         },
         {
@@ -56,6 +68,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Left",
+  "folder": "Right",
   "choreoAuto": false
 }

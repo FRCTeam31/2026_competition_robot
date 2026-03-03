@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Hleftballsin"
+            "pathName": "Hmidrightballsin"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "CleftToLeftShoot"
+            "pathName": "CrightToRightShoot"
           }
         },
         {
@@ -25,7 +25,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftShootToLeftSetup"
+            "pathName": "RightShootToRightSetup"
           }
         },
         {
@@ -37,7 +37,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftSetupToClimb"
+            "pathName": "RightSetupToClimb"
           }
         },
         {
@@ -56,6 +56,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Left",
+  "folder": "Middle",
   "choreoAuto": false
 }

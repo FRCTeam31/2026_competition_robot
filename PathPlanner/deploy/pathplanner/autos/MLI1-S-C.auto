@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Hleftballsin"
+            "pathName": "Hmidleftballsin"
           }
         },
         {
@@ -56,6 +56,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Left",
+  "folder": "Middle",
   "choreoAuto": false
 }
