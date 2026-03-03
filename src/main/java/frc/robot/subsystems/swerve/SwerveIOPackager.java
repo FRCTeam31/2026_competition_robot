@@ -1,5 +1,8 @@
 package frc.robot.subsystems.swerve;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
@@ -42,6 +45,9 @@ public class SwerveIOPackager {
       new SwerveModuleInputsAutoLogged()
   };
 
+  // Create a new thread pool with a thread for each motor
+  private ExecutorService _configurationExecutorService = Executors.newFixedThreadPool(8);
+
   public SwerveIOPackager() {
     // Create kinematics in order FL, FR, RL, RR
     Kinematics = new SwerveDriveKinematics(SwerveMap.FrontLeftSwerveModule.ModuleLocation,
@@ -56,17 +62,20 @@ public class SwerveIOPackager {
     _gyro.updateInputs(_gyroInputs, 0);
 
     _frontLeftModule = isReal
-        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule)
+        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("FrontLeftModule", SwerveMap.FrontLeftSwerveModule);
     _frontRightModule = isReal
-        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule)
+        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("FrontRightModule", SwerveMap.FrontRightSwerveModule);
     _rearLeftModule = isReal
-        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule)
+        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("RearLeftModule", SwerveMap.RearLeftSwerveModule);
     _rearRightModule = isReal
-        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule)
+        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("RearRightModule", SwerveMap.RearRightSwerveModule);
+
+    System.out.println("Shutting down configuration thread pool, execution will end when all tasks close");
+    _configurationExecutorService.shutdown();
 
     // Create pose estimator
     m_poseEstimator = new SwerveDrivePoseEstimator(Kinematics, _gyroInputs.Rotation,

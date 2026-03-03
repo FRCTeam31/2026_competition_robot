@@ -34,7 +34,6 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
@@ -47,8 +46,8 @@ public class SwerveModuleReal implements ISwerveModule {
   private DashboardSection _dashboardSection;
   private final String _optimizeModuleKey = "Optimize";
 
-  // Created a fixed thread pool with 2 threads for swerve and drive setup
-  private ExecutorService _executorService = Executors.newFixedThreadPool(2);
+  // Configuration Thread Setup
+  private ExecutorService _executorService;
   private int _configurationAttempts = 5;
   private int _timeBetweenConfigurationAttemptsMs = 500;
 
@@ -68,19 +67,16 @@ public class SwerveModuleReal implements ISwerveModule {
   private final MotionMagicVoltage _steeringControl = new MotionMagicVoltage(0);
   private final VelocityVoltage _driveControl = new VelocityVoltage(0);
 
-  public SwerveModuleReal(String name, SwerveModuleMap moduleMap) {
+  public SwerveModuleReal(String name, SwerveModuleMap moduleMap, ExecutorService configurationService) {
     _name = name;
     _map = moduleMap;
+    _executorService = configurationService;
     _dashboardSection = new DashboardSection("Drive/" + _name);
     _dashboardSection.putBoolean(_optimizeModuleKey, true);
 
     setupCanCoder();
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
-
-    // Shutdown thread pool after motor configuration ends
-    System.out.println("Closing thread pool for module \"" + _name + ",\" execution will end when all tasks close");
-    _executorService.shutdown();
 
     BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
