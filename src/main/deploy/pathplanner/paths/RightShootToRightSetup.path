@@ -1,0 +1,59 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.406239620403322,
+        "y": 2.5986476868327397
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.156239649449222,
+        "y": 2.598527175632842
+      },
+      "isLocked": false,
+      "linkedName": "CSdown"
+    },
+    {
+      "anchor": {
+        "x": 0.48995555555555537,
+        "y": 2.5986476868327397
+      },
+      "prevControl": {
+        "x": 0.739955440231868,
+        "y": 2.5984075580539523
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "RightSetup"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.45,
+      "rotationDegrees": -90.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "reversed": false,
+  "folder": "ToClimb",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": true
+}
