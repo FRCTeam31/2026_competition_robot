@@ -44,12 +44,12 @@ public class OperatorInterface {
         }
 
         public void bindDriverControls() {
-                // var controlProfile = DriverController.getSwerveControlProfile(
-                //                 OIMap.DefaultDriveControlStyle,
-                //                 SwerveMap.Control.DriveDeadband,
-                //                 SwerveMap.Control.DeadbandCurveWeight);
+                var controlProfile = DriverController.getSwerveControlProfile(
+                                OIMap.DefaultDriveControlStyle,
+                                SwerveMap.Control.DriveDeadband,
+                                SwerveMap.Control.DeadbandCurveWeight);
 
-                // swerve.setDefaultCommand(swerve.driveFieldRelativeCommand(controlProfile));
+                Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
                 // DriverController.x()
                 //                 .onTrue(swerve.disableAutoAlignCommand());
@@ -99,11 +99,11 @@ public class OperatorInterface {
                 // DriverController.b().onTrue(Container.Hopper.setFeed(TransferFeedState.OUTWARDS));
                 // DriverController.b().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
-                DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
-                DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+                // DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
+                // DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
 
-                DriverController.b().onTrue(Container.Turret.setFeed(UptakeState.REVERSED));
-                DriverController.b().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+                // DriverController.b().onTrue(Container.Turret.setFeed(UptakeState.REVERSED));
+                // DriverController.b().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
 
                 // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
                 // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));

@@ -78,7 +78,7 @@ public class Container {
       // PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
       // PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
 
-      // Swerve = new Swerve();
+      Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
       Climb = new Climb();

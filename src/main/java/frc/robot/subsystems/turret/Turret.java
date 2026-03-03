@@ -334,6 +334,7 @@ public class Turret extends LoggedSubsystem {
      * are always applied. When FIRING, the feed motors run immediately
      * (no lock-on gating). When IDLE, feed is stopped.
      */
+    // TODO: Edited temp to prevent movement while testing
     private void actOnManualMode(TurretInputsAutoLogged inputs) {
         // Apply manual yaw setpoint (respecting dead zone)
         var manualYawRotations = _manualYawDegrees / 360.0;
@@ -341,21 +342,23 @@ public class Turret extends LoggedSubsystem {
             manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
         }
-        _turret.controlYawAngle(Angle.ofBaseUnits(manualYawRotations, Rotations));
+        // _turret.controlYawAngle(Angle.ofBaseUnits(manualYawRotations, Rotations));
 
         // Apply manual hood setpoint
-        _turret.controlHood(Angle.ofBaseUnits(_manualHoodDegrees, Degrees));
+        // _turret.controlHood(Angle.ofBaseUnits(_manualHoodDegrees, Degrees));
 
         // Apply manual flywheel speed
         _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
-        _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+        // _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
 
         // Feed: run immediately when firing, stop when idle
-        if (inputs.FiringState == FiringState.FIRING) {
-            actOnFeedState(inputs.FeedState);
-        } else {
-            _turret.setFeederSpeed(0);
-        }
+        // if (inputs.FiringState == FiringState.FIRING) {
+        //     actOnFeedState(inputs.FeedState);
+        // } else {
+        //     _turret.setFeederSpeed(0);
+        // }
+
+        actOnFeedState(inputs.FeedState);
 
         updateLEDs(inputs);
     }

@@ -27,8 +27,8 @@ public class ClimbMap {
     public static final float REVERSE_SOFT_LIMIT = -1; // Small margin past home to allow zeroing
 
     // Friction Brake Solenoid
-    public static final int FRICTION_BRAKE_FORWARD_CHANNEL = 9;
-    public static final int FRICTION_BRAKE_REVERSE_CHANNEL = 8;
+    public static final int FRICTION_BRAKE_FORWARD_CHANNEL = 8;
+    public static final int FRICTION_BRAKE_REVERSE_CHANNEL = 9;
 
     // Support Solenoid
     public static final int SUPPORT_FORWARD_CHANNEL = 7;

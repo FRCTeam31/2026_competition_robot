@@ -18,7 +18,8 @@ public class TurretInputs {
     public Angle HoodAngle = Angle.ofBaseUnits(0, Degrees);
 
     // Operating mode (persists across firing cycles)
-    public Turret.OperatingMode OperatingMode = Turret.OperatingMode.AUTO;
+    // TODO: Changed to prevent movement while testing
+    public Turret.OperatingMode OperatingMode = Turret.OperatingMode.MANUAL;
 
     // Firing state (ephemeral: FIRING while button held, IDLE when released)
     public Turret.FiringState FiringState = Turret.FiringState.IDLE;

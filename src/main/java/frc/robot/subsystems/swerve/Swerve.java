@@ -269,8 +269,9 @@ public class Swerve extends LoggedSubsystem {
     processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
-    Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-    Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
+    // TODO: Disabled Temp
+    // Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
+    // Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
 
     // Update LEDs
     recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
