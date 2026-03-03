@@ -36,8 +36,8 @@ import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 import frc.robot.subsystems.vision.photon.PhotonVision;
-import frc.robot.subsystems.turret.Turret.FlywheelState;
-import frc.robot.subsystems.turret.Turret.TargetingState;
+import frc.robot.subsystems.turret.Turret.FiringState;
+import frc.robot.subsystems.turret.Turret.OperatingMode;
 
 public class Container {
   public static TeleopDashboardTab TeleopDashboardSection;
@@ -64,7 +64,7 @@ public class Container {
   public static void initialize() {
     try {
       // Create dashboard sections
-      // AutoDashboardSection = new DashboardSection("Auto");
+      AutoDashboardSection = new DashboardSection("Auto");
       // TeleopDashboardSection = new TeleopDashboardTab();
       // CommandsDashboardSection = new DashboardSection("Commands");
       // TestDashboardSection = new DashboardSection("Test");
@@ -93,8 +93,8 @@ public class Container {
       // NamedCommands.registerCommands(Swerve.getNamedCommands());
 
       // Build an auto chooser. This will use Commands.none() as the default option.
-      // AutoChooser = AutoBuilder.buildAutoChooser();
-      // SmartDashboard.putData("Auto Chooser", AutoChooser);
+      AutoChooser = AutoBuilder.buildAutoChooser();
+      AutoDashboardSection.putData("Auto Chooser", AutoChooser);
     } catch (Exception e) {
       DriverStation.reportError("[ERROR] >> Failed to initialize Container: " + e.getMessage(), e.getStackTrace());
     }
@@ -103,21 +103,22 @@ public class Container {
   //#region Commands
 
   /**
-   * Enables the turret flywheel and sets its feed inwards
+   * Starts the turret firing sequence. In AUTO mode this triggers target-seeking;
+   * in MANUAL mode this immediately feeds.
    * @return Command
    */
   public static Command startShooting() {
-    return Turret.setFlywheel(FlywheelState.SHOOTING)
+    return Turret.setFiring(FiringState.FIRING)
         .andThen(Turret.setFeed(UptakeState.FORWARDS));
   }
 
   /**
-   * Stop the turret flywheel and feed
+   * Stops the turret firing and returns to idle
    * @return Command
    */
   public static Command stopShooting() {
     return Turret.setFeed(UptakeState.STOPPED)
-        .andThen(Turret.setFlywheel(FlywheelState.IDLE));
+        .andThen(Turret.setFiring(FiringState.IDLE));
   }
 
   /**
@@ -217,23 +218,23 @@ public class Container {
   //#endregion
 
   public static Command toggleShooterOn() {
-    return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.SHOOTING)
+    return Turret.setFiring(FiringState.FIRING)
         .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed &&
             SuperStructure.Turret.YawOnTarget &&
             SuperStructure.Turret.HoodOnTarget))
-        .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.FORWARDS)
+        .andThen(Turret.setFeed(UptakeState.FORWARDS))
         .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
   }
 
   public static Command toggleShooterOff() {
-    return Commands.runOnce(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE)
-        .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED)
+    return Turret.setFiring(FiringState.IDLE)
+        .andThen(Turret.setFeed(UptakeState.STOPPED))
         .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED);
   }
 
   public static Command startAuto() {
-    return Commands.runOnce(() -> SuperStructure.Turret.TargetingState = TargetingState.AUTO)
-        .andThen(() -> SuperStructure.Turret.FlywheelState = FlywheelState.IDLE);
+    return Turret.setOperatingMode(OperatingMode.AUTO)
+        .andThen(Turret.setFiring(FiringState.IDLE));
   }
 
   public static Command toggleIntakeOn() {
