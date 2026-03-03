@@ -95,8 +95,14 @@ public class OperatorInterface {
                 // DriverController.a().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
                 // DriverController.a().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
-                // DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
-                // DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+                // DriverController.b().onTrue(Container.Hopper.setFeed(TransferFeedState.OUTWARDS));
+                // DriverController.b().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
+
+                DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
+                DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+
+                DriverController.b().onTrue(Container.Turret.setFeed(UptakeState.REVERSED));
+                DriverController.b().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
 
                 // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
                 // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));
@@ -109,14 +115,14 @@ public class OperatorInterface {
                 // Use these to manually test climb functionality before moving on to combined Commands
                 // After all subsystems arer shown to work, test the normal combined climb Commands
 
-                DriverController.a().onTrue(Container.Climb.setClimb(ClimbState.UP));
-                DriverController.a().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
+                // DriverController.a().onTrue(Container.Climb.setClimb(ClimbState.UP));
+                // DriverController.a().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
 
-                DriverController.b().onTrue(Container.Climb.setClimb(ClimbState.DOWN));
-                DriverController.b().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
+                // DriverController.b().onTrue(Container.Climb.setClimb(ClimbState.DOWN));
+                // DriverController.b().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
 
-                DriverController.x().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
-                DriverController.y().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
+                // DriverController.x().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
+                // DriverController.y().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
 
                 // -------------------------
 

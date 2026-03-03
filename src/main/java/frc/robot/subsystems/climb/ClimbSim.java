@@ -81,4 +81,10 @@ public class ClimbSim implements IClimb {
     public void zeroEncoder() {
         _motorPosition = 0;
     }
+
+    @Override
+    public void setClimbPercentOut(double percentOut) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setClimbPercentOut'");
+    }
 }

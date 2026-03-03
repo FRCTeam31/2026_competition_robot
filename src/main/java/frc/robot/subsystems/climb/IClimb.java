@@ -40,4 +40,6 @@ public interface IClimb {
 
     /** Zeros the climb motor encoder position. */
     public void zeroEncoder();
+
+    public void setClimbPercentOut(double percentOut);
 }

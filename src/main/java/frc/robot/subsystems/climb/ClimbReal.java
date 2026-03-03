@@ -104,4 +104,9 @@ public class ClimbReal implements IClimb {
     public void zeroEncoder() {
         _climbMotor.getEncoder().setPosition(0);
     }
+
+    @Override
+    public void setClimbPercentOut(double percentOut) {
+        _climbMotor.set(percentOut);
+    }
 }

@@ -90,6 +90,21 @@ public class Climb extends LoggedSubsystem {
             _climb.stopClimb();
         }
 
+        // TEST COMMANDS
+        //
+        // if (!brakeReleased) {
+        //     // Never drive the motor while the brake is applied
+        //     _climb.stopClimb();
+        // } else if (inputs.ClimbState == ClimbState.UP) {
+        //     // _climb.setClimbPosition(ClimbMap.EXTENDED_ROTATIONS);
+        //     _climb.setClimbPercentOut(-0.5);
+        // } else if (inputs.ClimbState == ClimbState.DOWN) {
+        //     // Only allow downward movement if the limit switch is not pressed
+        //     _climb.setClimbPercentOut(0.5);
+        // } else {
+        //     _climb.stopClimb();
+        // }
+
         // Solenoid control
         _climb.controlSupport(inputs.SupportState == SupportState.RAISED
                 ? DoubleSolenoid.Value.kReverse
