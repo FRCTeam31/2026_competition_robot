@@ -1,7 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import java.util.function.DoubleSupplier;
-
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
@@ -9,6 +7,7 @@ import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -18,66 +17,60 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
+import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.vision.VisionMap;
 
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 /**
  * Turret subsystem responsible for aiming and shooting fuel into the hub.
- * Manages flywheel speed, yaw/pitch targeting, and the feeder uptake mechanism.
- * Uses {@link TurretUtilities} for projectile physics and sensor pose math.
+ * Supports two operating modes:
+ * <ul>
+ *   <li><b>AUTO</b> – Ballistics-based targeting. Holding the fire button seeks all
+ *       setpoints, waits for lock-on, then feeds. Releasing returns to home.</li>
+ *   <li><b>MANUAL</b> – Operator directly adjusts yaw, hood, and flywheel setpoints
+ *       via incremental commands. Fire button simply runs the feed motors.</li>
+ * </ul>
  */
 public class Turret extends LoggedSubsystem {
     private ITurret _turret;
     private final TurretDeadZoneHelper _deadZoneHelper;
 
-    /** Represents the desired operational state of the flywheel. */
-    public enum FlywheelState {
-        /** Flywheel spinning at a low idle speed, ready to ramp up quickly. */
-        IDLE,
-        /** Flywheel spinning at the calculated or manual target speed for shooting. */
-        SHOOTING,
-        /** Flywheel completely stopped (zero velocity). */
-        STOPPED
+    /** The turret's high-level operating mode, toggled by the operator. */
+    public enum OperatingMode {
+        /** Ballistics-driven auto-aim with lock-on gating before feeding. */
+        AUTO,
+        /** Operator controls all setpoints directly; fire button feeds immediately. */
+        MANUAL
     }
 
-    /** Represents the turret's yaw and pitch aiming mode. */
-    public enum TargetingState {
-        /** Operator controls yaw and pitch directly via joystick suppliers. */
-        MANUAL,
-        /** Turret automatically aims at the resolved field target using ballistics. */
-        AUTO,
-        /** All targeting outputs zeroed; turret holds position. */
-        STOPPED
+    /** Ephemeral firing state — active only while the fire button is held. */
+    public enum FiringState {
+        /** Not firing. In AUTO mode the turret returns to home position. */
+        IDLE,
+        /** Fire button held. In AUTO mode the turret seeks, locks on, then feeds. */
+        FIRING
     }
 
     /**
      * Tracks the progress of the turret's shot readiness pipeline.
-     * Each value represents one stage of the lock-on sequence.
      */
     public enum LockOnState {
-        /** Ballistics solution found -- a valid aim vector exists. */
+        /** Ballistics solution found — a valid aim vector exists. */
         SHOT_CALCULATED,
-        /** No valid ballistics solution (target too far, degenerate geometry, etc.). */
-        SHOT_NOT_CALCULATED,
-        /** Turret yaw is within tolerance of the calculated setpoint. */
-        YAW_LOCKED_ON,
-        /** Turret yaw has not yet converged on the calculated setpoint. */
-        YAW_NOT_LOCKED_ON,
-        /** Flywheel velocity is within tolerance of the target speed. */
-        FLYWHEEL_AT_SPEED,
-        /** Flywheel velocity has not yet reached the target speed. */
-        FLYWHEEL_NOT_AT_SPEED
+        /** No valid ballistics solution. */
+        SHOT_NOT_CALCULATED
     }
 
     /** Represents the direction of the feeder/uptake mechanism. */
@@ -90,8 +83,13 @@ public class Turret extends LoggedSubsystem {
         STOPPED
     }
 
-    // Manual Control
-    private double _manualFlywheelVelocityRPS;
+    // -------------------- Manual Setpoints --------------------------
+    private double _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+    private double _manualYawDegrees = TurretMap.YAW_HOME_DEGREES;
+    private double _manualHoodDegrees = TurretMap.HOOD_HOME_DEGREES;
+
+    // -------------------- Internal Tracking --------------------------
+    private double _targetFlywheelVelocityRPS = 0;
     private double _manualYawInput;
 
     // IDW Controller
@@ -102,16 +100,15 @@ public class Turret extends LoggedSubsystem {
     private final MutVector _mutRobotVelocityVector = new MutVector();
     private final MutVector _mutTurretTangentVelocityVector = new MutVector();
 
-    // Manual Control Suppliers
-    private DoubleSupplier _yawSupplier;
-    private DoubleSupplier _pitchSupplier;
-
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
     // SysId characterization routines
     private final SysIdRoutineHelper _flywheelSysId;
     private final SysIdRoutineHelper _yawSysId;
+
+    // Boolean Events
+    private BooleanEvent _turretYawResetSwitchEvent;
 
     private final double maxFeedInwardsPercentOut = (TurretMap.FEEDER_INVERTED ? -1 : 1)
             * TurretMap.MAX_FEED_PERCENT_OUT;
@@ -148,6 +145,12 @@ public class Turret extends LoggedSubsystem {
                         .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
                         .angularPosition(Units.Rotations.of(
                                 SuperStructure.Turret.TurretRotation.getRotations())));
+
+        _turretYawResetSwitchEvent = new BooleanEvent(Robot.EventLoop,
+                () -> SuperStructure.Turret.TurretRotationResetSwitch)
+                .debounce(0.5);
+
+        _turretYawResetSwitchEvent.ifHigh(() -> _turret.setYawSensorPosition(TurretMap.YAW_RESET_ANGLE));
     }
 
     /**
@@ -212,11 +215,11 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Computes the turret's field-relative 3D pose by applying its mounting offset
-     * and current rotation to the robot's estimated pose.
-     *
-     * @return The turret's pose in field coordinates
-     */
+    * Computes the turret's field-relative 3D pose by applying its mounting offset
+    * and current rotation to the robot's estimated pose.
+    *
+    * @return The turret's pose in field coordinates
+    */
     private Pose3d getTurretPose() {
         var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
 
@@ -228,60 +231,145 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Sets the supplier used to read manual yaw input from the operator controller.
-     *
-     * @param supplier A {@link DoubleSupplier} providing yaw input in the range [-1, 1]
-     */
-    public void setYawSupplier(DoubleSupplier supplier) {
-        _yawSupplier = supplier;
-    }
-
-    /**
-     * Sets the supplier used to read manual pitch/hood input from the operator controller.
-     *
-     * @param supplier A {@link DoubleSupplier} providing pitch input in the range [-1, 1]
-     */
-    public void setPitchSupplier(DoubleSupplier supplier) {
-        _pitchSupplier = supplier;
-    }
-
-    /**
-     * Master state dispatcher called each periodic cycle. Resolves the auto target
-     * and aim vector when in AUTO mode, then delegates to the targeting, flywheel,
-     * and feed state handlers.
+     * Master state dispatcher called each periodic cycle. Routes to either
+     * AUTO or MANUAL mode logic based on the current operating mode.
      *
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
-        var turretPose = getTurretPose();
-
-        // Override turret control if the robot is in a dead zone
-        if (FieldTargets.InDeadZone(SuperStructure.Swerve.EstimatedRobotPose)) {
-            _turret.controlHood(Angle.ofBaseUnits(0, Degrees));
-            _turret.setFeederSpeed(0); // Set feed to 0
-            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector); // Still Control flywheel
-            resolveAutoTarget(turretPose); // Update logging with null target
-        } else {
-            if (inputs.TargetingState == TargetingState.AUTO) {
-                var target = resolveAutoTarget(turretPose);
-
-                calculateTurretVectorFromRobotPose(target, turretPose);
-            }
-
-            actOnTargetingState(inputs.TargetingState, _mutNominalTargetVector);
-            actOnFlywheelState(inputs.FlywheelState, inputs.TargetingState, _mutNominalTargetVector);
-            actOnFeedState(inputs.FeedState);
+        switch (inputs.OperatingMode) {
+            case AUTO:
+                actOnAutoMode(inputs);
+                break;
+            case MANUAL:
+                actOnManualMode(inputs);
+                break;
         }
     }
 
+    // =========================== AUTO MODE ============================
+
+    /**
+     * AUTO mode logic. When FIRING:
+     * <ol>
+     *   <li>Resolve the field target and compute the ballistics solution</li>
+     *   <li>Seek yaw, hood, and flywheel to calculated setpoints</li>
+     *   <li>Once all three are on-target, start feeding fuel</li>
+     * </ol>
+     * When IDLE: return turret to home position, flywheel to idle speed, stop feeding.
+     */
+    private void actOnAutoMode(TurretInputsAutoLogged inputs) {
+        var turretPose = getTurretPose();
+        var target = resolveAutoTarget(turretPose); // Keep logging updated even when not firing
+
+        if (inputs.FiringState == FiringState.FIRING) {
+            // Step 1: Resolve target
+            if (target == null) {
+                goToHomePosition();
+                updateLEDs(inputs);
+                return;
+            }
+
+            // Step 2: Calculate ballistics and seek setpoints
+            calculateTurretVectorFromRobotPose(target, turretPose);
+
+            // Yaw
+            var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
+            boolean limelightCorrectionApplied = false;
+            if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
+                limelightCorrectionApplied = aimTurretYawUsingLimelight();
+            }
+            if (!limelightCorrectionApplied) {
+                _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
+            }
+
+            // Hood
+            var pitch = _mutNominalTargetVector.getPitch();
+            _turret.controlHood(Angle.ofBaseUnits(pitch, Degrees));
+
+            // Flywheel
+            var targetVelocity = _mutNominalTargetVector.getMagnitude();
+            _targetFlywheelVelocityRPS = _flywheelController.calculate(
+                    targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
+            _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+
+            // Step 3: Once locked on, feed
+            boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+            if (allOnTarget) {
+                actOnFeedState(inputs.FeedState);
+            } else {
+                _turret.setFeederSpeed(0);
+            }
+        } else {
+            // IDLE — return to home, flywheel to idle, stop feed
+            goToHomePosition();
+        }
+
+        updateLEDs(inputs);
+    }
+
+    /**
+     * Sends the turret to its home position: yaw to 180°, hood fully up (lowered),
+     * flywheel to idle speed, feed stopped.
+     */
+    private void goToHomePosition() {
+        var homeYawRotations = TurretMap.YAW_HOME_DEGREES / 360.0;
+        if (TurretMap.YAW_DEADZONE_ENABLED) {
+            homeYawRotations = _deadZoneHelper.computeLegalSetpoint(
+                    SuperStructure.Turret.TurretRotation.getRotations(), homeYawRotations);
+        }
+        _turret.controlYawAngle(Angle.ofBaseUnits(homeYawRotations, Rotations));
+        _turret.controlHood(Angle.ofBaseUnits(TurretMap.HOOD_HOME_DEGREES, Degrees));
+
+        _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+        _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+
+        _turret.setFeederSpeed(0);
+    }
+
+    // =========================== MANUAL MODE ==============================
+
+    /**
+     * MANUAL mode logic. The operator's stored setpoints (yaw, hood, flywheel)
+     * are always applied. When FIRING, the feed motors run immediately
+     * (no lock-on gating). When IDLE, feed is stopped.
+     */
+    // TODO: Edited temp to prevent movement while testing
+    private void actOnManualMode(TurretInputsAutoLogged inputs) {
+        // Apply manual yaw setpoint (respecting dead zone)
+        var manualYawRotations = _manualYawDegrees / 360.0;
+        if (TurretMap.YAW_DEADZONE_ENABLED) {
+            manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
+                    SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
+        }
+        // _turret.controlYawAngle(Angle.ofBaseUnits(manualYawRotations, Rotations));
+
+        // Apply manual hood setpoint
+        // _turret.controlHood(Angle.ofBaseUnits(_manualHoodDegrees, Degrees));
+
+        // Apply manual flywheel speed
+        _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
+        // _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+
+        // Feed: run immediately when firing, stop when idle
+        // if (inputs.FiringState == FiringState.FIRING) {
+        //     actOnFeedState(inputs.FeedState);
+        // } else {
+        //     _turret.setFeederSpeed(0);
+        // }
+
+        actOnFeedState(inputs.FeedState);
+
+        updateLEDs(inputs);
+    }
+
+    // =========================== SHARED HELPERS ===========================
+
     /**
      * Resolves the target position for auto-aiming and logs the predicted projectile trajectory.
-     * Uses the passing position if the robot is in the neutral zone, otherwise targets the hub.
-     * The trajectory is computed using the current aim vector and projectile motion equations,
-     * then recorded as an array of {@link Pose3d} for visualization in AdvantageScope.
      *
      * @param turretPose The turret's field-relative 3D pose, used as the trajectory origin
-     * @return The resolved target {@link Pose3d} (hub or passing position)
+     * @return The resolved target {@link Pose3d}, or null if in a dead zone
      */
     private Pose3d resolveAutoTarget(Pose3d turretPose) {
         var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
@@ -302,31 +390,24 @@ public class Turret extends LoggedSubsystem {
         double initialY = turretPose.getY();
         double initialZ = turretPose.getZ();
 
-        // Calculate total flight time from horizontal distance and horizontal speed
         double horizontalSpeed = Math.hypot(velocityX, velocityY);
         double deltaX = target.targetPose().getX() - initialX;
         double deltaY = target.targetPose().getY() - initialY;
         double distance = Math.hypot(deltaX, deltaY);
         double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
 
-        var timeStep = 0.05; // seconds
+        var timeStep = 0.05;
         int numPoints = (int) (totalTime / timeStep) + 1;
         Pose3d[] trajectory = new Pose3d[numPoints];
 
         for (int i = 0; i < numPoints; i++) {
             double t = (numPoints > 1) ? totalTime * i / (numPoints - 1) : 0;
-
-            // Projectile motion equations
             double x = initialX + velocityX * t;
             double y = initialY + velocityY * t;
             double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
-
-            // Calculate velocity direction for orientation
             double vx = velocityX;
             double vy = velocityY;
             double vz = velocityZ - GRAVITY * t;
-
-            // Create rotation based on velocity direction
             double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
             double yaw = Math.atan2(vy, vx);
 
@@ -341,13 +422,11 @@ public class Turret extends LoggedSubsystem {
 
     /**
      * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
-     * @param limelightInputs
      * @return true if correction was applied, false otherwise
      */
     private boolean aimTurretYawUsingLimelight() {
         var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
 
-        // Only correct when targeting the hub
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
         if (!isTargetingHub) {
@@ -368,69 +447,10 @@ public class Turret extends LoggedSubsystem {
         double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
 
         _turret.controlYawAngle(Angle.ofBaseUnits(correctedPositionRotations, Rotations));
-
         return true;
     }
 
-    /**
-     * Controls turret yaw and hood based on the current targeting state.
-     * When the dead zone is enabled, all yaw commands are routed through
-     * {@link TurretDeadZoneHelper} so the turret never travels through
-     * the forbidden arc.
-     * 
-     * @param targetingState The current targeting mode (MANUAL, AUTO, or STOPPED)
-     * @param aimVector The calculated aim vector (only used in AUTO mode, may be null otherwise)
-     */
-    private void actOnTargetingState(TargetingState targetingState, MutVector aimVector) {
-        switch (targetingState) {
-            // TODO: Implement pitch control once CAD finalizes turret
-            case MANUAL:
-                var manualInput = TurretMap.YAW_MAX_MANUAL_PERCENT_OUT * _yawSupplier.getAsDouble();
-
-                if (TurretMap.YAW_DEADZONE_ENABLED) {
-                    // If the turret is in the dead zone and the input would drive it
-                    // deeper in, block the input. Always allow rotating OUT.
-                    if (_deadZoneHelper.shouldBlockManualInput(
-                            SuperStructure.Turret.TurretRotation.getRotations(),
-                            manualInput)) {
-                        manualInput = 0;
-                    }
-                }
-
-                _turret.setYawPercentOut(manualInput);
-
-                // TODO: Limit hood motion based on current angle and max/min angle
-                _turret.setHoodPercentOut(TurretMap.PITCH_MAX_MANUAL_PERCENT_OUT * _pitchSupplier.getAsDouble()); // <hood pitch implementation>
-                break;
-            case AUTO:
-                // Calculate the yaw base on field position
-                // Aim vector is field-relative
-                var robotRelativeYawRotations = getRobotRelativeYawSetpoint(aimVector);
-
-                // TODO: Use robot-relative field target estimate as a reference point and reject limelight input if it deviates too far from this.
-                boolean correctionApplied = TurretMap.UPDATE_LIMELIGHT_POSE &&
-                        aimTurretYawUsingLimelight();
-
-                // Use robot-relative yaw estimate if no limelight correction was applied
-                if (!correctionApplied) {
-                    _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
-                }
-
-                // Aim hood based on the pitch angle from the aim vector
-                var pitch = aimVector.getPitch();
-                _turret.controlHood(Angle.ofBaseUnits(pitch, Degrees));
-                break;
-            case STOPPED:
-            default:
-                _turret.controlFlywheel(AngularVelocity.ofBaseUnits(0, RotationsPerSecond));
-                _turret.controlYawAngle(Angle.ofBaseUnits(0, Rotations));
-                break;
-        }
-    }
-
     private double getRobotRelativeYawSetpoint(MutVector aimVector) {
-        // aimVector.getYaw() is field-relative (degrees), but the turret motor
-        // position is robot-relative. Subtract the robot's heading to convert.
         var fieldYawDeg = aimVector.getYaw();
         fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
 
@@ -438,7 +458,6 @@ public class Turret extends LoggedSubsystem {
         var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
 
         if (TurretMap.YAW_DEADZONE_ENABLED) {
-            // Remap the desired setpoint so the turret never crosses the dead zone.
             robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(),
                     robotRelativeYawRotations);
@@ -448,41 +467,7 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Controls the flywheel based on the current flywheel state and targeting mode.
-     * 
-     * @param flywheelState The desired flywheel behavior (IDLE, SHOOTING, or STOPPED)
-     * @param targetingState The current targeting mode, used to determine manual vs auto speed
-     * @param aimVector The calculated aim vector for deriving auto flywheel speed (may be null)
-     */
-    private void actOnFlywheelState(FlywheelState flywheelState, TargetingState targetingState, MutVector aimVector) {
-        switch (flywheelState) {
-            case IDLE:
-                _turret.controlFlywheel(TurretMap.FLYWHEEL_IDLE_VELOCITY);
-                break;
-            case STOPPED:
-                _turret.controlFlywheel(AngularVelocity.ofBaseUnits(0, RotationsPerSecond));
-                break;
-            case SHOOTING:
-                if (targetingState == TargetingState.MANUAL) {
-                    _turret.controlFlywheel(
-                            AngularVelocity.ofBaseUnits(_manualFlywheelVelocityRPS, RotationsPerSecond));
-                } else {
-                    var targetVelocity = aimVector.getMagnitude();
-                    // Interpolate the flywheel velocity using the target velocity and hood angle
-                    var targetFlywheelOmegaRotationsPerSecond = _flywheelController.calculate(
-                            targetVelocity,
-                            SuperStructure.Turret.HoodAngle.in(Degrees));
-                    _turret.controlFlywheel(
-                            AngularVelocity.ofBaseUnits(targetFlywheelOmegaRotationsPerSecond, RotationsPerSecond));
-                }
-                break;
-        }
-    }
-
-    /**
      * Controls the turret feeder based on the current feed state.
-     * 
-     * @param feedState The desired feeder direction (FORWARDS, REVERSED, or STOPPED)
      */
     private void actOnFeedState(UptakeState feedState) {
         switch (feedState) {
@@ -499,6 +484,48 @@ public class Turret extends LoggedSubsystem {
         }
     }
 
+    // =========================== LED FEEDBACK =============================
+
+    /**
+     * Updates LED patterns based on the current operating mode and firing state.
+     * <ul>
+     *   <li><b>AUTO + FIRING + all on-target</b>: green two-tone fast (shooting!)</li>
+     *   <li><b>AUTO + FIRING + shot not calculable</b>: red quick flash (constraint failure)</li>
+     *   <li><b>AUTO + FIRING + seeking</b>: yellow fast blink (locking on)</li>
+     *   <li><b>AUTO + IDLE</b>: blue slow blink (ready, auto mode)</li>
+     *   <li><b>MANUAL + FIRING</b>: yellow two-tone fast (manual shooting)</li>
+     *   <li><b>MANUAL + IDLE</b>: blue fast blink (ready, manual mode)</li>
+     * </ul>
+     */
+    private void updateLEDs(TurretInputsAutoLogged inputs) {
+        if (Container.LEDs == null)
+            return;
+
+        boolean firing = inputs.FiringState == FiringState.FIRING;
+        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        boolean shotFailed = inputs.ShotCalculationState == LockOnState.SHOT_NOT_CALCULATED;
+
+        if (inputs.OperatingMode == OperatingMode.AUTO) {
+            if (firing && allOnTarget) {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.GreenTwoToneFast);
+            } else if (firing && shotFailed) {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.RedQuickFlash);
+            } else if (firing) {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowFastBlink);
+            } else {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueSlowBlink);
+            }
+        } else { // MANUAL
+            if (firing) {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowTwoToneFast);
+            } else {
+                Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueFastBlink);
+            }
+        }
+    }
+
+    // =========================== PERIODIC =================================
+
     @Override
     public void periodic() {
         _turret.updateInputs(SuperStructure.Turret);
@@ -512,83 +539,107 @@ public class Turret extends LoggedSubsystem {
         }
 
         processInputs(SuperStructure.Turret);
-
         actOnState(SuperStructure.Turret);
     }
 
+    // =========================== COMMAND FACTORIES ========================
+
+    // --- Mode Toggle -------------------------------------------------
+
     /**
-     * Creates a command that sets the flywheel to the given state.
-     *
-     * @param state The desired {@link FlywheelState}
-     * @return A command that updates {@link SuperStructure.Turret#FlywheelState} when scheduled
+     * Toggles between AUTO and MANUAL operating modes.
      */
-    public Command setFlywheel(FlywheelState state) {
-        return this.runOnce(() -> SuperStructure.Turret.FlywheelState = state);
+    public Command toggleOperatingMode() {
+        return this.runOnce(() -> {
+            if (SuperStructure.Turret.OperatingMode == OperatingMode.AUTO) {
+                SuperStructure.Turret.OperatingMode = OperatingMode.MANUAL;
+            } else {
+                SuperStructure.Turret.OperatingMode = OperatingMode.AUTO;
+                // Reset manual setpoints to home when switching back to auto
+                _manualYawDegrees = TurretMap.YAW_HOME_DEGREES;
+                _manualHoodDegrees = TurretMap.HOOD_HOME_DEGREES;
+                _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+            }
+        });
     }
 
     /**
-     * Creates a command that sets the flywheel to a specific manual speed.
-     * Only takes effect when {@link TargetingState#MANUAL} is active.
-     *
-     * @param rps The desired flywheel velocity in rotations per second
-     * @return A command that stores the manual flywheel velocity setpoint
+     * Sets the operating mode directly.
      */
-    public Command setFlywheelManualSpeedRps(double rps) {
-        return this.runOnce(() -> _manualFlywheelVelocityRPS = rps);
+    public Command setOperatingMode(OperatingMode mode) {
+        return this.runOnce(() -> SuperStructure.Turret.OperatingMode = mode);
     }
 
-    /**
-     * Creates a command that sets the turret's targeting mode.
-     *
-     * @param state The desired {@link TargetingState}
-     * @return A command that updates {@link SuperStructure.Turret#TargetingState} when scheduled
-     */
-    public Command setTargeting(TargetingState state) {
-        return this.runOnce(() -> SuperStructure.Turret.TargetingState = state);
-    }
+    // --- Firing -------------------------------------------------------
 
     /**
-     * Creates a command that sets the manual yaw input for turret control.
-     * In {@link TargetingState#AUTO} mode this acts as a trim multiplier (scaled by
-     * {@link TurretMap#AUTO_AIM_YAW_TRIM_DEGREES}). In {@link TargetingState#MANUAL}
-     * mode it is unused (yaw comes from the yaw supplier instead).
-     *
-     * @param input The yaw trim/offset value, typically in the range [-1, 1]
-     * @return A command that stores the manual yaw input
+     * Sets the firing state. Bind to fire button press/release.
      */
-    public Command setTargetingManualYawInput(double input) {
-        return this.runOnce(() -> _manualYawInput = input);
+    public Command setFiring(FiringState state) {
+        return this.runOnce(() -> SuperStructure.Turret.FiringState = state);
     }
 
+    // --- Feed Direction ------------------------------------------------
+
     /**
-     * Creates a command that sets the feeder/uptake mechanism state.
-     *
-     * @param state The desired {@link UptakeState}
-     * @return A command that updates {@link SuperStructure.Turret#FeedState} when scheduled
+     * Sets the feeder/uptake mechanism direction.
      */
     public Command setFeed(UptakeState state) {
         return this.runOnce(() -> SuperStructure.Turret.FeedState = state);
     }
 
+    // --- Manual Setpoint Adjustments -----------------------------------
+
     /**
-     * Returns a SysId characterization command for the turret flywheel.
-     *
-     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
-     * @param direction FORWARD or REVERSE
-     * @return A command that runs the specified SysId test on the flywheel
+     * Adjusts the manual flywheel speed setpoint by {@code deltaRPS} rotations per second.
+     * Clamped to [0, FLYWHEEL_MAX_SPEED].
      */
+    public Command adjustManualFlywheelSpeed(double deltaRPS) {
+        return this.runOnce(() -> {
+            _manualFlywheelVelocityRPS = MathUtil.clamp(
+                    _manualFlywheelVelocityRPS + deltaRPS,
+                    0, TurretMap.FLYWHEEL_MAX_SPEED);
+        });
+    }
+
+    /**
+     * Adjusts the manual hood angle setpoint by {@code deltaDegrees}.
+     * Clamped to [HOOD_MIN_ANGLE_DEGREES, HOOD_MAX_ANGLE_DEGREES].
+     */
+    public Command adjustManualHoodAngle(double deltaDegrees) {
+        return this.runOnce(() -> {
+            _manualHoodDegrees = MathUtil.clamp(
+                    _manualHoodDegrees + deltaDegrees,
+                    TurretMap.HOOD_MIN_ANGLE_DEGREES, TurretMap.HOOD_MAX_ANGLE_DEGREES);
+        });
+    }
+
+    /**
+     * Adjusts the manual yaw setpoint by {@code deltaDegrees}.
+     * Clamped to [0, 360] and respects the dead zone.
+     */
+    public Command adjustManualYaw(double deltaDegrees) {
+        return this.runOnce(() -> {
+            _manualYawDegrees = MathUtil.clamp(
+                    _manualYawDegrees + deltaDegrees,
+                    0, 360);
+        });
+    }
+
+    /**
+     * Sets the manual yaw trim input for AUTO mode (acts as a trim multiplier).
+     */
+    public Command setAutoYawTrimInput(double input) {
+        return this.runOnce(() -> _manualYawInput = input);
+    }
+
+    // --- SysId ---------------------------------------------------------
+
     public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
         return _flywheelSysId.getCommand(testType, direction);
     }
 
-    /**
-     * Returns a SysId characterization command for the turret yaw rotation.
-     *
-     * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
-     * @param direction FORWARD or REVERSE
-     * @return A command that runs the specified SysId test on the turret yaw motor
-     */
     public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
         return _yawSysId.getCommand(testType, direction);

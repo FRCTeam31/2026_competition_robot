@@ -17,13 +17,23 @@ public class TurretInputs {
     public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
     public Angle HoodAngle = Angle.ofBaseUnits(0, Degrees);
 
-    //States
-    public Turret.FlywheelState FlywheelState = Turret.FlywheelState.STOPPED;
-    public Turret.TargetingState TargetingState = Turret.TargetingState.STOPPED; // Set targeting to stopped for testing
+    // Operating mode (persists across firing cycles)
+    // TODO: Changed to prevent movement while testing
+    public Turret.OperatingMode OperatingMode = Turret.OperatingMode.MANUAL;
+
+    // Firing state (ephemeral: FIRING while button held, IDLE when released)
+    public Turret.FiringState FiringState = Turret.FiringState.IDLE;
+
+    // Lock-on tracking
     public Turret.LockOnState ShotCalculationState = Turret.LockOnState.SHOT_NOT_CALCULATED;
-    public Turret.LockOnState YawLockedOnState = Turret.LockOnState.YAW_NOT_LOCKED_ON;
-    public Turret.LockOnState FlywheelSpeedState = Turret.LockOnState.FLYWHEEL_NOT_AT_SPEED;
+
+    // Feed direction
     public Turret.UptakeState FeedState = Turret.UptakeState.STOPPED;
+
+    // On-target flags (computed by IO layer each update cycle)
+    public boolean FlywheelAtTargetSpeed = false;
+    public boolean YawOnTarget = false;
+    public boolean HoodOnTarget = false;
 
     // Sysid
     public double FlywheelVoltage = 0;

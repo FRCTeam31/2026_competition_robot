@@ -68,7 +68,7 @@ public class SwerveModuleReal implements ISwerveModule {
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
 
-    BaseStatusSignal.setUpdateFrequencyForAll(200, _drivePosition, _driveVelocity, _steeringAzimuth);
+    BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
     ParentDevice.optimizeBusUtilizationForAll(_driveMotor, _steeringMotor, _encoder);
   }
@@ -77,7 +77,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the CANCoder first so it can be used as a remote sensor
    */
   private void setupCanCoder() {
-    _encoder = new CANcoder(_map.CANCoderCanId);
+    _encoder = new CANcoder(_map.CANCoderCanId, _map.CANivoreBusName);
     _encoder.clearStickyFaults();
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
@@ -94,7 +94,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the steering motor with Motion Magic and CANCoder as remote sensor
    */
   private void setupSteeringMotor(ExtendedPIDConstants pid) {
-    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId, _map.CANivoreBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -165,7 +165,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the drive motor with velocity PID control
    */
   private void setupDriveMotor(ExtendedPIDConstants pid) {
-    _driveMotor = new TalonFX(_map.DriveMotorCanId);
+    _driveMotor = new TalonFX(_map.DriveMotorCanId, _map.CANivoreBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 

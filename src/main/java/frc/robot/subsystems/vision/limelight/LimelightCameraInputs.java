@@ -2,6 +2,7 @@ package frc.robot.subsystems.vision.limelight;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.vision.limelight.helpers.LimelightResults;
 import frc.robot.subsystems.vision.limelight.helpers.PoseEstimate;
@@ -13,6 +14,8 @@ public class LimelightCameraInputs {
      * The JSON dump from this limelight.
      */
     public LimelightResults CurrentResults = new LimelightResults();
+
+    public boolean TargetValid = false;
 
     /**
      * Horizontal Offset From Crosshair To Target 
@@ -35,4 +38,9 @@ public class LimelightCameraInputs {
      * The robot's MT2 pose in field space.
      */
     public PoseEstimate BotPoseEstimateMT2 = new PoseEstimate();
+
+    /**
+     * The pose of the target relative to the robot, as calculated from the limelight's horizontal and vertical offsets and the known height of the target. 
+     */
+    public Pose3d TagPoseRobotSpace = new Pose3d();
 }
