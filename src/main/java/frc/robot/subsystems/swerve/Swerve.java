@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.DrivetrainDashboardSection;
 import frc.robot.Container;
+import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
@@ -419,6 +420,29 @@ public class Swerve extends LoggedSubsystem {
           ? AutoBuilder.pathfindToPoseFlipped(desiredPose, pathConstraints)
           : AutoBuilder.pathfindToPose(desiredPose, pathConstraints);
     });
+  }
+
+  /**
+   * Creates a command that enables AutoAlign to orient the robot's front (positive-x) away from the hub.
+   * While active, the setpoint is continuously updated based on the robot's current position relative
+   * to the alliance hub. When the command ends, AutoAlign is disabled.
+   */
+  public Command faceAwayFromHubCommand() {
+    return this.run(() -> {
+      var hubPosition = FieldTargets.GetCurrentAllianceHubPosition();
+      var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
+
+      // Calculate the field-centric angle from the robot to the hub
+      double dx = hubPosition.getX() - robotPose.getX();
+      double dy = hubPosition.getY() - robotPose.getY();
+      double angleToHubRadians = Math.atan2(dy, dx);
+
+      // Add π to face AWAY from the hub
+      var awayFromHubAngle = Rotation2d.fromRadians(angleToHubRadians + Math.PI);
+
+      _autoAlign.setSetpoint(awayFromHubAngle);
+      setAutoAlignEnabled(true);
+    }).finallyDo(() -> setAutoAlignEnabled(false));
   }
 
   /*
