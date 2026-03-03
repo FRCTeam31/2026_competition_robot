@@ -33,6 +33,9 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
 import org.prime.dashboard.DashboardSection;
@@ -43,6 +46,11 @@ public class SwerveModuleReal implements ISwerveModule {
   private SwerveModuleMap _map;
   private DashboardSection _dashboardSection;
   private final String _optimizeModuleKey = "Optimize";
+
+  // Created a fixed thread pool with 2 threads for swerve and drive setup
+  private ExecutorService _executorService = Executors.newFixedThreadPool(2);
+  private int _configurationAttempts = 5;
+  private int _timeBetweenConfigurationAttemptsMs = 500;
 
   // Devices
   private TalonFX _steeringMotor;
@@ -69,6 +77,10 @@ public class SwerveModuleReal implements ISwerveModule {
     setupCanCoder();
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
+
+    // Shutdown thread pool after motor configuration ends
+    System.out.println("Closing thread pool for module \"" + _name + ",\" execution will end when all tasks close");
+    _executorService.shutdown();
 
     BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
@@ -235,16 +247,30 @@ public class SwerveModuleReal implements ISwerveModule {
   }
 
   private void applyConfig(TalonFX motor, TalonFXConfiguration config) {
-    StatusCode status = StatusCode.StatusCodeNotInitialized;
-    for (int i = 0; i < 5; i++) {
-      status = motor.getConfigurator().apply(config);
-      if (status.isOK())
-        break;
-      System.out.println("Retrying config apply for " + motor.getDeviceID() + "... attempt " + (i + 1));
-    }
-    if (!status.isOK()) {
-      System.out.println("FAILED to apply config for motor " + motor.getDeviceID() + ": " + status);
-    }
+    _executorService.submit(() -> {
+      StatusCode status = StatusCode.StatusCodeNotInitialized;
+
+      for (int i = 0; i < _configurationAttempts; i++) {
+        status = motor.getConfigurator().apply(config);
+
+        if (status.isOK()) {
+          System.out.println("Config applied for motor " + motor.getDeviceID() + " successfully, shutting down thread");
+          break;
+        }
+
+        System.out.println("Retrying config apply for motor " + motor.getDeviceID() + "... attempt " + (i + 1));
+
+        try {
+          Thread.sleep(_timeBetweenConfigurationAttemptsMs);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+
+      if (!status.isOK()) {
+        System.out.println("FAILED to apply config for motor " + motor.getDeviceID() + ": " + status);
+      }
+    });
   }
 
   @Override
