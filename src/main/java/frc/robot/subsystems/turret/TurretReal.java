@@ -197,7 +197,13 @@ public class TurretReal implements ITurret {
     @Override
     public void controlHood(Angle angle) {
         _targetHoodDegrees = angle.in(Degrees);
-        _hoodClosedLoopController.setSetpoint(_targetHoodDegrees, ControlType.kMAXMotionPositionControl);
+
+        // TODO: Ensure rotations of the pinion matches with the correct hood angle, 0 rotations of the pinion should be
+        // horiztonal, which is outside our range
+
+        // Get the pinion rotation in Rotations from the desired angle of the hood
+        var pinionRotations = angle.in(Rotations) * TurretMap.HOOD_GEAR_RATIO;
+        _hoodClosedLoopController.setSetpoint(pinionRotations, ControlType.kMAXMotionPositionControl);
     }
 
     @Override
