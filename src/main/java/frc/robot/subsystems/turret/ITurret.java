@@ -25,4 +25,6 @@ public interface ITurret {
     public void setYawVoltage(double volts);
 
     public void setYawSensorPosition(Angle position);
+
+    public void setHoodSensorPosition(Angle position);
 }

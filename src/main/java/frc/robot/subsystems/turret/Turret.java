@@ -19,6 +19,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
@@ -91,6 +92,7 @@ public class Turret extends LoggedSubsystem {
     // -------------------- Internal Tracking --------------------------
     private double _targetFlywheelVelocityRPS = 0;
     private double _manualYawInput;
+    private boolean _isHomingHood = false;
 
     // IDW Controller
     private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
@@ -539,7 +541,10 @@ public class Turret extends LoggedSubsystem {
         }
 
         processInputs(SuperStructure.Turret);
-        actOnState(SuperStructure.Turret);
+
+        if (!_isHomingHood) {
+            actOnState(SuperStructure.Turret);
+        }
     }
 
     // =========================== COMMAND FACTORIES ========================
@@ -643,5 +648,23 @@ public class Turret extends LoggedSubsystem {
     public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
         return _yawSysId.getCommand(testType, direction);
+    }
+
+    // --- Homing --------------------------------------------------------
+
+    public Command homeTurretHood() {
+        return Commands.sequence(
+                Commands.runOnce(() -> _isHomingHood = true),
+                Commands.run(() -> _turret.setHoodPercentOut(-0.1), this)
+                        .withTimeout(1.0),
+                Commands.runOnce(() -> {
+                    _turret.setHoodSensorPosition(
+                            Angle.ofBaseUnits(TurretMap.HOOD_MAX_ANGLE_DEGREES, Degrees));
+                    _turret.setHoodPercentOut(0);
+                    _isHomingHood = false;
+                })).finallyDo((interrupted) -> {
+                    _turret.setHoodPercentOut(0);
+                    _isHomingHood = false;
+                });
     }
 }

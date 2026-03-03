@@ -94,10 +94,7 @@ public class TurretMap {
         // ──────────────────────── Hood ───────────────────────────────────
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
-        //        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
-        //        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
         public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM // TODO: Tune
@@ -109,6 +106,7 @@ public class TurretMap {
         public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
                         RadiansPerSecond);
         public static final double HOOD_GEAR_RATIO = 0; // TODO: Set
+        public static final boolean HOOD_ENCODER_INVERTED = false;
 
         // ──────────────────────── Feeder ─────────────────────────────────
         public static final int FEEDER_CANID = 16;

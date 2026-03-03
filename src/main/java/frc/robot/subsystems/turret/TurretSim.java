@@ -231,4 +231,9 @@ public class TurretSim implements ITurret {
     public void setYawSensorPosition(Angle position) {
         _turretPositionRotations = position.in(Rotations);
     }
+
+    @Override
+    public void setHoodSensorPosition(Angle position) {
+        _hoodMotor.setAngle(position.in(Radians));
+    }
 }

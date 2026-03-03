@@ -124,16 +124,22 @@ public class TurretReal implements ITurret {
         sparkConfig.inverted(TurretMap.HOOD_INVERTED);
         sparkConfig.idleMode(IdleMode.kCoast);
 
-        sparkConfig.smartCurrentLimit(40, 30);
+        // TODO: Check current limits, ensure it can run but doesn't have enough power to destory the hood
+        sparkConfig.smartCurrentLimit(25, 10);
 
         sparkConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         sparkConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
+
+        sparkConfig.encoder.inverted(TurretMap.HOOD_ENCODER_INVERTED);
 
         // MAXMotion configuration for smooth position control
         sparkConfig.closedLoop.maxMotion
                 .cruiseVelocity(TurretMap.HOOD_MAX_MOTION_MAX_VELOCITY)
                 .maxAcceleration(TurretMap.HOOD_MAX_MOTION_MAX_ACCELERATION)
                 .allowedProfileError(TurretMap.HOOD_MAX_MOTION_ALLOWED_ERROR);
+
+        // Set conversion factor
+        sparkConfig.encoder.positionConversionFactor(1 / TurretMap.HOOD_GEAR_RATIO);
 
         _sparkHood.configure(sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -197,13 +203,7 @@ public class TurretReal implements ITurret {
     @Override
     public void controlHood(Angle angle) {
         _targetHoodDegrees = angle.in(Degrees);
-
-        // TODO: Ensure rotations of the pinion matches with the correct hood angle, 0 rotations of the pinion should be
-        // horiztonal, which is outside our range
-
-        // Get the pinion rotation in Rotations from the desired angle of the hood
-        var pinionRotations = angle.in(Rotations) * TurretMap.HOOD_GEAR_RATIO;
-        _hoodClosedLoopController.setSetpoint(pinionRotations, ControlType.kMAXMotionPositionControl);
+        _hoodClosedLoopController.setSetpoint(angle.in(Rotations), ControlType.kMAXMotionPositionControl);
     }
 
     @Override
@@ -233,5 +233,10 @@ public class TurretReal implements ITurret {
     public void setYawSensorPosition(Angle position) {
         _turretRotator.setSelectedSensorPosition(
                 CTREConverter.degreesToCANcoder(position.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
+    }
+
+    @Override
+    public void setHoodSensorPosition(Angle position) {
+        _sparkHood.getEncoder().setPosition(position.in(Rotations));
     }
 }
