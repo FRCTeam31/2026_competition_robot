@@ -263,7 +263,9 @@ public class Container {
         "Start_Auto", () -> startAuto(),
         "Take_Out_And_Enable_Intake", () -> toggleIntakeOn(),
         "Put_In_And_Disable_Intake", () -> toggleIntakeOff(),
-        "ClimbSequence", () -> setupClimb().andThen(startClimbing()).andThen(stopClimbing()));
+        "Setup_Climb", () -> setupClimb(),
+        "Climb", () -> startClimbing(),
+        "Stop_Climb", () -> stopClimbing());
   }
 
 }
