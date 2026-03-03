@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.234697508896798,
-        "y": 2.6201660735468555
+        "x": 1.8988815000332808,
+        "y": 2.1095996669979113
       },
       "isLocked": false,
       "linkedName": "StartMid"
@@ -20,42 +20,21 @@
         "y": 2.5986476868327397
       },
       "prevControl": {
-        "x": 2.7612930011862398,
-        "y": 2.587888493475682
-      },
-      "nextControl": {
-        "x": 2.1563543256169755,
-        "y": 2.6062199684929315
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 2.406239620403322,
-        "y": 2.5986476868327397
-      },
-      "prevControl": {
-        "x": 3.6865836298932386,
-        "y": 2.587888493475682
+        "x": 2.643905977197594,
+        "y": 2.7551631736063924
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "CSdown"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.8845470692717516,
-      "rotationDegrees": -90.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [
     {
       "name": "Extend_Climb_Arm",
-      "waypointRelativePos": 0.08098987626546375,
+      "waypointRelativePos": 0.05,
       "endWaypointRelativePos": null,
       "command": null
     }

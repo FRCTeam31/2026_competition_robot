@@ -8,11 +8,13 @@
     "ToClimb"
   ],
   "autoFolders": [
+    "ClimbingOnly",
     "Left",
     "LeftToRight",
     "Middle",
-    "RightToLeft",
-    "Right"
+    "ShootingOnly",
+    "Right",
+    "RightToLeft"
   ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
