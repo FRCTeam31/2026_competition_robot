@@ -148,8 +148,8 @@ public class OperatorInterface {
                 //                 .onTrue(Container.startShooting())
                 //                 .onFalse(Container.stopShooting());
                 // // Right joystick to aim turret, left joystick to move hood
-                Container.Turret.setYawSupplier(OperatorController.getRightStickXSupplier(0.05));
-                Container.Turret.setPitchSupplier(OperatorController.getLeftStickYSupplier(0.05));
+                // Container.Turret.setYawSupplier(OperatorController.getRightStickXSupplier(0.05));
+                // Container.Turret.setPitchSupplier(OperatorController.getLeftStickYSupplier(0.05));
 
                 // // Controls to toggle auto and manual
                 // OperatorController.start().and(OperatorController.pov(Controls.up))

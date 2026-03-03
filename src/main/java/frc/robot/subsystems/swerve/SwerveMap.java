@@ -29,7 +29,8 @@ public class SwerveMap {
         // PID Constants
         public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.0075, 0, 0.000, 0.0, 0.099, 0.12,
                         0.14);
-        public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(4.1, 0, 0.04);
+        // public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(4.1, 0, 0.04);
+        public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(0, 0, 0);
         public static final ExtendedPIDConstants AutoAlignPID = new ExtendedPIDConstants(4, 0, 0.08);
         public static final ExtendedPIDConstants PathPlannerTranslationPID = new ExtendedPIDConstants(4.5, 0, 0);
         public static final ExtendedPIDConstants PathPlannerRotationPID = new ExtendedPIDConstants(2, 0, 0);
@@ -54,7 +55,7 @@ public class SwerveMap {
                         3,
                         4,
                         10,
-                        0.563721,
+                        0.061279,
                         true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
@@ -62,7 +63,7 @@ public class SwerveMap {
                         6,
                         5,
                         11,
-                        0.540039,
+                        0.033203,
                         true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
@@ -70,7 +71,7 @@ public class SwerveMap {
                         7,
                         8,
                         12,
-                        0.186279,
+                        0.910400,
                         false,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), -(Chassis.WheelBaseMeters / 2)));
@@ -78,14 +79,14 @@ public class SwerveMap {
                         2,
                         1,
                         9,
-                        0.075928,
+                        0.834717,
                         false,
                         false,
                         new Translation2d(-Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
                         // TODO: Determine the robot's weight and MOI
-                        Units.lbsToKilograms(50),
+                        Units.lbsToKilograms(114),
                         MomentOfInertia.ofBaseUnits(3, edu.wpi.first.units.Units.KilogramSquareMeters)
                                         .baseUnitMagnitude(),
                         new ModuleConfig(

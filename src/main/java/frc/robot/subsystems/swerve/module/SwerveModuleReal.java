@@ -1,12 +1,14 @@
 package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
@@ -105,9 +107,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 40;
+    config.CurrentLimits.StatorCurrentLimit = 60;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 40;
+    config.CurrentLimits.SupplyCurrentLimit = 45;
 
     // Feedback Configuration - Use CANCoder as remote sensor
     config.Feedback.FeedbackRemoteSensorID = _map.CANCoderCanId;
@@ -136,11 +138,11 @@ public class SwerveModuleReal implements ISwerveModule {
     config.ClosedLoopGeneral.ContinuousWrap = true; // Enable continuous wrap for steering
 
     // Apply configuration
-    _steeringMotor.getConfigurator().apply(config);
+    applyConfig(_steeringMotor, config);
     _steeringMotor.clearStickyFaults();
 
     // Configure control request to use FOC and slot 0
-    _steeringControl.EnableFOC = true;
+    // _steeringControl.EnableFOC = true;
     _steeringControl.Slot = 0;
 
     // Initialize status signals
@@ -205,7 +207,7 @@ public class SwerveModuleReal implements ISwerveModule {
     config.HardwareLimitSwitch.ReverseLimitEnable = false;
 
     // Apply configuration
-    _driveMotor.getConfigurator().apply(config);
+    applyConfig(_driveMotor, config);
     _driveMotor.clearStickyFaults();
 
     // Configure control request to use FOC and slot 0
@@ -230,6 +232,19 @@ public class SwerveModuleReal implements ISwerveModule {
 
     _driveMotor.getConfigurator().apply(slot0);
     System.out.println("Reset Drive PID " + _name);
+  }
+
+  private void applyConfig(TalonFX motor, TalonFXConfiguration config) {
+    StatusCode status = StatusCode.StatusCodeNotInitialized;
+    for (int i = 0; i < 5; i++) {
+      status = motor.getConfigurator().apply(config);
+      if (status.isOK())
+        break;
+      System.out.println("Retrying config apply for " + motor.getDeviceID() + "... attempt " + (i + 1));
+    }
+    if (!status.isOK()) {
+      System.out.println("FAILED to apply config for motor " + motor.getDeviceID() + ": " + status);
+    }
   }
 
   @Override

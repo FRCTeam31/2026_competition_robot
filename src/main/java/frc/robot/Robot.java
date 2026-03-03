@@ -152,7 +152,7 @@ public class Robot extends LoggedRobot {
     // Log recorded system pressure
     Logger.recordOutput("Pnumatics System Pressure", Container.Pneumatics.getSystemPressure());
 
-    System.out.println(Container.Pneumatics.getSystemPressure());
+    // System.out.println(Container.Pneumatics.getSystemPressure());
   }
 
   /**
