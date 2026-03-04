@@ -29,8 +29,7 @@ public class SwerveMap {
         // PID Constants
         public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.0075, 0, 0.000, 0.0, 0.099, 0.12,
                         0.14);
-        // public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(4.1, 0, 0.04);
-        public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(0, 0, 0);
+        public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(17, 0, 0);
         public static final ExtendedPIDConstants AutoAlignPID = new ExtendedPIDConstants(4, 0, 0.08);
         public static final ExtendedPIDConstants PathPlannerTranslationPID = new ExtendedPIDConstants(4.5, 0, 0);
         public static final ExtendedPIDConstants PathPlannerRotationPID = new ExtendedPIDConstants(2, 0, 0);
@@ -56,7 +55,7 @@ public class SwerveMap {
                         4,
                         10,
                         0.061279,
-                        true,
+                        false,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
         public static final SwerveModuleMap FrontRightSwerveModule = new SwerveModuleMap(
@@ -64,7 +63,7 @@ public class SwerveMap {
                         5,
                         11,
                         0.033203,
-                        true,
+                        false,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearLeftSwerveModule = new SwerveModuleMap(
@@ -72,9 +71,9 @@ public class SwerveMap {
                         8,
                         12,
                         0.910400,
+                        true,
                         false,
-                        false,
-                        new Translation2d(-(Chassis.TrackWidthMeters / 2), -(Chassis.WheelBaseMeters / 2)));
+                        new Translation2d(-(Chassis.TrackWidthMeters / 2), (Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearRightSwerveModule = new SwerveModuleMap(
                         2,
                         1,
@@ -82,7 +81,7 @@ public class SwerveMap {
                         0.834717,
                         false,
                         false,
-                        new Translation2d(-Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
+                        new Translation2d(-Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
                         // TODO: Determine the robot's weight and MOI

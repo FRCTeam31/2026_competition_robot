@@ -130,7 +130,7 @@ public class TurretReal implements ITurret {
         sparkConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         sparkConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
 
-        sparkConfig.encoder.inverted(TurretMap.HOOD_ENCODER_INVERTED);
+        // sparkConfig.encoder.inverted(TurretMap.HOOD_ENCODER_INVERTED);
 
         // MAXMotion configuration for smooth position control
         sparkConfig.closedLoop.maxMotion

@@ -121,7 +121,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Feedback Configuration - Use CANCoder as remote sensor
     config.Feedback.FeedbackRemoteSensorID = _map.CANCoderCanId;
-    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    // TODO: Purchase Phoenix Pro to use Fused CANcoder
+    // config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     config.Feedback.RotorToSensorRatio = SwerveMap.SteeringGearRatio;
     config.Feedback.SensorToMechanismRatio = 1.0;
 

@@ -105,7 +105,7 @@ public class TurretMap {
         public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
         public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
                         RadiansPerSecond);
-        public static final double HOOD_GEAR_RATIO = 0; // TODO: Set
+        public static final double HOOD_GEAR_RATIO = 6.333;
         public static final boolean HOOD_ENCODER_INVERTED = false;
 
         // ──────────────────────── Feeder ─────────────────────────────────

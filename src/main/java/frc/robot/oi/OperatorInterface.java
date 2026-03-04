@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import org.prime.control.Controls;
 import org.prime.control.HolonomicControlStyle;
 import org.prime.control.SupplierXboxController;
+import org.prime.sysid.SysIdRoutineHelper.TestDirection;
+import org.prime.sysid.SysIdRoutineHelper.TestType;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -51,6 +53,16 @@ public class OperatorInterface {
 
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
+                DriverController.povUp()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD));
+                DriverController.povDown()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE));
+
+                DriverController.y().whileTrue(
+                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
+                DriverController.a().whileTrue(
+                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
+
                 // DriverController.x()
                 //                 .onTrue(swerve.disableAutoAlignCommand());
                 // DriverController.a()
@@ -87,11 +99,11 @@ public class OperatorInterface {
                 // These commands are for testing the functionality of specific subsystems. When using, comment out
                 // all other driver controls and uncomment the controls for the subsystem below that you would like to test.
 
-                // DriverController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
-                // DriverController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
-                // DriverController.b().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
-                // DriverController.b().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                // DriverController.rightBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
+                // DriverController.rightBumper().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // DriverController.a().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
                 // DriverController.a().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
@@ -104,6 +116,9 @@ public class OperatorInterface {
 
                 // DriverController.b().onTrue(Container.Turret.setFeed(UptakeState.REVERSED));
                 // DriverController.b().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
+
+                // DriverController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
+                // DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
 
                 // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
                 // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));

@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -25,6 +26,7 @@ import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -84,18 +86,24 @@ public class Swerve extends LoggedSubsystem {
             voltage.in(edu.wpi.first.units.Units.Volts), Rotation2d.fromDegrees(0)),
         (log) -> {
           var states = SuperStructure.Swerve.ModuleStates;
+          var positions = _swervePackager.getModulePositions();
+
           log.motor("drive-fl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[0].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[0].distanceMeters, Meters));
           log.motor("drive-fr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[1].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[1].distanceMeters, Meters));
           log.motor("drive-rl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[2].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[2].distanceMeters, Meters));
           log.motor("drive-rr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[3].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[3].distanceMeters, Meters));
         });
   }
 
