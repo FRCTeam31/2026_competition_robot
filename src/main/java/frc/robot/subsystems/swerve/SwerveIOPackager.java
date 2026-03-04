@@ -130,6 +130,7 @@ public class SwerveIOPackager {
   /**
    * Checks the preferences for any changes and updates the PID values in each swerve module if necessary
    */
+  @SuppressWarnings("unused")
   private void checkPreferences() {
     var driveKpChanged = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP) != SwerveMap.DrivePID.kP;
     var driveKiChanged = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI) != SwerveMap.DrivePID.kI;
@@ -155,16 +156,15 @@ public class SwerveIOPackager {
     var steerKpChanged = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP) != SwerveMap.SteeringPID.kP;
     var steerKiChanged = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI) != SwerveMap.SteeringPID.kI;
     var steerKdChanged = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD) != SwerveMap.SteeringPID.kD;
-    if (steerKpChanged || steerKiChanged || steerKdChanged) {
+    if (SwerveMap.USE_PID_FROM_PREFERENCES && (steerKpChanged || steerKiChanged || steerKdChanged)) {
       SwerveMap.SteeringPID.kP = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP);
       SwerveMap.SteeringPID.kI = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI);
       SwerveMap.SteeringPID.kD = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD);
 
-      // TODO: Fix this, it was resetting the pid on every boot
-      // _frontLeftModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _frontRightModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _rearLeftModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _rearRightModule.setSteeringPID(SwerveMap.SteeringPID);
+      _frontLeftModule.setSteeringPID(SwerveMap.SteeringPID);
+      _frontRightModule.setSteeringPID(SwerveMap.SteeringPID);
+      _rearLeftModule.setSteeringPID(SwerveMap.SteeringPID);
+      _rearRightModule.setSteeringPID(SwerveMap.SteeringPID);
     }
   }
 

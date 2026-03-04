@@ -108,6 +108,7 @@ public class Turret extends LoggedSubsystem {
     // SysId characterization routines
     private final SysIdRoutineHelper _flywheelSysId;
     private final SysIdRoutineHelper _yawSysId;
+    private boolean _runningSysId = false;
 
     // Boolean Events
     private BooleanEvent _turretYawResetSwitchEvent;
@@ -542,7 +543,7 @@ public class Turret extends LoggedSubsystem {
 
         processInputs(SuperStructure.Turret);
 
-        if (!_isHomingHood) {
+        if (!_isHomingHood && !_runningSysId) {
             actOnState(SuperStructure.Turret);
         }
     }
@@ -642,12 +643,18 @@ public class Turret extends LoggedSubsystem {
 
     public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
-        return _flywheelSysId.getCommand(testType, direction);
+        return Commands.sequence(
+                Commands.runOnce(() -> _runningSysId = true),
+                _flywheelSysId.getCommand(testType, direction))
+                .finallyDo(() -> _runningSysId = false);
     }
 
     public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
             SysIdRoutineHelper.TestDirection direction) {
-        return _yawSysId.getCommand(testType, direction);
+        return Commands.sequence(
+                Commands.runOnce(() -> _runningSysId = true),
+                _yawSysId.getCommand(testType, direction))
+                .finallyDo(() -> _runningSysId = false);
     }
 
     // --- Homing --------------------------------------------------------

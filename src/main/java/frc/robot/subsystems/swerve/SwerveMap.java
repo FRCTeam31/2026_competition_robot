@@ -42,6 +42,7 @@ public class SwerveMap {
 
         // Feature Flags
         public static final boolean USE_LIMELIGHT_POSE_ESTIMATION = false;
+        public static final boolean USE_PID_FROM_PREFERENCES = false;
 
         // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
