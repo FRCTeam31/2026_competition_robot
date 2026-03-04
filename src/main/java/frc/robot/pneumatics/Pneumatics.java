@@ -15,7 +15,8 @@ public class Pneumatics {
             _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
 
             // TODO: Check these values
-            _compressor.enableAnalog(100, 120);
+            // Disabled for now
+            // _compressor.enableAnalog(100, 120);
         }
     }
 

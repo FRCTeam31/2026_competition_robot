@@ -143,11 +143,11 @@ public class OperatorInterface {
 
                 DriverController.povUp().whileTrue(
                                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                DriverController.povUp().whileTrue(
+                DriverController.povDown().whileTrue(
                                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.REVERSE));
-                DriverController.povUp().whileTrue(
+                DriverController.y().whileTrue(
                                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
-                DriverController.povUp().whileTrue(
+                DriverController.a().whileTrue(
                                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
 
         }
