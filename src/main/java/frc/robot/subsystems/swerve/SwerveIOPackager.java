@@ -131,41 +131,41 @@ public class SwerveIOPackager {
    * Checks the preferences for any changes and updates the PID values in each swerve module if necessary
    */
   private void checkPreferences() {
-    var driveKpChanged = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP) != SwerveMap.DrivePID.kP;
-    var driveKiChanged = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI) != SwerveMap.DrivePID.kI;
-    var driveKdChanged = Preferences.getDouble("DriveKd", SwerveMap.DrivePID.kD) != SwerveMap.DrivePID.kD;
-    var driveKsChanged = Preferences.getDouble("DriveKs", SwerveMap.DrivePID.kS) != SwerveMap.DrivePID.kS;
-    var driveKvChanged = Preferences.getDouble("DriveKv", SwerveMap.DrivePID.kV) != SwerveMap.DrivePID.kV;
-    var driveKaChanged = Preferences.getDouble("DriveKa", SwerveMap.DrivePID.kA) != SwerveMap.DrivePID.kA;
+    // var driveKpChanged = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP) != SwerveMap.DrivePID.kP;
+    // var driveKiChanged = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI) != SwerveMap.DrivePID.kI;
+    // var driveKdChanged = Preferences.getDouble("DriveKd", SwerveMap.DrivePID.kD) != SwerveMap.DrivePID.kD;
+    // var driveKsChanged = Preferences.getDouble("DriveKs", SwerveMap.DrivePID.kS) != SwerveMap.DrivePID.kS;
+    // var driveKvChanged = Preferences.getDouble("DriveKv", SwerveMap.DrivePID.kV) != SwerveMap.DrivePID.kV;
+    // var driveKaChanged = Preferences.getDouble("DriveKa", SwerveMap.DrivePID.kA) != SwerveMap.DrivePID.kA;
 
-    if (driveKpChanged || driveKiChanged || driveKdChanged || driveKsChanged || driveKvChanged || driveKaChanged) {
-      SwerveMap.DrivePID.kP = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP);
-      SwerveMap.DrivePID.kI = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI);
-      SwerveMap.DrivePID.kD = Preferences.getDouble("DriveKd", SwerveMap.DrivePID.kD);
-      SwerveMap.DrivePID.kS = Preferences.getDouble("DriveKs", SwerveMap.DrivePID.kS);
-      SwerveMap.DrivePID.kV = Preferences.getDouble("DriveKv", SwerveMap.DrivePID.kV);
-      SwerveMap.DrivePID.kA = Preferences.getDouble("DriveKa", SwerveMap.DrivePID.kA);
+    // if (driveKpChanged || driveKiChanged || driveKdChanged || driveKsChanged || driveKvChanged || driveKaChanged) {
+    //   SwerveMap.DrivePID.kP = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP);
+    //   SwerveMap.DrivePID.kI = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI);
+    //   SwerveMap.DrivePID.kD = Preferences.getDouble("DriveKd", SwerveMap.DrivePID.kD);
+    //   SwerveMap.DrivePID.kS = Preferences.getDouble("DriveKs", SwerveMap.DrivePID.kS);
+    //   SwerveMap.DrivePID.kV = Preferences.getDouble("DriveKv", SwerveMap.DrivePID.kV);
+    //   SwerveMap.DrivePID.kA = Preferences.getDouble("DriveKa", SwerveMap.DrivePID.kA);
 
-      _frontLeftModule.setDrivePID(SwerveMap.DrivePID);
-      _frontRightModule.setDrivePID(SwerveMap.DrivePID);
-      _rearLeftModule.setDrivePID(SwerveMap.DrivePID);
-      _rearRightModule.setDrivePID(SwerveMap.DrivePID);
-    }
+    //   _frontLeftModule.setDrivePID(SwerveMap.DrivePID);
+    //   _frontRightModule.setDrivePID(SwerveMap.DrivePID);
+    //   _rearLeftModule.setDrivePID(SwerveMap.DrivePID);
+    //   _rearRightModule.setDrivePID(SwerveMap.DrivePID);
+    // }
 
-    var steerKpChanged = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP) != SwerveMap.SteeringPID.kP;
-    var steerKiChanged = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI) != SwerveMap.SteeringPID.kI;
-    var steerKdChanged = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD) != SwerveMap.SteeringPID.kD;
-    if (steerKpChanged || steerKiChanged || steerKdChanged) {
-      SwerveMap.SteeringPID.kP = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP);
-      SwerveMap.SteeringPID.kI = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI);
-      SwerveMap.SteeringPID.kD = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD);
+    // var steerKpChanged = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP) != SwerveMap.SteeringPID.kP;
+    // var steerKiChanged = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI) != SwerveMap.SteeringPID.kI;
+    // var steerKdChanged = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD) != SwerveMap.SteeringPID.kD;
+    // if (steerKpChanged || steerKiChanged || steerKdChanged) {
+    //   SwerveMap.SteeringPID.kP = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP);
+    //   SwerveMap.SteeringPID.kI = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI);
+    //   SwerveMap.SteeringPID.kD = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD);
 
-      // TODO: Fix this, it was resetting the pid on every boot
-      // _frontLeftModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _frontRightModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _rearLeftModule.setSteeringPID(SwerveMap.SteeringPID);
-      // _rearRightModule.setSteeringPID(SwerveMap.SteeringPID);
-    }
+    //   // TODO: Fix this, it was resetting the pid on every boot
+    //   // _frontLeftModule.setSteeringPID(SwerveMap.SteeringPID);
+    //   // _frontRightModule.setSteeringPID(SwerveMap.SteeringPID);
+    //   // _rearLeftModule.setSteeringPID(SwerveMap.SteeringPID);
+    //   // _rearRightModule.setSteeringPID(SwerveMap.SteeringPID);
+    // }
   }
 
   /**

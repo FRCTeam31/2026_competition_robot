@@ -53,15 +53,27 @@ public class OperatorInterface {
 
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
-                DriverController.povUp()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                DriverController.povDown()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE));
+                // DriverController.povUp()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD));
+                // DriverController.povDown()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE));
 
-                DriverController.y().whileTrue(
-                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
-                DriverController.a().whileTrue(
-                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
+                // DriverController.y().whileTrue(
+                //                 Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
+                // DriverController.a().whileTrue(
+                //                 Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
+
+                // DriverController.povUp()
+                //                 .whileTrue(Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC,
+                //                                 TestDirection.FORWARD));
+                // DriverController.povDown()
+                //                 .whileTrue(Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC,
+                //                                 TestDirection.REVERSE));
+
+                // DriverController.y().whileTrue(
+                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
+                // DriverController.a().whileTrue(
+                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
 
                 // DriverController.x()
                 //                 .onTrue(swerve.disableAutoAlignCommand());

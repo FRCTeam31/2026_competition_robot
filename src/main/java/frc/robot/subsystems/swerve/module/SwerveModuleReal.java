@@ -188,9 +188,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 80;
+    config.CurrentLimits.StatorCurrentLimit = 40;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 60;
+    config.CurrentLimits.SupplyCurrentLimit = 20;
 
     // Voltage Configuration
     config.Voltage.PeakForwardVoltage = 12;
