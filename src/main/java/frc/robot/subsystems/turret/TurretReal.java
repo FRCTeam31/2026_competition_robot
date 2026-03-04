@@ -218,6 +218,7 @@ public class TurretReal implements ITurret {
     public void setFlywheelVoltage(double volts) {
         _flywheelLeft.setVoltage(volts);
         _flywheelRight.setVoltage(-volts);
+        System.out.println("Setting flywheel voltage to: " + volts);
     }
 
     @Override
