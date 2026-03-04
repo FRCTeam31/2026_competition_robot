@@ -1,0 +1,61 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "lefttorightballsout"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CrightToRightShoot"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightShootToRightSetup"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Setup_Climb"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightSetupToClimb"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Climb"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stop_Climb"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "LeftToRight",
+  "choreoAuto": false
+}

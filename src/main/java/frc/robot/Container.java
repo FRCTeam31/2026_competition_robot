@@ -242,6 +242,15 @@ public class Container {
         .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS);
   }
 
+  public static Command toggleIntakeOff() {
+    return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN)
+        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.STOPPED);
+  }
+
+  public static Command toggleClimbArmOn() {
+    return Commands.runOnce(() -> SuperStructure.Climb.SupportState = SupportState.RAISED);
+  }
+
   // public static Command toggleIntakeOff() {
   //   return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN)
   //       .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED);
@@ -252,7 +261,11 @@ public class Container {
         "Enable_Autonomous_Shooting", () -> toggleShooterOn(),
         "Disable_Autonomous_Shooting", () -> toggleShooterOff(),
         "Start_Auto", () -> startAuto(),
-        "Take_Out_And_Enable_Intake", () -> toggleIntakeOn());
+        "Take_Out_And_Enable_Intake", () -> toggleIntakeOn(),
+        "Put_In_And_Disable_Intake", () -> toggleIntakeOff(),
+        "Setup_Climb", () -> setupClimb(),
+        "Climb", () -> startClimbing(),
+        "Stop_Climb", () -> stopClimbing());
   }
 
 }
