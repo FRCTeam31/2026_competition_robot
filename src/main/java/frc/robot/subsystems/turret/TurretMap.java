@@ -132,6 +132,7 @@ public class TurretMap {
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
         public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
         public static final double MIN_SHOT_DISTANCE_METERS = 0;
+        public static final double FLYWHEEL_GEAR_RATIO = 50 / 32;
 
         // ──────────────────────── Limelight ──────────────────────────────
         // Offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)

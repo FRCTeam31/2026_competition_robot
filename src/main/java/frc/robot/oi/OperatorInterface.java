@@ -46,17 +46,17 @@ public class OperatorInterface {
         }
 
         public void bindDriverControls() {
-                var controlProfile = DriverController.getSwerveControlProfile(
-                                OIMap.DefaultDriveControlStyle,
-                                SwerveMap.Control.DriveDeadband,
-                                SwerveMap.Control.DeadbandCurveWeight);
+                // var controlProfile = DriverController.getSwerveControlProfile(
+                //                 OIMap.DefaultDriveControlStyle,
+                //                 SwerveMap.Control.DriveDeadband,
+                //                 SwerveMap.Control.DeadbandCurveWeight);
 
-                Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
+                // Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
-                DriverController.x()
-                                .onTrue(Container.Swerve.disableAutoAlignCommand());
-                DriverController.a()
-                                .onTrue(Container.Swerve.resetGyroCommand());
+                // DriverController.x()
+                //                 .onTrue(Container.Swerve.disableAutoAlignCommand());
+                // DriverController.a()
+                //                 .onTrue(Container.Swerve.resetGyroCommand());
 
                 // // While holding POV up, auto-align the robot to the in-view apriltag target's rotation
                 // DriverController.pov(Controls.up)
@@ -140,6 +140,15 @@ public class OperatorInterface {
                 //                                 .andThen(Container.Turret.setYawAngleTEST(_currentTurretAngleTEST)));
 
                 // -------------------------------------------------------------------
+
+                DriverController.povUp().whileTrue(
+                                Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.FORWARD));
+                DriverController.povUp().whileTrue(
+                                Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.REVERSE));
+                DriverController.povUp().whileTrue(
+                                Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
+                DriverController.povUp().whileTrue(
+                                Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
 
         }
 

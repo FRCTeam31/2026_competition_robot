@@ -137,7 +137,8 @@ public class Turret extends LoggedSubsystem {
                 (voltage) -> _turret.setFlywheelVoltage(voltage.in(Units.Volts)),
                 (log) -> log.motor("flywheel")
                         .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
-                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity));
+                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity)
+                        .angularPosition(SuperStructure.Turret.FlywheelAngle));
 
         // Configure SysId routine for turret yaw characterization
         _yawSysId = new SysIdRoutineHelper(

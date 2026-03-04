@@ -63,6 +63,8 @@ public class TurretReal implements ITurret {
         SparkFlexConfig defaultConfig = new SparkFlexConfig();
         defaultConfig.idleMode(IdleMode.kCoast);
         defaultConfig.smartCurrentLimit(60, 40);
+        defaultConfig.encoder.positionConversionFactor(1 / TurretMap.FLYWHEEL_GEAR_RATIO);
+        defaultConfig.encoder.velocityConversionFactor(1 / TurretMap.FLYWHEEL_GEAR_RATIO);
 
         SparkFlexConfig rightConfig = defaultConfig;
         rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
@@ -154,6 +156,7 @@ public class TurretReal implements ITurret {
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
+        inputs.FlywheelAngle = Angle.ofBaseUnits(_flywheelLeft.getEncoder().getPosition(), Rotations);
 
         // Compute on-target flags
         double flywheelToleranceRPS = _targetFlywheelVelocityRPS

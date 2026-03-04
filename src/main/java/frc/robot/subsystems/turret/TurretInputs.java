@@ -16,6 +16,7 @@ public class TurretInputs {
     public boolean TurretRotationResetSwitch = true;
     public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
     public Angle HoodAngle = Angle.ofBaseUnits(0, Degrees);
+    public Angle FlywheelAngle = Angle.ofBaseUnits(0, Degrees);
 
     // Operating mode (persists across firing cycles)
     // TODO: Changed to prevent movement while testing
