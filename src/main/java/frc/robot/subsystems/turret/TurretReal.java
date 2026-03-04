@@ -66,16 +66,19 @@ public class TurretReal implements ITurret {
         defaultConfig.encoder.positionConversionFactor(1 / TurretMap.FLYWHEEL_GEAR_RATIO);
         defaultConfig.encoder.velocityConversionFactor(1 / TurretMap.FLYWHEEL_GEAR_RATIO);
 
-        SparkFlexConfig rightConfig = defaultConfig;
-        rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
-
         SparkFlexConfig leftConfig = defaultConfig;
         leftConfig.inverted(TurretMap.FLYWHEEL_LEFT_INVERTED);
         leftConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
 
+        SparkFlexConfig rightConfig = defaultConfig;
+        rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
+
         _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        System.out.println(_flywheelRight.isFollower() + " : right is follower");
+        System.out.println(_flywheelLeft.isFollower() + " : left is follower");
 
         _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
     }
