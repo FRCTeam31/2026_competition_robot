@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.prime.control.ExtendedPIDConstants;
+import org.prime.util.CTREConverter;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -40,6 +41,11 @@ public class TurretReal implements ITurret {
     private DigitalInput _turretResetLimitSwitch;
     private SparkClosedLoopController _flywheelClosedLoopController;
     private SparkClosedLoopController _hoodClosedLoopController;
+
+    // Stored setpoints for on-target calculations
+    private double _targetFlywheelVelocityRPS = 0;
+    private double _targetYawDegrees = 0;
+    private double _targetHoodDegrees = 0;
 
     public TurretReal() {
         configureFlywheelMotors(TurretMap.FLYWHEEL_PID);
@@ -103,12 +109,9 @@ public class TurretReal implements ITurret {
 
         config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
 
-        // TODO: Determine if needed, if so convert to v5
-        // MotionMagicConfigs motionMagic = new MotionMagicConfigs();
-        // motionMagic.MotionMagicCruiseVelocity = 100; // TODO: Tune this
-        // motionMagic.MotionMagicAcceleration = 200; // TODO: Tune this
-        // motionMagic.MotionMagicJerk = 1600; // TODO: Tune this
-        // config.MotionMagic = motionMagic;
+        // Motion Magic configuration for smooth position control
+        config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
+        config.motionAcceleration = TurretMap.YAW_MOTION_MAGIC_ACCELERATION;
 
         _turretRotator.configAllSettings(config);
         _turretRotator.clearStickyFaults();
@@ -121,10 +124,22 @@ public class TurretReal implements ITurret {
         sparkConfig.inverted(TurretMap.HOOD_INVERTED);
         sparkConfig.idleMode(IdleMode.kCoast);
 
-        sparkConfig.smartCurrentLimit(40, 30);
+        // TODO: Check current limits, ensure it can run but doesn't have enough power to destory the hood
+        sparkConfig.smartCurrentLimit(25, 10);
 
         sparkConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         sparkConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
+
+        // sparkConfig.encoder.inverted(TurretMap.HOOD_ENCODER_INVERTED);
+
+        // MAXMotion configuration for smooth position control
+        sparkConfig.closedLoop.maxMotion
+                .cruiseVelocity(TurretMap.HOOD_MAX_MOTION_MAX_VELOCITY)
+                .maxAcceleration(TurretMap.HOOD_MAX_MOTION_MAX_ACCELERATION)
+                .allowedProfileError(TurretMap.HOOD_MAX_MOTION_ALLOWED_ERROR);
+
+        // Set conversion factor
+        sparkConfig.encoder.positionConversionFactor(1 / TurretMap.HOOD_GEAR_RATIO);
 
         _sparkHood.configure(sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -139,11 +154,16 @@ public class TurretReal implements ITurret {
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
         inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
-    }
 
-    private int getRotatorEncoderTicksFromTurretYaw(Angle angle) {
-        var degrees = angle.in(Degrees);
-        return TurretMap.TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE * (int) degrees;
+        // Compute on-target flags
+        double flywheelToleranceRPS = _targetFlywheelVelocityRPS
+                * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
+        inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RotationsPerSecond)
+                - _targetFlywheelVelocityRPS) <= flywheelToleranceRPS;
+        inputs.YawOnTarget = Math.abs(inputs.TurretRotation.getDegrees()
+                - _targetYawDegrees) <= TurretMap.YAW_ON_TARGET_TOLERANCE_DEGREES;
+        inputs.HoodOnTarget = Math.abs(inputs.HoodAngle.in(Degrees)
+                - _targetHoodDegrees) <= TurretMap.HOOD_ON_TARGET_TOLERANCE_DEGREES;
     }
 
     private Rotation2d getTurretRotation() {
@@ -164,12 +184,15 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlFlywheel(AngularVelocity velocity) {
-        _flywheelClosedLoopController.setSetpoint(velocity.in(RotationsPerSecond), ControlType.kVelocity);
+        _targetFlywheelVelocityRPS = velocity.in(RotationsPerSecond);
+        _flywheelClosedLoopController.setSetpoint(velocity.in(RPM), ControlType.kVelocity);
     }
 
     @Override
     public void controlYawAngle(Angle angle) {
-        _turretRotator.set(TalonSRXControlMode.Position, getRotatorEncoderTicksFromTurretYaw(angle));
+        _targetYawDegrees = angle.in(Degrees);
+        _turretRotator.set(TalonSRXControlMode.MotionMagic,
+                CTREConverter.degreesToCANcoder(_targetYawDegrees, TurretMap.TURRET_GEAR_RATIO));
     }
 
     @Override
@@ -179,7 +202,8 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlHood(Angle angle) {
-        _hoodClosedLoopController.setSetpoint(angle.in(Degrees), ControlType.kPosition);
+        _targetHoodDegrees = angle.in(Degrees);
+        _hoodClosedLoopController.setSetpoint(angle.in(Rotations), ControlType.kMAXMotionPositionControl);
     }
 
     @Override
@@ -203,5 +227,16 @@ public class TurretReal implements ITurret {
     @Override
     public void setHoodPercentOut(double percentOut) {
         _sparkHood.set(percentOut);
+    }
+
+    @Override
+    public void setYawSensorPosition(Angle position) {
+        _turretRotator.setSelectedSensorPosition(
+                CTREConverter.degreesToCANcoder(position.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
+    }
+
+    @Override
+    public void setHoodSensorPosition(Angle position) {
+        _sparkHood.getEncoder().setPosition(position.in(Rotations));
     }
 }

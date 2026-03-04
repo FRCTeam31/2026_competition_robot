@@ -1,12 +1,14 @@
 package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
@@ -31,6 +33,8 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.concurrent.ExecutorService;
+
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
 import org.prime.dashboard.DashboardSection;
@@ -41,6 +45,11 @@ public class SwerveModuleReal implements ISwerveModule {
   private SwerveModuleMap _map;
   private DashboardSection _dashboardSection;
   private final String _optimizeModuleKey = "Optimize";
+
+  // Configuration Thread Setup
+  private ExecutorService _executorService;
+  private int _configurationAttempts = 5;
+  private int _timeBetweenConfigurationAttemptsMs = 500;
 
   // Devices
   private TalonFX _steeringMotor;
@@ -58,9 +67,10 @@ public class SwerveModuleReal implements ISwerveModule {
   private final MotionMagicVoltage _steeringControl = new MotionMagicVoltage(0);
   private final VelocityVoltage _driveControl = new VelocityVoltage(0);
 
-  public SwerveModuleReal(String name, SwerveModuleMap moduleMap) {
+  public SwerveModuleReal(String name, SwerveModuleMap moduleMap, ExecutorService configurationService) {
     _name = name;
     _map = moduleMap;
+    _executorService = configurationService;
     _dashboardSection = new DashboardSection("Drive/" + _name);
     _dashboardSection.putBoolean(_optimizeModuleKey, true);
 
@@ -68,7 +78,7 @@ public class SwerveModuleReal implements ISwerveModule {
     setupSteeringMotor(SwerveMap.SteeringPID);
     setupDriveMotor(SwerveMap.DrivePID);
 
-    BaseStatusSignal.setUpdateFrequencyForAll(200, _drivePosition, _driveVelocity, _steeringAzimuth);
+    BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
     ParentDevice.optimizeBusUtilizationForAll(_driveMotor, _steeringMotor, _encoder);
   }
@@ -77,7 +87,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the CANCoder first so it can be used as a remote sensor
    */
   private void setupCanCoder() {
-    _encoder = new CANcoder(_map.CANCoderCanId);
+    _encoder = new CANcoder(_map.CANCoderCanId, _map.CANivoreBusName);
     _encoder.clearStickyFaults();
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
@@ -94,7 +104,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the steering motor with Motion Magic and CANCoder as remote sensor
    */
   private void setupSteeringMotor(ExtendedPIDConstants pid) {
-    _steeringMotor = new TalonFX(_map.SteeringMotorCanId);
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId, _map.CANivoreBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -105,13 +115,15 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 40;
+    config.CurrentLimits.StatorCurrentLimit = 60;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 40;
+    config.CurrentLimits.SupplyCurrentLimit = 45;
 
     // Feedback Configuration - Use CANCoder as remote sensor
     config.Feedback.FeedbackRemoteSensorID = _map.CANCoderCanId;
-    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    // TODO: Purchase Phoenix Pro to use Fused CANcoder
+    // config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     config.Feedback.RotorToSensorRatio = SwerveMap.SteeringGearRatio;
     config.Feedback.SensorToMechanismRatio = 1.0;
 
@@ -136,11 +148,11 @@ public class SwerveModuleReal implements ISwerveModule {
     config.ClosedLoopGeneral.ContinuousWrap = true; // Enable continuous wrap for steering
 
     // Apply configuration
-    _steeringMotor.getConfigurator().apply(config);
+    applyConfig(_steeringMotor, config);
     _steeringMotor.clearStickyFaults();
 
     // Configure control request to use FOC and slot 0
-    _steeringControl.EnableFOC = true;
+    // _steeringControl.EnableFOC = true;
     _steeringControl.Slot = 0;
 
     // Initialize status signals
@@ -165,7 +177,7 @@ public class SwerveModuleReal implements ISwerveModule {
    * Configures the drive motor with velocity PID control
    */
   private void setupDriveMotor(ExtendedPIDConstants pid) {
-    _driveMotor = new TalonFX(_map.DriveMotorCanId);
+    _driveMotor = new TalonFX(_map.DriveMotorCanId, _map.CANivoreBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -205,7 +217,7 @@ public class SwerveModuleReal implements ISwerveModule {
     config.HardwareLimitSwitch.ReverseLimitEnable = false;
 
     // Apply configuration
-    _driveMotor.getConfigurator().apply(config);
+    applyConfig(_driveMotor, config);
     _driveMotor.clearStickyFaults();
 
     // Configure control request to use FOC and slot 0
@@ -230,6 +242,33 @@ public class SwerveModuleReal implements ISwerveModule {
 
     _driveMotor.getConfigurator().apply(slot0);
     System.out.println("Reset Drive PID " + _name);
+  }
+
+  private void applyConfig(TalonFX motor, TalonFXConfiguration config) {
+    _executorService.submit(() -> {
+      StatusCode status = StatusCode.StatusCodeNotInitialized;
+
+      for (int i = 0; i < _configurationAttempts; i++) {
+        status = motor.getConfigurator().apply(config);
+
+        if (status.isOK()) {
+          System.out.println("Config applied for motor " + motor.getDeviceID() + " successfully, shutting down thread");
+          break;
+        }
+
+        System.out.println("Retrying config apply for motor " + motor.getDeviceID() + "... attempt " + (i + 1));
+
+        try {
+          Thread.sleep(_timeBetweenConfigurationAttemptsMs);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+
+      if (!status.isOK()) {
+        System.out.println("FAILED to apply config for motor " + motor.getDeviceID() + ": " + status);
+      }
+    });
   }
 
   @Override

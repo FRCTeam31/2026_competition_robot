@@ -200,7 +200,6 @@ public class MutVector {
         return Units.Seconds.of(distanceToTarget / horizontalVelocity);
     }
 
-    // TODO: Add unit tests
     public Translation3d getTranslation3d() {
         return new Translation3d(_x, _y, _z);
     }

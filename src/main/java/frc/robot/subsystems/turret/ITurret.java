@@ -23,4 +23,8 @@ public interface ITurret {
 
     /** Sets raw voltage to the turret yaw motor (for SysId characterization) */
     public void setYawVoltage(double volts);
+
+    public void setYawSensorPosition(Angle position);
+
+    public void setHoodSensorPosition(Angle position);
 }

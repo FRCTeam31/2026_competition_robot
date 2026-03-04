@@ -11,11 +11,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.DrivetrainDashboardSection;
 import frc.robot.Container;
+import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
@@ -24,6 +26,7 @@ import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -83,18 +86,24 @@ public class Swerve extends LoggedSubsystem {
             voltage.in(edu.wpi.first.units.Units.Volts), Rotation2d.fromDegrees(0)),
         (log) -> {
           var states = SuperStructure.Swerve.ModuleStates;
+          var positions = _swervePackager.getModulePositions();
+
           log.motor("drive-fl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[0].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[0].distanceMeters, Meters));
           log.motor("drive-fr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[1].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[1].distanceMeters, Meters));
           log.motor("drive-rl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[2].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[2].distanceMeters, Meters));
           log.motor("drive-rr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[3].DriveMotorVoltage))
-              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond));
+              .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond))
+              .linearPosition(Distance.ofBaseUnits(positions[3].distanceMeters, Meters));
         });
   }
 
@@ -189,6 +198,7 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Processes vision estimations when within a certain velocity threshold
    */
+  @SuppressWarnings("unused")
   private void processVisionEstimations() {
     // (1 rad/s is about 60 degrees/s)
     var currentRotationalVelocity = RadiansPerSecond
@@ -205,7 +215,11 @@ public class Swerve extends LoggedSubsystem {
       return;
     }
 
-    // evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    if (SuperStructure.VisionLimelights.containsKey(VisionMap.LimelightTurretName)
+        && SwerveMap.USE_LIMELIGHT_POSE_ESTIMATION) {
+      evaluateLimelightPoseEstimation(SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName));
+    }
+
     if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
       evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
     }
@@ -214,7 +228,6 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  @SuppressWarnings("unused")
   private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
@@ -265,8 +278,9 @@ public class Swerve extends LoggedSubsystem {
     processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
-    Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-    Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
+    // TODO: Disabled Temp
+    // Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
+    // Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
 
     // Update LEDs
     recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
@@ -414,6 +428,29 @@ public class Swerve extends LoggedSubsystem {
           ? AutoBuilder.pathfindToPoseFlipped(desiredPose, pathConstraints)
           : AutoBuilder.pathfindToPose(desiredPose, pathConstraints);
     });
+  }
+
+  /**
+   * Creates a command that enables AutoAlign to orient the robot's front (positive-x) away from the hub.
+   * While active, the setpoint is continuously updated based on the robot's current position relative
+   * to the alliance hub. When the command ends, AutoAlign is disabled.
+   */
+  public Command faceAwayFromHubCommand() {
+    return this.run(() -> {
+      var hubPosition = FieldTargets.GetCurrentAllianceHubPosition();
+      var robotPose = SuperStructure.Swerve.EstimatedRobotPose;
+
+      // Calculate the field-centric angle from the robot to the hub
+      double dx = hubPosition.getX() - robotPose.getX();
+      double dy = hubPosition.getY() - robotPose.getY();
+      double angleToHubRadians = Math.atan2(dy, dx);
+
+      // Add π to face AWAY from the hub
+      var awayFromHubAngle = Rotation2d.fromRadians(angleToHubRadians + Math.PI);
+
+      _autoAlign.setSetpoint(awayFromHubAngle);
+      setAutoAlignEnabled(true);
+    }).finallyDo(() -> setAutoAlignEnabled(false));
   }
 
   /*

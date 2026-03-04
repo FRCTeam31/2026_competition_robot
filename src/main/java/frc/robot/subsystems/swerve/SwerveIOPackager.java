@@ -1,5 +1,8 @@
 package frc.robot.subsystems.swerve;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
@@ -13,6 +16,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Preferences;
 import frc.robot.Robot;
+import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.gyro.GyroReal;
 import frc.robot.subsystems.swerve.gyro.GyroInputsAutoLogged;
 import frc.robot.subsystems.swerve.gyro.GyroSim;
@@ -42,6 +46,9 @@ public class SwerveIOPackager {
       new SwerveModuleInputsAutoLogged()
   };
 
+  // Create a new thread pool with a thread for each motor
+  private ExecutorService _configurationExecutorService = Executors.newFixedThreadPool(8);
+
   public SwerveIOPackager() {
     // Create kinematics in order FL, FR, RL, RR
     Kinematics = new SwerveDriveKinematics(SwerveMap.FrontLeftSwerveModule.ModuleLocation,
@@ -56,17 +63,20 @@ public class SwerveIOPackager {
     _gyro.updateInputs(_gyroInputs, 0);
 
     _frontLeftModule = isReal
-        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule)
+        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("FrontLeftModule", SwerveMap.FrontLeftSwerveModule);
     _frontRightModule = isReal
-        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule)
+        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("FrontRightModule", SwerveMap.FrontRightSwerveModule);
     _rearLeftModule = isReal
-        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule)
+        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("RearLeftModule", SwerveMap.RearLeftSwerveModule);
     _rearRightModule = isReal
-        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule)
+        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule, _configurationExecutorService)
         : new SwerveModuleSim("RearRightModule", SwerveMap.RearRightSwerveModule);
+
+    System.out.println("Shutting down configuration thread pool, execution will end when all tasks close");
+    _configurationExecutorService.shutdown();
 
     // Create pose estimator
     m_poseEstimator = new SwerveDrivePoseEstimator(Kinematics, _gyroInputs.Rotation,
@@ -113,11 +123,14 @@ public class SwerveIOPackager {
     swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
 
     checkPreferences();
+
+    SuperStructure.SwerveModules = _moduleInputs;
   }
 
   /**
    * Checks the preferences for any changes and updates the PID values in each swerve module if necessary
    */
+  @SuppressWarnings("unused")
   private void checkPreferences() {
     var driveKpChanged = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP) != SwerveMap.DrivePID.kP;
     var driveKiChanged = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI) != SwerveMap.DrivePID.kI;
@@ -143,7 +156,7 @@ public class SwerveIOPackager {
     var steerKpChanged = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP) != SwerveMap.SteeringPID.kP;
     var steerKiChanged = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI) != SwerveMap.SteeringPID.kI;
     var steerKdChanged = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD) != SwerveMap.SteeringPID.kD;
-    if (steerKpChanged || steerKiChanged || steerKdChanged) {
+    if (SwerveMap.USE_PID_FROM_PREFERENCES && (steerKpChanged || steerKiChanged || steerKdChanged)) {
       SwerveMap.SteeringPID.kP = Preferences.getDouble("SteerKp", SwerveMap.SteeringPID.kP);
       SwerveMap.SteeringPID.kI = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI);
       SwerveMap.SteeringPID.kD = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD);

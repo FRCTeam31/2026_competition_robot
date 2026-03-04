@@ -38,6 +38,7 @@ class SwerveTest {
         assertNotNull(swerve.enablePathPlannerAutoAlignRotationFeedbackCommand());
         assertNotNull(swerve.disablePathPlannerAutoAlignRotationFeedbackCommand());
         assertNotNull(swerve.cancelPathfindingCommand());
+        assertNotNull(swerve.faceAwayFromHubCommand());
     }
 
     @Test

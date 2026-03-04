@@ -2,6 +2,7 @@ package frc.robot.subsystems.turret;
 
 import java.util.Map;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Millimeters;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -18,6 +19,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import org.prime.util.IDWController;
 
@@ -27,16 +29,22 @@ public class TurretMap {
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final boolean YAW_DEADZONE_ENABLED = true;
+        public static final boolean USE_LIMELIGHT_TARGETING = false;
+        public static final boolean USE_LIMELIGHT_YAW_CORRECTION = false;
 
         // ──────────────────────── Turret Yaw ────────────────────────────
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
-        public static final double TURRET_GEAR_RATIO = 10;
+        public static final double TURRET_GEAR_RATIO = 200;
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
+        public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 100; // sensor units per 100ms // TODO: Tune
+        public static final double YAW_MOTION_MAGIC_ACCELERATION = 200; // sensor units per 100ms per second // TODO: Tune
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
+        public static final double YAW_ON_TARGET_TOLERANCE_DEGREES = 2.0;
         public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
+        public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise
@@ -66,6 +74,7 @@ public class TurretMap {
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED = 50;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
+        public static final double FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT = 5.0; // 5% tolerance
         public static final InterpolatingDoubleTreeMap DISTANCE_TO_FLYWHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(
                                         Map.entry(2.0, 300.0),
@@ -85,22 +94,39 @@ public class TurretMap {
         // ──────────────────────── Hood ───────────────────────────────────
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
-        //        public static final double HOOD_MAX_ANGLE_DEGREES = 60.0; // Hood fully retracted
-        //        public static final double HOOD_MIN_ANGLE_DEGREES = 20.0; // Hood fully extended
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        //        public static final double HOOD_MAX_ANGLE_DEGREES = 12.6; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
+        public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM // TODO: Tune
+        public static final double HOOD_MAX_MOTION_MAX_ACCELERATION = 200; // RPM per second // TODO: Tune
+        public static final double HOOD_MAX_MOTION_ALLOWED_ERROR = 0.5; // degrees // TODO: Tune
         public static final double PITCH_MAX_MANUAL_PERCENT_OUT = 0.2; // TODO: Tune
+        public static final double HOOD_ON_TARGET_TOLERANCE_DEGREES = 1.0;
         public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
         public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
                         RadiansPerSecond);
+        public static final double HOOD_GEAR_RATIO = 6.333;
+        public static final boolean HOOD_ENCODER_INVERTED = false;
 
         // ──────────────────────── Feeder ─────────────────────────────────
         public static final int FEEDER_CANID = 16;
         public static final boolean FEEDER_INVERTED = false;
         public static final double MAX_FEED_PERCENT_OUT = 0.4;
         public static final double FEEDER_VELOCITY_CONVERSION_FACTOR = 1.0;
+
+        // ──────────────────────── Manual Mode Steps ──────────────────────
+        /** Amount to adjust the flywheel speed per button press in MANUAL mode (RPS) */
+        public static final double MANUAL_FLYWHEEL_STEP_RPS = 2.0;
+        /** Amount to adjust the hood angle per button press in MANUAL mode (degrees) */
+        public static final double MANUAL_HOOD_STEP_DEGREES = 1.0;
+        /** Amount to adjust the turret yaw per button press in MANUAL mode (degrees) */
+        public static final double MANUAL_YAW_STEP_DEGREES = 5.0;
+
+        // ──────────────────────── Home Positions ─────────────────────────
+        /** Yaw home position in degrees (180° = straight back) */
+        public static final double YAW_HOME_DEGREES = 180.0;
+        /** Hood home angle in degrees (fully up / hood lowered) */
+        public static final double HOOD_HOME_DEGREES = HOOD_MAX_ANGLE_DEGREES;
 
         // ──────────────────────── Shot Targeting ─────────────────────────
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
