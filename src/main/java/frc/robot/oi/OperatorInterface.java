@@ -53,20 +53,10 @@ public class OperatorInterface {
 
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
-                DriverController.povUp()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                DriverController.povDown()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE));
-
-                DriverController.y().whileTrue(
-                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
-                DriverController.a().whileTrue(
-                                Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
-
-                // DriverController.x()
-                //                 .onTrue(swerve.disableAutoAlignCommand());
-                // DriverController.a()
-                //                 .onTrue(swerve.resetGyroCommand());
+                DriverController.x()
+                                .onTrue(Container.Swerve.disableAutoAlignCommand());
+                DriverController.a()
+                                .onTrue(Container.Swerve.resetGyroCommand());
 
                 // // While holding POV up, auto-align the robot to the in-view apriltag target's rotation
                 // DriverController.pov(Controls.up)
