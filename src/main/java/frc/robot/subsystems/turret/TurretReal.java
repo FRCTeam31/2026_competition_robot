@@ -217,6 +217,7 @@ public class TurretReal implements ITurret {
     @Override
     public void setFlywheelVoltage(double volts) {
         _flywheelLeft.setVoltage(volts);
+        _flywheelRight.setVoltage(-volts);
     }
 
     @Override
