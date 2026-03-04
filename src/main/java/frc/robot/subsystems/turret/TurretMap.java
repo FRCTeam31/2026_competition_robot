@@ -69,7 +69,8 @@ public class TurretMap {
         public static final int FLYWHEEL_RIGHT_CANID = 20;
         public static final boolean FLYWHEEL_LEFT_INVERTED = false;
         public static final double FLYWHEEL_RAMP_PERIOD = 1;
-        public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants();
+        public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants(0.013258, 0, 0, 0, 0.072663,
+                        0.10504, 0.00772);
         public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = AngularVelocity.ofBaseUnits(5, RotationsPerSecond);
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED = 50;
