@@ -173,11 +173,9 @@ public class TurretReal implements ITurret {
     }
 
     private Rotation2d getTurretRotation() {
-        var motorRotation = _turretRotator.getSelectedSensorPosition();
-        // 4096 ticks per pinion revolution × TURRET_GEAR_RATIO pinion revs per turret revolution
-        var turretRotation = motorRotation / (4096.0 * TurretMap.TURRET_GEAR_RATIO);
+        var magEncoderPosition = _turretRotator.getSelectedSensorPosition();
 
-        return Rotation2d.fromRotations(turretRotation);
+        return CTREConverter.CANcoderToRotation(magEncoderPosition, TurretMap.TURRET_GEAR_RATIO);
     }
 
     private MutAngularVelocity getFlywheelVelocity() {
@@ -239,8 +237,10 @@ public class TurretReal implements ITurret {
 
     @Override
     public void setYawSensorPosition(Angle position) {
-        _turretRotator.setSelectedSensorPosition(
-                CTREConverter.degreesToCANcoder(position.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
+        var turretRotations = position.in(Degrees) / 360;
+        var pinionRotations = turretRotations * TurretMap.TURRET_GEAR_RATIO;
+        var encoderRotations = pinionRotations * 4096;
+        _turretRotator.setSelectedSensorPosition(encoderRotations);
     }
 
     @Override
