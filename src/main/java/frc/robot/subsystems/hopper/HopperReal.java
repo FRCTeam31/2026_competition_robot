@@ -18,7 +18,7 @@ public class HopperReal implements IHopper {
                 HopperMap.IntakeReverseChannel);
 
         _upperFeedSparkFlex = new SparkFlex(HopperMap.UPPER_FEED_CAN_ID, MotorType.kBrushless);
-        _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
+        // _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
 
         _intakeFeedSparkFlex = new SparkFlex(HopperMap.INTAKE_CAN_ID, MotorType.kBrushless);
     }
@@ -31,13 +31,13 @@ public class HopperReal implements IHopper {
     @Override
     public void setFeedSpeed(double speed) {
         _upperFeedSparkFlex.set(-speed);
-        _lowerFeedSparkFlex.set(speed);
+        // _lowerFeedSparkFlex.set(speed);
     }
 
     @Override
     public void feedStop() {
         _upperFeedSparkFlex.stopMotor();
-        _lowerFeedSparkFlex.stopMotor();
+        // _lowerFeedSparkFlex.stopMotor();
     }
 
     @Override
