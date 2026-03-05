@@ -70,8 +70,10 @@ public class OperatorInterface {
                 // Intake feed control
                 DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
                 DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
-                DriverController.rightTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
-                DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                DriverController.rightTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)));
+                DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // Combined climb controls
                 // DriverController.start().and(DriverController.povLeft())
@@ -155,9 +157,9 @@ public class OperatorInterface {
                 // LB - Set turret manual mode
 
                 // Fire fuel
-                OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting())
-                                .onFalse(Container.stopShooting());
+                // OperatorController.rightTrigger()
+                //                 .onTrue(Container.startShooting())
+                //                 .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
