@@ -74,14 +74,14 @@ public class OperatorInterface {
                 DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // Combined climb controls
-                DriverController.start().and(DriverController.povLeft())
-                                .onTrue(Container.setupClimb());
-                DriverController.start().and(DriverController.povUp())
-                                .onTrue(Container.startClimbing());
-                DriverController.start().and(DriverController.povDown())
-                                .onTrue(Container.stopClimbing());
-                DriverController.start().and(DriverController.povRight())
-                                .onTrue(Container.resetRobotAfterClimb());
+                // DriverController.start().and(DriverController.povLeft())
+                //                 .onTrue(Container.setupClimb());
+                // DriverController.start().and(DriverController.povUp())
+                //                 .onTrue(Container.startClimbing());
+                // DriverController.start().and(DriverController.povDown())
+                //                 .onTrue(Container.stopClimbing());
+                // DriverController.start().and(DriverController.povRight())
+                //                 .onTrue(Container.resetRobotAfterClimb());
 
                 // -------------------------- TEST COMMANDS --------------------------
 
@@ -174,12 +174,12 @@ public class OperatorInterface {
                 //                 .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
                 // OperatorController.povDown()
                 //                 .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                OperatorController.x()
-                                .onTrue(Container.Turret
-                                                .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                OperatorController.a()
-                                .onTrue(Container.Turret
-                                                .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                // OperatorController.x()
+                //                 .onTrue(Container.Turret
+                //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                // OperatorController.a()
+                //                 .onTrue(Container.Turret
+                //                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
                 // Control intake feed percent out
                 OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
