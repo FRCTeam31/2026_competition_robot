@@ -1,7 +1,10 @@
 package frc.robot.subsystems.hopper;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import frc.robot.Container;
@@ -21,6 +24,9 @@ public class HopperReal implements IHopper {
         _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
 
         _intakeFeedSparkFlex = new SparkFlex(HopperMap.INTAKE_CAN_ID, MotorType.kBrushless);
+        SparkFlexConfig config = new SparkFlexConfig();
+        config.smartCurrentLimit(40, 30);
+        _intakeFeedSparkFlex.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
