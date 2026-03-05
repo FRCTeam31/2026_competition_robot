@@ -163,23 +163,23 @@ public class OperatorInterface {
                                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
 
                 // Manual turret controls
-                OperatorController.pov(90)
+                OperatorController.povRight()
                                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.pov(270)
+                OperatorController.povLeft()
                                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.pov(0)
+                OperatorController.povUp()
                                 .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                OperatorController.pov(180)
+                OperatorController.povDown()
                                 .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
                 OperatorController.x()
                                 .onTrue(Container.Turret
+                                                .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                OperatorController.a()
+                                .onTrue(Container.Turret
                                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                OperatorController.y()
-                                .onTrue(Container.Turret.adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
-                // Intake: arm out + rollers inward or arm in and rollers stopped
-                OperatorController.leftBumper()
-                                .onTrue(Container.Hopper.toggleHopperIntake());
+                // Control intake feed percent out
+                OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {

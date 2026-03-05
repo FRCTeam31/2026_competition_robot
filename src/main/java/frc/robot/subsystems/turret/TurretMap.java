@@ -45,6 +45,7 @@ public class TurretMap {
         public static final double YAW_ON_TARGET_TOLERANCE_DEGREES = 2.0;
         public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
         public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
+        public static final int TURRET_RESET_SWITCH_CHANNEL = 0;
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise
@@ -96,7 +97,8 @@ public class TurretMap {
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
+        // public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
+        public static final double HOOD_MIN_ANGLE_DEGREES = HOOD_MAX_ANGLE_DEGREES; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
         public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM // TODO: Tune
         public static final double HOOD_MAX_MOTION_MAX_ACCELERATION = 200; // RPM per second // TODO: Tune
