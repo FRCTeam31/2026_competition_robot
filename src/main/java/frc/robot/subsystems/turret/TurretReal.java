@@ -69,6 +69,7 @@ public class TurretReal implements ITurret {
         SparkFlexConfig leftConfig = defaultConfig;
         leftConfig.inverted(TurretMap.FLYWHEEL_LEFT_INVERTED);
         leftConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
+        leftConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
         leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
 
         _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -114,6 +115,7 @@ public class TurretReal implements ITurret {
         config.slot0 = slot0;
 
         config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
+        // TODO: set forward and reverse soft limits based on physical limits of the turret
 
         // Motion Magic configuration for smooth position control
         config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
@@ -175,7 +177,8 @@ public class TurretReal implements ITurret {
 
     private Rotation2d getTurretRotation() {
         var motorRotation = _turretRotator.getSelectedSensorPosition();
-        var turretRotation = motorRotation / TurretMap.TURRET_GEAR_RATIO;
+        // 4096 ticks per pinion revolution × TURRET_GEAR_RATIO pinion revs per turret revolution
+        var turretRotation = motorRotation / (4096.0 * TurretMap.TURRET_GEAR_RATIO);
 
         return Rotation2d.fromRotations(turretRotation);
     }

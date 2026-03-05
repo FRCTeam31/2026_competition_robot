@@ -4,17 +4,16 @@
 
 package frc.robot;
 
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.List;
 
 import org.prime.dashboard.DashboardSection;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
@@ -40,10 +39,10 @@ import frc.robot.subsystems.turret.Turret.FiringState;
 import frc.robot.subsystems.turret.Turret.OperatingMode;
 
 public class Container {
-  public static TeleopDashboardTab TeleopDashboardSection;
-  public static DashboardSection CommandsDashboardSection;
   public static DashboardSection AutoDashboardSection;
-  public static DashboardSection TestDashboardSection;
+  public static TeleopDashboardTab TeleopDashboardSection;
+  // public static DashboardSection CommandsDashboardSection;
+  // public static DashboardSection TestDashboardSection;
   public static OperatorInterface OperatorInterface;
   public static SendableChooser<Command> AutoChooser;
 
@@ -65,18 +64,18 @@ public class Container {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
-      // TeleopDashboardSection = new TeleopDashboardTab();
+      TeleopDashboardSection = new TeleopDashboardTab();
       // CommandsDashboardSection = new DashboardSection("Commands");
       // TestDashboardSection = new DashboardSection("Test");
 
       // Create subsystems
-      // LEDs = new PwmLEDs();
+      LEDs = new PwmLEDs();
 
-      // LimelightVision = new LimelightVision();
-      // LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
-      // PhotonVision = new PhotonVision();
-      // PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
-      // PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+      LimelightVision = new LimelightVision();
+      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+      PhotonVision = new PhotonVision();
+      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
 
       Swerve = new Swerve();
       Pneumatics = new Pneumatics();
@@ -90,7 +89,7 @@ public class Container {
       OperatorInterface.bindOperatorControls();
 
       // Register the named commands from each subsystem that may be used in PathPlanner
-      // NamedCommands.registerCommands(Swerve.getNamedCommands());
+      NamedCommands.registerCommands(getNamedCommandSuppliers());
 
       // Build an auto chooser. This will use Commands.none() as the default option.
       AutoChooser = AutoBuilder.buildAutoChooser();
@@ -109,6 +108,7 @@ public class Container {
    */
   public static Command startShooting() {
     return Turret.setFiring(FiringState.FIRING)
+        .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
         .andThen(Turret.setFeed(UptakeState.FORWARDS));
   }
 
@@ -117,8 +117,9 @@ public class Container {
    * @return Command
    */
   public static Command stopShooting() {
-    return Turret.setFeed(UptakeState.STOPPED)
-        .andThen(Turret.setFiring(FiringState.IDLE));
+    return Turret.setFiring(FiringState.IDLE)
+        .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
+        .andThen(Turret.setFeed(UptakeState.STOPPED));
   }
 
   /**
@@ -256,16 +257,14 @@ public class Container {
   //       .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED);
   // }
 
-  public static Map<String, Supplier<Command>> getNamedCommandSuppliers() {
-    return Map.of(
-        "Enable_Autonomous_Shooting", () -> toggleShooterOn(),
-        "Disable_Autonomous_Shooting", () -> toggleShooterOff(),
-        "Start_Auto", () -> startAuto(),
-        "Take_Out_And_Enable_Intake", () -> toggleIntakeOn(),
-        "Put_In_And_Disable_Intake", () -> toggleIntakeOff(),
-        "Setup_Climb", () -> setupClimb(),
-        "Climb", () -> startClimbing(),
-        "Stop_Climb", () -> stopClimbing());
+  public static List<Pair<String, Command>> getNamedCommandSuppliers() {
+    return List.of(
+        Pair.of("Disable_Autonomous_Shooting", toggleShooterOff()),
+        Pair.of("Start_Auto", startAuto()),
+        Pair.of("Take_Out_And_Enable_Intake", toggleIntakeOn()),
+        Pair.of("Put_In_And_Disable_Intake", toggleIntakeOff()),
+        Pair.of("Setup_Climb", setupClimb()),
+        Pair.of("Climb", startClimbing()),
+        Pair.of("Stop_Climb", stopClimbing()));
   }
-
 }

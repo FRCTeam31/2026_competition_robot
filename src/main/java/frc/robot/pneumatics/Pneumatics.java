@@ -35,6 +35,10 @@ public class Pneumatics {
     }
 
     public double getSystemPressure() {
-        return _pcm.getPressure(PneumaticsMap.PRESSURE_SENSOR_CHANNEL);
+        if (Robot.isReal()) {
+            return _pcm.getPressure(PneumaticsMap.PRESSURE_SENSOR_CHANNEL);
+        } else {
+            return 120.0; // Simulate a constant pressure in simulation
+        }
     }
 }

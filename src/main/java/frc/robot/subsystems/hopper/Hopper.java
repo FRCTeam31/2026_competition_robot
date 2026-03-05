@@ -134,5 +134,20 @@ public class Hopper extends LoggedSubsystem {
         return this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = state);
     }
 
+    /**
+     * Toggles the intake solenoid control state between IN and OUT, and sets the intake feed state accordingly
+     */
+    public Command toggleHopperIntake() {
+        return this.runOnce(() -> {
+            SuperStructure.Hopper.IntakeControlState = SuperStructure.Hopper.IntakeControlState == HopperIntakeState.OUT
+                    ? HopperIntakeState.IN
+                    : HopperIntakeState.OUT;
+
+            SuperStructure.Hopper.IntakeFeedState = SuperStructure.Hopper.IntakeControlState == HopperIntakeState.OUT
+                    ? IntakeFeedState.INWARDS
+                    : IntakeFeedState.STOPPED;
+        });
+    }
+
     // #endregion
 }
