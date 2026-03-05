@@ -30,8 +30,8 @@ public class HopperReal implements IHopper {
 
     @Override
     public void setFeedSpeed(double speed) {
-        _upperFeedSparkFlex.set(-speed);
-        _lowerFeedSparkFlex.set(speed);
+        _upperFeedSparkFlex.set(speed);
+        _lowerFeedSparkFlex.set(-speed);
     }
 
     @Override
