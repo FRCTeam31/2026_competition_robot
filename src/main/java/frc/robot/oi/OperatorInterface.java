@@ -38,6 +38,7 @@ public class OperatorInterface {
                 // X - Intake out position
                 // Y - Intake in position
                 // LT - Intake feed in
+                // RT - Intake feed out
                 // Start + Left d-pad - Climb setup
                 // Start + Up d-pad - Start climb
                 // Start + Right d-pad - Reset climb
@@ -67,8 +68,10 @@ public class OperatorInterface {
                 DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
 
                 // Intake feed control
-                DriverController.leftTrigger().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
-                DriverController.leftTrigger().onFalse(Container.Hopper.setFeed(TransferFeedState.OUTWARDS));
+                DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                DriverController.rightTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
+                DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // Combined climb controls
                 DriverController.start().and(DriverController.povLeft())
