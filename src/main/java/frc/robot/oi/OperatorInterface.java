@@ -157,20 +157,20 @@ public class OperatorInterface {
                                 .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
-                OperatorController.leftTrigger()
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
-                OperatorController.leftBumper()
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
+                // OperatorController.leftTrigger()
+                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
+                // OperatorController.leftBumper()
+                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
 
                 // Manual turret controls
-                OperatorController.povRight()
-                                .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.povLeft()
-                                .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.povUp()
-                                .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                OperatorController.povDown()
-                                .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
+                // OperatorController.povRight()
+                //                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
+                // OperatorController.povLeft()
+                //                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
+                // OperatorController.povUp()
+                //                 .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
+                // OperatorController.povDown()
+                //                 .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
                 OperatorController.x()
                                 .onTrue(Container.Turret
                                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
