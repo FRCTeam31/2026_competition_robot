@@ -175,7 +175,7 @@ public class TurretReal implements ITurret {
     private Rotation2d getTurretRotation() {
         var magEncoderPosition = _turretRotator.getSelectedSensorPosition();
 
-        return CTREConverter.CANcoderToRotation(magEncoderPosition, 1 / TurretMap.TURRET_GEAR_RATIO);
+        return CTREConverter.CANcoderToRotation(magEncoderPosition, TurretMap.TURRET_GEAR_RATIO);
     }
 
     private MutAngularVelocity getFlywheelVelocity() {
