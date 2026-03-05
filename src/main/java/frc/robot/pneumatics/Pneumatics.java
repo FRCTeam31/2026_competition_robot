@@ -12,9 +12,9 @@ public class Pneumatics {
     public Pneumatics() {
         if (Robot.isReal()) {
             _pcm = new PneumaticHub(PneumaticsMap.PCM_CAN_ID);
-            // _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
+            _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
 
-            // _compressor.enableDigital();
+            _compressor.enableDigital();
         }
     }
 
