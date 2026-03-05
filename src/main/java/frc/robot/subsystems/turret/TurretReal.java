@@ -79,9 +79,6 @@ public class TurretReal implements ITurret {
 
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        System.out.println(_flywheelRight.isFollower() + " : right is follower");
-        System.out.println(_flywheelLeft.isFollower() + " : left is follower");
-
         _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
     }
 
@@ -157,7 +154,7 @@ public class TurretReal implements ITurret {
     @Override
     public void updateInputs(TurretInputsAutoLogged inputs) {
         inputs.TurretRotation = getTurretRotation();
-        inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
+        inputs.TurretRotationResetSwitch = !_turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();

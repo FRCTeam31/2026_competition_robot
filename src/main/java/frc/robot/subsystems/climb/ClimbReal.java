@@ -76,7 +76,7 @@ public class ClimbReal implements IClimb {
 
     @Override
     public void updateInputs(ClimbInputsAutoLogged inputs) {
-        inputs.LowerLimitSwitch = _limitSwitch.get();
+        inputs.LowerLimitSwitch = !_limitSwitch.get();
         inputs.MotorRotations = _climbMotor.getEncoder().getPosition();
     }
 
