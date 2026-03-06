@@ -21,7 +21,8 @@ public class HopperReal implements IHopper {
                 HopperMap.IntakeReverseChannel);
 
         SparkFlexConfig hopperFeedConfig = new SparkFlexConfig();
-        hopperFeedConfig.smartCurrentLimit(60, 50);
+        // hopperFeedConfig.smartCurrentLimit(60, 50);
+        hopperFeedConfig.smartCurrentLimit(10, 5);
         _upperFeedSparkFlex = new SparkFlex(HopperMap.UPPER_FEED_CAN_ID, MotorType.kBrushless);
         _upperFeedSparkFlex.configure(hopperFeedConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
