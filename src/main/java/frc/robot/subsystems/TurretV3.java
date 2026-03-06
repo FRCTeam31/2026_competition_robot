@@ -36,18 +36,18 @@ public class TurretV3 {
     }
 
     public Command setShooterCommand(double speed) {
-        return Commands.run(() -> setShooter(speed));
+        return Commands.runOnce(() -> setShooter(speed));
     }
 
     public Command stopShooterCommand() {
-        return Commands.run(() -> stopShooter());
+        return Commands.runOnce(() -> stopShooter());
     }
 
     public Command setFeedCommand(double speed) {
-        return Commands.run(() -> setFeed(speed));
+        return Commands.runOnce(() -> setFeed(speed));
     }
 
     public Command stopFeedCommand() {
-        return Commands.run(() -> stopFeed());
+        return Commands.runOnce(() -> stopFeed());
     }
 }

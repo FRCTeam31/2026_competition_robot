@@ -120,7 +120,7 @@ public class Container {
   public static Command startShooting(DoubleSupplier speed) {
     return Turret.setShooterCommand(speed.getAsDouble())
         .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
-        .andThen(Turret.setFeedCommand(0.4));
+        .andThen(Turret.setFeedCommand(0.4)).repeatedly();
   }
 
   /**
