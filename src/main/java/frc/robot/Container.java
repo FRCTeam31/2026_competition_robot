@@ -5,6 +5,7 @@
 package frc.robot;
 
 import java.util.List;
+import java.util.function.DoubleSupplier;
 
 import org.prime.dashboard.DashboardSection;
 
@@ -116,8 +117,8 @@ public class Container {
   //       .andThen(Turret.setFeed(UptakeState.FORWARDS));
   // }
 
-  public static Command startShooting(double speed) {
-    return Turret.setShooterCommand(speed)
+  public static Command startShooting(DoubleSupplier speed) {
+    return Turret.setShooterCommand(speed.getAsDouble())
         .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
         .andThen(Turret.setFeedCommand(0.4));
   }

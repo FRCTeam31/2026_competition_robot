@@ -155,7 +155,7 @@ public class OperatorInterface {
 
                 // Fire fuel
                 OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting(_manualTurretPercentOut))
+                                .onTrue(Container.startShooting(() -> _manualTurretPercentOut))
                                 .onFalse(Container.stopShooting());
 
                 OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
@@ -210,6 +210,7 @@ public class OperatorInterface {
         public Command changeFlywheelSpeed(double change) {
                 return Commands.runOnce(() -> {
                         var value = _manualTurretPercentOut + change;
+                        System.out.println(value);
                         if (value >= 1) {
                                 _manualTurretPercentOut = 1;
                         } else if (value <= -1) {
@@ -217,6 +218,8 @@ public class OperatorInterface {
                         } else {
                                 _manualTurretPercentOut = value;
                         }
+
+                        System.out.println(_manualTurretPercentOut);
                 });
         }
 }
