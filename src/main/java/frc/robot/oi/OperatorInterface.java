@@ -154,10 +154,17 @@ public class OperatorInterface {
                 // Start - 100% intake
 
                 // Fire fuel
+                // OperatorController.rightTrigger()
+                //                 .onTrue(Container.Turret.setFeedCommand(0.3))
+                //                 .whileTrue(Container.Turret
+                //                                 .setShooterCommand(() -> _manualTurretPercentOut))
+                //                 .whileFalse(Container.Turret.setFeedCommand(0.1)
+                //                                 .andThen(Container.Turret.setShooterCommand(() -> 0.1)));
+
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeedCommand(0.3))
                                 .whileTrue(Container.Turret
-                                                .setShooterCommand(() -> _manualTurretPercentOut))
+                                                .setShooterCommand(() -> 0.6))
                                 .whileFalse(Container.Turret.setFeedCommand(0.1)
                                                 .andThen(Container.Turret.setShooterCommand(() -> 0.1)));
 
