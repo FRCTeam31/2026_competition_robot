@@ -162,7 +162,7 @@ public class OperatorInterface {
                 OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
 
                 // Intake position control
-                OperatorController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
+                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
                 OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
 
                 // Controls to toggle Turret auto and manual
