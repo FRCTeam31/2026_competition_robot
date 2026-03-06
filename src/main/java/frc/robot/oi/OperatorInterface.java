@@ -161,7 +161,8 @@ public class OperatorInterface {
                                 .whileFalse(Container.Turret.setFeedCommand(0.1)
                                                 .andThen(Container.Turret.setShooterCommand(() -> 0.1)));
 
-                OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
+                OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
+                                .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
                 OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
                 OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
