@@ -70,10 +70,6 @@ public class OperatorInterface {
                 // Intake feed control
                 DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
                 DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
-                DriverController.rightTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
-                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)));
-                DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
-                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // Combined climb controls
                 // DriverController.start().and(DriverController.povLeft())
@@ -185,6 +181,12 @@ public class OperatorInterface {
 
                 // Control intake feed percent out
                 OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
+
+                // Outtake
+                OperatorController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)));
+                OperatorController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {
