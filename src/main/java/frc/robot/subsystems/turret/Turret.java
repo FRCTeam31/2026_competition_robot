@@ -241,13 +241,11 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
-        System.out.println("Running Turret actOnState");
         switch (inputs.OperatingMode) {
             case AUTO:
                 actOnAutoMode(inputs);
                 break;
             case MANUAL:
-                System.out.println("Starting Turret manual");
                 actOnManualMode(inputs);
                 break;
         }
@@ -359,6 +357,7 @@ public class Turret extends LoggedSubsystem {
 
         // Feed: run immediately when firing, stop when idle
         if (inputs.FiringState == FiringState.FIRING) {
+            System.out.println("RUNNING FIRING STATE");
             actOnFeedState(inputs.FeedState);
         } else {
             _turret.setFeederSpeed(0);
@@ -547,7 +546,6 @@ public class Turret extends LoggedSubsystem {
         processInputs(SuperStructure.Turret);
 
         if (!_isHomingHood && !_runningSysId) {
-            System.out.println("Starting Turret actOnState");
             actOnState(SuperStructure.Turret);
         }
     }

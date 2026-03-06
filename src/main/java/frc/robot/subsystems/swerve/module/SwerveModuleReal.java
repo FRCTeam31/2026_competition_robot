@@ -331,7 +331,6 @@ public class SwerveModuleReal implements ISwerveModule {
     var wheelRotationsPerSecond = desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters;
 
     Logger.recordOutput("Swerve/Modules/" + _name + "/DesiredWheelRPS", wheelRotationsPerSecond);
-
     // Send velocity command in rotations per second (wheel rotations)
     _driveMotor.setControl(_driveControl.withVelocity(wheelRotationsPerSecond));
   }
