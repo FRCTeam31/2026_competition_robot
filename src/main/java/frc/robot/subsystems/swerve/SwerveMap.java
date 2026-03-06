@@ -85,8 +85,7 @@ public class SwerveMap {
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
                         // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(114),
-                        MomentOfInertia.ofBaseUnits(3, edu.wpi.first.units.Units.KilogramSquareMeters)
-                                        .baseUnitMagnitude(),
+                        edu.wpi.first.units.Units.KilogramSquareMeters.of(3).magnitude(),
                         new ModuleConfig(
                                         DriveWheelDiameterMeters / 2,
                                         Chassis.MaxSpeedMetersPerSecond / 10,

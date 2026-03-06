@@ -158,8 +158,8 @@ public class TurretReal implements ITurret {
         inputs.FlywheelVelocity = getFlywheelVelocity();
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
-        inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
-        inputs.FlywheelAngle = Angle.ofBaseUnits(_flywheelLeft.getEncoder().getPosition(), Rotations);
+        inputs.HoodAngle = Rotations.of(_sparkHood.getEncoder().getPosition());
+        inputs.FlywheelAngle = Rotations.of(_flywheelLeft.getEncoder().getPosition());
 
         // Compute on-target flags
         double flywheelToleranceRPS = _targetFlywheelVelocityRPS
