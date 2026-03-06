@@ -10,8 +10,6 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveMap;
-import frc.robot.subsystems.turret.TurretMap;
-import frc.robot.subsystems.turret.Turret.OperatingMode;
 import frc.robot.Container;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
@@ -24,6 +22,8 @@ public class OperatorInterface {
 
         public SupplierXboxController DriverController;
         public SupplierXboxController OperatorController;
+
+        private double _manualTurretPercentOut = 0.1;
 
         public OperatorInterface() {
                 DriverController = new SupplierXboxController(Controls.DRIVER_PORT);
@@ -62,10 +62,6 @@ public class OperatorInterface {
                 // Reset gyro
                 DriverController.a()
                                 .onTrue(Container.Swerve.resetGyroCommand());
-
-                // Intake position control
-                DriverController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
-                DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
 
                 // Intake feed control
                 DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
@@ -159,8 +155,15 @@ public class OperatorInterface {
 
                 // Fire fuel
                 OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting())
+                                .whileTrue(Container.startShooting(_manualTurretPercentOut))
                                 .onFalse(Container.stopShooting());
+
+                OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
+                OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
+
+                // Intake position control
+                OperatorController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
+                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
@@ -185,13 +188,13 @@ public class OperatorInterface {
                 //                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
                 // Control intake feed percent out
-                OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
+                OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
 
                 // Outtake
-                OperatorController.a().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
-                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)));
-                OperatorController.a().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
-                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.rightBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
+                                .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {
@@ -202,5 +205,18 @@ public class OperatorInterface {
                 return Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 1))
                                 .andThen(Commands.waitSeconds(0.2))
                                 .andThen(Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 0)));
+        }
+
+        public Command changeFlywheelSpeed(double change) {
+                return Commands.runOnce(() -> {
+                        var value = _manualTurretPercentOut + change;
+                        if (value >= 1) {
+                                _manualTurretPercentOut = 1;
+                        } else if (value <= -1) {
+                                _manualTurretPercentOut = -1;
+                        } else {
+                                _manualTurretPercentOut = value;
+                        }
+                });
         }
 }
