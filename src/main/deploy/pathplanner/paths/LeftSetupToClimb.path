@@ -59,7 +59,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": "ToClimb",
+  "folder": "Climbleft",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.0

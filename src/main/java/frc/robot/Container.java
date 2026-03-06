@@ -240,12 +240,18 @@ public class Container {
 
   public static Command toggleIntakeOn() {
     return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT)
-        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS);
+        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED); //These have been changed for our current strategy for defense
   }
 
   public static Command toggleIntakeOff() {
     return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN)
         .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.STOPPED);
+  }
+
+  public static Command ejectBalls() {
+    return Commands.runOnce(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.OUTWARDS)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.OUTWARDS);
   }
 
   public static Command toggleClimbArmOn() {
@@ -263,6 +269,7 @@ public class Container {
         Pair.of("Start_Auto", startAuto()),
         Pair.of("Take_Out_And_Enable_Intake", toggleIntakeOn()),
         Pair.of("Put_In_And_Disable_Intake", toggleIntakeOff()),
+        Pair.of("Dump_Balls", ejectBalls()),
         Pair.of("Setup_Climb", setupClimb()),
         Pair.of("Climb", startClimbing()),
         Pair.of("Stop_Climb", stopClimbing()));

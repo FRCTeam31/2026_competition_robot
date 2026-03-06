@@ -3,18 +3,21 @@
   "robotLength": 0.965,
   "holonomicMode": true,
   "pathFolders": [
-    "Full Around",
-    "Halfway",
-    "ToClimb"
+    "Climbleft",
+    "Left",
+    "Middle",
+    "Climbright",
+    "No Shoot",
+    "Right"
   ],
   "autoFolders": [
-    "ClimbingOnly",
-    "Left",
-    "LeftToRight",
-    "Middle",
-    "ShootingOnly",
-    "Right",
-    "RightToLeft"
+    "Left 1 Cycle",
+    "Left 2 Cycle",
+    "Enid Strat",
+    "No Climb",
+    "No Shoot",
+    "Right 1 Cycle",
+    "Right 2 Cycle"
   ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,

@@ -149,7 +149,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Full Around",
+  "folder": "Right",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

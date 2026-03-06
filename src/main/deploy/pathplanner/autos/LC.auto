@@ -44,6 +44,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "ClimbingOnly",
+  "folder": "No Shoot",
   "choreoAuto": false
 }
