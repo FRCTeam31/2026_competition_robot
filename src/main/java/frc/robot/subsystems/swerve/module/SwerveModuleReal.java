@@ -110,8 +110,7 @@ public class SwerveModuleReal implements ISwerveModule {
     // Motor Output Configuration
     config.MotorOutput.Inverted = _map.SteerInverted ? InvertedValue.CounterClockwise_Positive
         : InvertedValue.Clockwise_Positive;
-    // config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -184,8 +183,7 @@ public class SwerveModuleReal implements ISwerveModule {
     // Motor Output Configuration
     config.MotorOutput.Inverted = _map.DriveInverted ? InvertedValue.CounterClockwise_Positive
         : InvertedValue.Clockwise_Positive;
-    // config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
