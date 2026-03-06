@@ -7,31 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Hmidleftballsin"
+            "pathName": "HrightballsinNS"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 4.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Hleftballsin"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CleftToLeftShoot"
+            "pathName": "HrightballsinNS"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "No Climb",
+  "folder": "Enid Strat",
   "choreoAuto": false
 }

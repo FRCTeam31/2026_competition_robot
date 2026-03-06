@@ -7,43 +7,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CrightToRightShoot"
+            "pathName": "HrightballsinNS"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RightShootToRightSetup"
+            "pathName": "HrightballsinNS"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "Setup_Climb"
+            "waitTime": 0.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RightSetupToClimb"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Climb"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop_Climb"
+            "pathName": "HrightballsinNS"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "No Shoot",
+  "folder": "Enid Strat",
   "choreoAuto": false
 }
