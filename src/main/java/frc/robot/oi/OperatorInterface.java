@@ -155,7 +155,7 @@ public class OperatorInterface {
 
                 // Fire fuel
                 OperatorController.rightTrigger()
-                                .whileTrue(Container.startShooting(_manualTurretPercentOut))
+                                .onTrue(Container.startShooting(_manualTurretPercentOut))
                                 .onFalse(Container.stopShooting());
 
                 OperatorController.x().onTrue(changeFlywheelSpeed(0.1));

@@ -13,18 +13,18 @@ public class TurretV3 {
 
     public TurretV3() {
         _flywheelLeft = new SparkFlex(19, MotorType.kBrushless);
-        // _flywheelRight = new SparkFlex(20, MotorType.kBrushless);
+        _flywheelRight = new SparkFlex(20, MotorType.kBrushless);
         _feed = new SparkFlex(16, MotorType.kBrushless);
     }
 
     public void setShooter(double speed) {
         _flywheelLeft.set(speed);
-        // _flywheelRight.set(-speed);
+        _flywheelRight.set(-speed);
     }
 
     public void stopShooter() {
         _flywheelLeft.stopMotor();
-        // _flywheelRight.stopMotor();
+        _flywheelRight.stopMotor();
     }
 
     public void setFeed(double speed) {
