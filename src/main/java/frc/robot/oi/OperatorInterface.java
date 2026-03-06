@@ -152,10 +152,15 @@ public class OperatorInterface {
                 // LT - Set turret auto mode
                 // LB - Set turret manual mode
 
+                // Y - Intake out
+                // B - Intake in
+                // RB - Outtake
+                // Start - 100% intake
+
                 // Fire fuel
-                // OperatorController.rightTrigger()
-                //                 .onTrue(Container.startShooting())
-                //                 .onFalse(Container.stopShooting());
+                OperatorController.rightTrigger()
+                                .onTrue(Container.startShooting())
+                                .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
