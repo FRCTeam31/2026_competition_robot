@@ -24,6 +24,9 @@ public class HopperReal implements IHopper {
         _lowerFeedSparkFlex = new SparkFlex(HopperMap.LOWER_FEED_CAN_ID, MotorType.kBrushless);
 
         _intakeFeedSparkFlex = new SparkFlex(HopperMap.INTAKE_CAN_ID, MotorType.kBrushless);
+        SparkFlexConfig config = new SparkFlexConfig();
+        config.smartCurrentLimit(60, 50);
+        _intakeFeedSparkFlex.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
