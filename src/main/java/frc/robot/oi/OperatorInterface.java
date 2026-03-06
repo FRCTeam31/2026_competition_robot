@@ -163,7 +163,7 @@ public class OperatorInterface {
 
                 // Intake position control
                 OperatorController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
-                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
+                OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
