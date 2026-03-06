@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -35,8 +37,8 @@ public class TurretV3 {
         _feed.stopMotor();
     }
 
-    public Command setShooterCommand(double speed) {
-        return Commands.runOnce(() -> setShooter(speed));
+    public Command setShooterCommand(DoubleSupplier speed) {
+        return Commands.run(() -> setShooter(speed.getAsDouble()));
     }
 
     public Command stopShooterCommand() {

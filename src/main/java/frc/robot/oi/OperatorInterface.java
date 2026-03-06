@@ -155,8 +155,13 @@ public class OperatorInterface {
 
                 // Fire fuel
                 OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting(() -> _manualTurretPercentOut))
-                                .onFalse(Container.stopShooting());
+                                .onTrue(Container.Turret.setFeedCommand(0.3))
+                                .whileTrue(Container.Turret
+                                                .setShooterCommand(() -> _manualTurretPercentOut))
+                                .whileFalse(Container.Turret.setFeedCommand(0.1)
+                                                .andThen(Container.Turret.setShooterCommand(() -> 0.1)));
+
+                OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
 
                 OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
                 OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
@@ -191,7 +196,7 @@ public class OperatorInterface {
                 OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
 
                 // Outtake
-                OperatorController.rightBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
                                 .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
                                 .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
                                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));

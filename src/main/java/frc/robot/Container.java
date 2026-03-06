@@ -117,11 +117,11 @@ public class Container {
   //       .andThen(Turret.setFeed(UptakeState.FORWARDS));
   // }
 
-  public static Command startShooting(DoubleSupplier speed) {
-    return Turret.setShooterCommand(speed.getAsDouble())
-        .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
-        .andThen(Turret.setFeedCommand(0.4)).repeatedly();
-  }
+  // public static Command startShooting(DoubleSupplier speed) {
+  //   return Turret.setShooterCommand(speed.getAsDouble())
+  //       .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
+  //       .andThen(Turret.setFeedCommand(0.4)).repeatedly();
+  // }
 
   /**
    * Stops the turret firing and returns to idle
