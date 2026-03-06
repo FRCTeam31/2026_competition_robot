@@ -284,18 +284,18 @@ public class Turret extends LoggedSubsystem {
                 limelightCorrectionApplied = aimTurretYawUsingLimelight();
             }
             if (!limelightCorrectionApplied) {
-                _turret.controlYawAngle(Angle.ofBaseUnits(robotRelativeYawRotations, Rotations));
+                _turret.controlYawAngle(Rotations.of(robotRelativeYawRotations));
             }
 
             // Hood
             var pitch = _mutNominalTargetVector.getPitch();
-            _turret.controlHood(Angle.ofBaseUnits(pitch, Degrees));
+            _turret.controlHood(Degrees.of(pitch));
 
             // Flywheel
             var targetVelocity = _mutNominalTargetVector.getMagnitude();
             _targetFlywheelVelocityRPS = _flywheelController.calculate(
                     targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
-            _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+            _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
 
             // Step 3: Once locked on, feed
             boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
@@ -322,11 +322,11 @@ public class Turret extends LoggedSubsystem {
             homeYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(), homeYawRotations);
         }
-        _turret.controlYawAngle(Angle.ofBaseUnits(homeYawRotations, Rotations));
-        _turret.controlHood(Angle.ofBaseUnits(TurretMap.HOOD_HOME_DEGREES, Degrees));
+        _turret.controlYawAngle(Rotations.of(homeYawRotations));
+        _turret.controlHood(Degrees.of(TurretMap.HOOD_HOME_DEGREES));
 
         _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
-        _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+        _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
 
         _turret.setFeederSpeed(0);
     }
@@ -346,14 +346,14 @@ public class Turret extends LoggedSubsystem {
             manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
         }
-        // _turret.controlYawAngle(Angle.ofBaseUnits(manualYawRotations, Rotations));
+        // _turret.controlYawAngle(Rotations.of(manualYawRotations));
 
         // Apply manual hood setpoint
-        // _turret.controlHood(Angle.ofBaseUnits(_manualHoodDegrees, Degrees));
+        // _turret.controlHood(Degrees.of(_manualHoodDegrees));
 
         // Apply manual flywheel speed
         _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
-        // _turret.controlFlywheel(AngularVelocity.ofBaseUnits(_targetFlywheelVelocityRPS, RotationsPerSecond));
+        // _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
 
         // Feed: run immediately when firing, stop when idle
         // if (inputs.FiringState == FiringState.FIRING) {
@@ -450,7 +450,7 @@ public class Turret extends LoggedSubsystem {
         double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
         double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
 
-        _turret.controlYawAngle(Angle.ofBaseUnits(correctedPositionRotations, Rotations));
+        _turret.controlYawAngle(Rotations.of(correctedPositionRotations));
         return true;
     }
 
@@ -667,7 +667,7 @@ public class Turret extends LoggedSubsystem {
                         .withTimeout(1.0),
                 Commands.runOnce(() -> {
                     _turret.setHoodSensorPosition(
-                            Angle.ofBaseUnits(TurretMap.HOOD_MAX_ANGLE_DEGREES, Degrees));
+                            Degrees.of(TurretMap.HOOD_MAX_ANGLE_DEGREES));
                     _turret.setHoodPercentOut(0);
                     _isHomingHood = false;
                 })).finallyDo((interrupted) -> {

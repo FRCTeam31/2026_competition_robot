@@ -15,6 +15,7 @@ import frc.robot.subsystems.turret.Turret.OperatingMode;
 import frc.robot.Container;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
+import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 
 public class OperatorInterface {
         public static class OIMap {
@@ -30,31 +31,59 @@ public class OperatorInterface {
         }
 
         public void bindDriverControls() {
+                // Driver Controls:
+                // Swerve controls with sticks
+                // RB - Face away from hub
+                // A - Reset gyro
+                // X - Intake out position
+                // Y - Intake in position
+                // LT - Intake feed in
+                // RT - Intake feed out
+                // Start + Left d-pad - Climb setup
+                // Start + Up d-pad - Start climb
+                // Start + Right d-pad - Reset climb
+                // Start + Down d-pad - End climb
+
                 var controlProfile = DriverController.getSwerveControlProfile(
                                 OIMap.DefaultDriveControlStyle,
                                 SwerveMap.Control.DriveDeadband,
                                 SwerveMap.Control.DeadbandCurveWeight);
 
+                // Serve controls
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
-                DriverController.y().onTrue(Container.Swerve.faceAwayFromHubCommand());
-                DriverController.x()
-                                .onTrue(Container.Swerve.disableAutoAlignCommand());
+                // Face away from hub
+                DriverController.rightBumper().whileTrue(Container.Swerve.faceAwayFromHubCommand());
+
+                // Disabled, untested and not tuned
+                // DriverController.x()
+                //                 .onTrue(Container.Swerve.disableAutoAlignCommand());
+
+                // Reset gyro
                 DriverController.a()
                                 .onTrue(Container.Swerve.resetGyroCommand());
 
-                // TODO: Add rumble and light feedback to different climb states
-                // TODO: Test full commands
-                // TODO: Add distance checks to climb
-                DriverController.start().and(DriverController.pov(Controls.up))
-                                .onTrue(Container.setupClimb().andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.left))
-                                .onTrue(Container.startClimbing().andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.down))
-                                .onTrue(Container.stopClimbing().andThen(rumbleControllerShort(DriverController)));
-                DriverController.start().and(DriverController.pov(Controls.right))
-                                .onTrue(Container.resetRobotAfterClimb()
-                                                .andThen(rumbleControllerShort(DriverController)));
+                // Intake position control
+                DriverController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
+                DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
+
+                // Intake feed control
+                DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                DriverController.rightTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)));
+                DriverController.rightTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+
+                // Combined climb controls
+                // DriverController.start().and(DriverController.povLeft())
+                //                 .onTrue(Container.setupClimb());
+                // DriverController.start().and(DriverController.povUp())
+                //                 .onTrue(Container.startClimbing());
+                // DriverController.start().and(DriverController.povDown())
+                //                 .onTrue(Container.stopClimbing());
+                // DriverController.start().and(DriverController.povRight())
+                //                 .onTrue(Container.resetRobotAfterClimb());
 
                 // -------------------------- TEST COMMANDS --------------------------
 
@@ -115,35 +144,47 @@ public class OperatorInterface {
         }
 
         public void bindOperatorControls() {
+                // Operator Controls:
+                // Up d-pad - Turret hood up
+                // Down d-pad - Turret hood down
+                // Left d-pad - Turret yaw left
+                // Right d-pad - Turret yaw right
+                // X - Flywheel up
+                // A - Flywheel down
+                // Y - 100% intake power while held
+                // RT - Shoot
+                // LT - Set turret auto mode
+                // LB - Set turret manual mode
+
                 // Fire fuel
-                OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting())
-                                .onFalse(Container.stopShooting());
+                // OperatorController.rightTrigger()
+                //                 .onTrue(Container.startShooting())
+                //                 .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
-                OperatorController.start().and(OperatorController.pov(Controls.up))
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
-                OperatorController.start().and(OperatorController.pov(Controls.down))
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
+                // OperatorController.leftTrigger()
+                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
+                // OperatorController.leftBumper()
+                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
 
                 // Manual turret controls
-                OperatorController.pov(90)
-                                .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.pov(270)
-                                .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.pov(0)
-                                .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                OperatorController.pov(180)
-                                .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                OperatorController.x()
-                                .onTrue(Container.Turret
-                                                .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                OperatorController.y()
-                                .onTrue(Container.Turret.adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                // OperatorController.povRight()
+                //                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
+                // OperatorController.povLeft()
+                //                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
+                // OperatorController.povUp()
+                //                 .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
+                // OperatorController.povDown()
+                //                 .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
+                // OperatorController.x()
+                //                 .onTrue(Container.Turret
+                //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                // OperatorController.a()
+                //                 .onTrue(Container.Turret
+                //                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
-                // Intake: arm out + rollers inward or arm in and rollers stopped
-                OperatorController.leftBumper()
-                                .onTrue(Container.Hopper.toggleHopperIntake());
+                // Control intake feed percent out
+                OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {

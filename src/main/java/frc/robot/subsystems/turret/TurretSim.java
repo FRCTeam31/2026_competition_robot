@@ -162,10 +162,8 @@ public class TurretSim implements ITurret {
         inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
         inputs.FlywheelVoltage = _flywheelVoltage;
         inputs.YawVoltage = _yawVoltage;
-        inputs.HoodAngle = Angle.ofBaseUnits(
-                _hoodMotor.getAngularPosition().in(Radians) * TurretMap.HOOD_GEAR_RADIUS.in(Meters),
-                Radians // Check units
-        );
+        inputs.HoodAngle = Radians.of(
+                _hoodMotor.getAngularPosition().in(Radians) * TurretMap.HOOD_GEAR_RADIUS.in(Meters));
 
         // Compute on-target flags
         double flywheelToleranceRPS = _targetFlywheelVelocityRPS

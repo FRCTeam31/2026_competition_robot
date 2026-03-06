@@ -91,19 +91,19 @@ public class Swerve extends LoggedSubsystem {
           log.motor("drive-fl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[0].DriveMotorVoltage))
               .linearVelocity(MetersPerSecond.of(states[0].speedMetersPerSecond))
-              .linearPosition(Distance.ofBaseUnits(positions[0].distanceMeters, Meters));
+              .linearPosition(Meters.of(positions[0].distanceMeters));
           log.motor("drive-fr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[1].DriveMotorVoltage))
               .linearVelocity(MetersPerSecond.of(states[1].speedMetersPerSecond))
-              .linearPosition(Distance.ofBaseUnits(positions[1].distanceMeters, Meters));
+              .linearPosition(Meters.of(positions[1].distanceMeters));
           log.motor("drive-rl")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[2].DriveMotorVoltage))
               .linearVelocity(MetersPerSecond.of(states[2].speedMetersPerSecond))
-              .linearPosition(Distance.ofBaseUnits(positions[2].distanceMeters, Meters));
+              .linearPosition(Meters.of(positions[2].distanceMeters));
           log.motor("drive-rr")
               .voltage(edu.wpi.first.units.Units.Volts.of(SuperStructure.SwerveModules[3].DriveMotorVoltage))
               .linearVelocity(MetersPerSecond.of(states[3].speedMetersPerSecond))
-              .linearPosition(Distance.ofBaseUnits(positions[3].distanceMeters, Meters));
+              .linearPosition(Meters.of(positions[3].distanceMeters));
         });
   }
 

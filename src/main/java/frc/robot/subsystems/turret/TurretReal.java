@@ -53,7 +53,7 @@ public class TurretReal implements ITurret {
         configureTurretRotationMotor(TurretMap.TURRET_ROTATOR_PID);
         configureHoodMotor(TurretMap.HOOD_PID);
 
-        _turretResetLimitSwitch = new DigitalInput(2); // Placeholder
+        _turretResetLimitSwitch = new DigitalInput(TurretMap.TURRET_RESET_SWITCH_CHANNEL);
     }
 
     private void configureFlywheelMotors(ExtendedPIDConstants pid) {
@@ -78,9 +78,6 @@ public class TurretReal implements ITurret {
         rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
 
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        System.out.println(_flywheelRight.isFollower() + " : right is follower");
-        System.out.println(_flywheelLeft.isFollower() + " : left is follower");
 
         _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
     }
@@ -157,12 +154,12 @@ public class TurretReal implements ITurret {
     @Override
     public void updateInputs(TurretInputsAutoLogged inputs) {
         inputs.TurretRotation = getTurretRotation();
-        inputs.TurretRotationResetSwitch = _turretResetLimitSwitch.get();
+        inputs.TurretRotationResetSwitch = !_turretResetLimitSwitch.get();
         inputs.FlywheelVelocity = getFlywheelVelocity();
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
-        inputs.HoodAngle = Angle.ofBaseUnits(_sparkHood.getEncoder().getPosition(), Rotations);
-        inputs.FlywheelAngle = Angle.ofBaseUnits(_flywheelLeft.getEncoder().getPosition(), Rotations);
+        inputs.HoodAngle = Rotations.of(_sparkHood.getEncoder().getPosition());
+        inputs.FlywheelAngle = Rotations.of(_flywheelLeft.getEncoder().getPosition());
 
         // Compute on-target flags
         double flywheelToleranceRPS = _targetFlywheelVelocityRPS
@@ -176,11 +173,9 @@ public class TurretReal implements ITurret {
     }
 
     private Rotation2d getTurretRotation() {
-        var motorRotation = _turretRotator.getSelectedSensorPosition();
-        // 4096 ticks per pinion revolution × TURRET_GEAR_RATIO pinion revs per turret revolution
-        var turretRotation = motorRotation / (4096.0 * TurretMap.TURRET_GEAR_RATIO);
+        var magEncoderPosition = _turretRotator.getSelectedSensorPosition();
 
-        return Rotation2d.fromRotations(turretRotation);
+        return CTREConverter.CANcoderToRotation(magEncoderPosition, TurretMap.TURRET_GEAR_RATIO);
     }
 
     private MutAngularVelocity getFlywheelVelocity() {
@@ -242,8 +237,10 @@ public class TurretReal implements ITurret {
 
     @Override
     public void setYawSensorPosition(Angle position) {
-        _turretRotator.setSelectedSensorPosition(
-                CTREConverter.degreesToCANcoder(position.in(Degrees), TurretMap.TURRET_GEAR_RATIO));
+        var turretRotations = position.in(Degrees) / 360;
+        var pinionRotations = turretRotations * TurretMap.TURRET_GEAR_RATIO;
+        var encoderRotations = pinionRotations * 4096;
+        _turretRotator.setSelectedSensorPosition(encoderRotations);
     }
 
     @Override

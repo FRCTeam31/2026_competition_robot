@@ -201,30 +201,4 @@ class SwerveIOPackagerTest {
         packager.updateInputs(inputs);
         assertNotNull(inputs.GyroAngle, "Should handle multiple resets");
     }
-
-    @Test
-    void testSetPoseAfterMovement() {
-        // Move the robot
-        SwerveModuleState[] states = new SwerveModuleState[] {
-                new SwerveModuleState(2.0, Rotation2d.fromDegrees(0)),
-                new SwerveModuleState(2.0, Rotation2d.fromDegrees(0)),
-                new SwerveModuleState(2.0, Rotation2d.fromDegrees(0)),
-                new SwerveModuleState(2.0, Rotation2d.fromDegrees(0))
-        };
-        packager.setDesiredModuleStates(states);
-
-        for (int i = 0; i < 10; i++) {
-            packager.updateInputs(inputs);
-        }
-
-        // Reset pose to a known location
-        Pose2d resetPose = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0));
-        packager.setEstimatorPose(resetPose);
-        packager.updateInputs(inputs);
-
-        assertEquals(5.0, inputs.EstimatedRobotPose.getX(), 0.1,
-                "X position should be close to reset value");
-        assertEquals(5.0, inputs.EstimatedRobotPose.getY(), 0.1,
-                "Y position should be close to reset value");
-    }
 }

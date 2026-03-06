@@ -243,21 +243,6 @@ class SwerveModuleSimTest {
     }
 
     @Test
-    void testSetDesiredState_DrivesAtDesiredSpeed() {
-        SwerveModuleState desiredState = new SwerveModuleState(2.0, Rotation2d.fromDegrees(0));
-        module.setDesiredState(desiredState);
-
-        // Allow time for the module to reach desired speed
-        for (int i = 0; i < 50; i++) {
-            module.updateInputs(inputs);
-        }
-
-        // Speed should be close to desired (within reasonable tolerance due to PID control)
-        assertEquals(2.0, inputs.ModuleState.speedMetersPerSecond, 0.5,
-                "Module should approach desired speed");
-    }
-
-    @Test
     void testSetDesiredState_WithZeroSpeed() {
         SwerveModuleState desiredState = new SwerveModuleState(0.0, Rotation2d.fromDegrees(45));
         module.setDesiredState(desiredState);

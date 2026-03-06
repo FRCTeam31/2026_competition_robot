@@ -44,7 +44,8 @@ public class TurretMap {
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
         public static final double YAW_ON_TARGET_TOLERANCE_DEGREES = 2.0;
         public static final int TURRET_YAW_ENCODER_TICKS_PER_TURRET_DEGREE = 4096 / 360; // TODO: Change to actual value later
-        public static final Angle YAW_RESET_ANGLE = Angle.ofBaseUnits(180, Degrees);
+        public static final Angle YAW_RESET_ANGLE = Degrees.of(180);
+        public static final int TURRET_RESET_SWITCH_CHANNEL = 0;
 
         // ──────────────────────── Turret Dead Zone ──────────────────────
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise
@@ -71,7 +72,7 @@ public class TurretMap {
         public static final double FLYWHEEL_RAMP_PERIOD = 1;
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants(0.013258, 0, 0, 0, 0.072663,
                         0.10504, 0.00772);
-        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = AngularVelocity.ofBaseUnits(5, RotationsPerSecond);
+        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = RotationsPerSecond.of(5);
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED = 50;
         public static final double FLYWHEEL_MIN_SPEED = 0.0;
@@ -96,16 +97,16 @@ public class TurretMap {
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
+        // public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
+        public static final double HOOD_MIN_ANGLE_DEGREES = HOOD_MAX_ANGLE_DEGREES; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
         public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM // TODO: Tune
         public static final double HOOD_MAX_MOTION_MAX_ACCELERATION = 200; // RPM per second // TODO: Tune
         public static final double HOOD_MAX_MOTION_ALLOWED_ERROR = 0.5; // degrees // TODO: Tune
         public static final double PITCH_MAX_MANUAL_PERCENT_OUT = 0.2; // TODO: Tune
         public static final double HOOD_ON_TARGET_TOLERANCE_DEGREES = 1.0;
-        public static final Distance HOOD_GEAR_RADIUS = Distance.ofBaseUnits(10, Millimeters);
-        public static final AngularVelocity HOOD_SIM_MAX_SPEED = AngularVelocity.ofBaseUnits(183.33 * Math.PI * 2,
-                        RadiansPerSecond);
+        public static final Distance HOOD_GEAR_RADIUS = Millimeters.of(10);
+        public static final AngularVelocity HOOD_SIM_MAX_SPEED = RadiansPerSecond.of(183.33 * Math.PI * 2);
         public static final double HOOD_GEAR_RATIO = 6.333;
         public static final boolean HOOD_ENCODER_INVERTED = false;
 
