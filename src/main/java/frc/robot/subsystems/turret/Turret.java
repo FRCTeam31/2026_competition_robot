@@ -353,14 +353,14 @@ public class Turret extends LoggedSubsystem {
 
         // Apply manual flywheel speed
         _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
-        // _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
+        _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
 
         // Feed: run immediately when firing, stop when idle
-        // if (inputs.FiringState == FiringState.FIRING) {
-        //     actOnFeedState(inputs.FeedState);
-        // } else {
-        //     _turret.setFeederSpeed(0);
-        // }
+        if (inputs.FiringState == FiringState.FIRING) {
+            actOnFeedState(inputs.FeedState);
+        } else {
+            _turret.setFeederSpeed(0);
+        }
 
         actOnFeedState(inputs.FeedState);
 
