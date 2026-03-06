@@ -357,7 +357,6 @@ public class Turret extends LoggedSubsystem {
 
         // Feed: run immediately when firing, stop when idle
         if (inputs.FiringState == FiringState.FIRING) {
-            System.out.println("RUNNING FIRING STATE");
             actOnFeedState(inputs.FeedState);
         } else {
             _turret.setFeederSpeed(0);

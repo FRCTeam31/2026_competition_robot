@@ -153,9 +153,9 @@ public class OperatorInterface {
                 // LB - Set turret manual mode
 
                 // Fire fuel
-                OperatorController.rightTrigger()
-                                .onTrue(Container.startShooting())
-                                .onFalse(Container.stopShooting());
+                // OperatorController.rightTrigger()
+                //                 .onTrue(Container.startShooting())
+                //                 .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
