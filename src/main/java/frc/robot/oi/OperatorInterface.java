@@ -157,9 +157,9 @@ public class OperatorInterface {
                 // LB - Set turret manual mode
 
                 // Fire fuel
-                // OperatorController.rightTrigger()
-                //                 .onTrue(Container.startShooting())
-                //                 .onFalse(Container.stopShooting());
+                OperatorController.rightTrigger()
+                                .onTrue(Container.startShooting())
+                                .onFalse(Container.stopShooting());
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
@@ -176,12 +176,12 @@ public class OperatorInterface {
                 //                 .onTrue(Container.Turret.adjustManualHoodAngle(TurretMap.MANUAL_HOOD_STEP_DEGREES));
                 // OperatorController.povDown()
                 //                 .onTrue(Container.Turret.adjustManualHoodAngle(-TurretMap.MANUAL_HOOD_STEP_DEGREES));
-                // OperatorController.x()
-                //                 .onTrue(Container.Turret
-                //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                // OperatorController.a()
-                //                 .onTrue(Container.Turret
-                //                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                OperatorController.x()
+                                .onTrue(Container.Turret
+                                                .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                OperatorController.a()
+                                .onTrue(Container.Turret
+                                                .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
                 // Control intake feed percent out
                 OperatorController.y().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
