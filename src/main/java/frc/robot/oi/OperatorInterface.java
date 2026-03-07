@@ -185,7 +185,7 @@ public class OperatorInterface {
 
                 // Intake position control
                 OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
-                                .andThen(Container.Hopper.setIntakeFeed(_automaticFeedState)));
+                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
                 OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
                                 .andThen(Commands.waitSeconds(0.5))
                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)));
