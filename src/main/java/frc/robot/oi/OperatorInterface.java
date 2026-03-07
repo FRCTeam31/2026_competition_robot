@@ -187,7 +187,7 @@ public class OperatorInterface {
                 OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
                                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
                 OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                                .andThen(Commands.waitSeconds(0.5))
+                                .andThen(Commands.waitSeconds(1.5))
                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)));
 
                 // Controls to toggle Turret auto and manual
