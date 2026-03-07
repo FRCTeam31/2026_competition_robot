@@ -24,6 +24,7 @@ public class OperatorInterface {
         public SupplierXboxController OperatorController;
 
         private double _manualTurretPercentOut = 0.1;
+        private IntakeFeedState _automaticFeedState = IntakeFeedState.INWARDS;
 
         public OperatorInterface() {
                 DriverController = new SupplierXboxController(Controls.DRIVER_PORT);
@@ -64,8 +65,8 @@ public class OperatorInterface {
                                 .onTrue(Container.Swerve.resetGyroCommand());
 
                 // Intake feed control
-                DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
-                DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
+                // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
+                // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // Combined climb controls
                 // DriverController.start().and(DriverController.povLeft())
@@ -171,12 +172,23 @@ public class OperatorInterface {
                 OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
-                OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
-                OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
+                // OperatorController.x().onTrue(changeFlywheelSpeed(0.1));
+                // OperatorController.a().onTrue(changeFlywheelSpeed(-0.1));
+
+                OperatorController.x().onTrue(Commands.runOnce(() -> {
+                        if (_automaticFeedState == IntakeFeedState.INWARDS) {
+                                _automaticFeedState = IntakeFeedState.STOPPED;
+                        } else {
+                                _automaticFeedState = IntakeFeedState.INWARDS;
+                        }
+                }));
 
                 // Intake position control
-                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
-                OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
+                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
+                                .andThen(Container.Hopper.setIntakeFeed(_automaticFeedState)));
+                OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                                .andThen(Commands.waitSeconds(0.5))
+                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
