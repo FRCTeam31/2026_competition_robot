@@ -27,8 +27,7 @@ public class SwerveMap {
         }
 
         // PID Constants
-        public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.0075, 0, 0.000, 0.0, 0.099, 0.12,
-                        0.14);
+        public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.65, 0, 0);
         public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(17, 0, 0);
         public static final ExtendedPIDConstants AutoAlignPID = new ExtendedPIDConstants(4, 0, 0.08);
         public static final ExtendedPIDConstants PathPlannerTranslationPID = new ExtendedPIDConstants(4.5, 0, 0);
@@ -42,7 +41,6 @@ public class SwerveMap {
 
         // Feature Flags
         public static final boolean USE_LIMELIGHT_POSE_ESTIMATION = false;
-        public static final boolean USE_PID_FROM_PREFERENCES = false;
 
         // TODO: Reevaluate these constants after testing drive current limits on robot
         public static final int DriveStallCurrentLimit = 40;
@@ -87,8 +85,7 @@ public class SwerveMap {
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
                         // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(114),
-                        MomentOfInertia.ofBaseUnits(3, edu.wpi.first.units.Units.KilogramSquareMeters)
-                                        .baseUnitMagnitude(),
+                        edu.wpi.first.units.Units.KilogramSquareMeters.of(3).magnitude(),
                         new ModuleConfig(
                                         DriveWheelDiameterMeters / 2,
                                         Chassis.MaxSpeedMetersPerSecond / 10,

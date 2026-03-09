@@ -14,8 +14,7 @@ public class Pneumatics {
             _pcm = new PneumaticHub(PneumaticsMap.PCM_CAN_ID);
             _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
 
-            // TODO: Check these values
-            _compressor.enableAnalog(100, 120);
+            _compressor.enableDigital();
         }
     }
 
@@ -36,6 +35,10 @@ public class Pneumatics {
     }
 
     public double getSystemPressure() {
-        return _pcm.getPressure(PneumaticsMap.PRESSURE_SENSOR_CHANNEL);
+        if (Robot.isReal()) {
+            return _pcm.getPressure(PneumaticsMap.PRESSURE_SENSOR_CHANNEL);
+        } else {
+            return 120.0; // Simulate a constant pressure in simulation
+        }
     }
 }

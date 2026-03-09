@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.8360023724792411,
-        "y": 1.2107117437722428
+        "x": 1.8360023724792414,
+        "y": 1.2107117437722432
       },
       "isLocked": false,
       "linkedName": "StartMid"
@@ -165,7 +165,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Halfway",
+  "folder": "Middle",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

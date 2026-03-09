@@ -35,5 +35,5 @@ public class ClimbMap {
     public static final int SUPPORT_REVERSE_CHANNEL = 6;
 
     // Limit Switch
-    public static final int LIMIT_SWITCH_CHANNEL = 1; // Placeholder
+    public static final int LIMIT_SWITCH_CHANNEL = 1;
 }

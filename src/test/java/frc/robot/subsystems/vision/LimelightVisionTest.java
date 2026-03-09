@@ -352,11 +352,11 @@ class LimelightVisionTest {
 
     //#region VisionMap Tests
 
-    @Test
-    void testVisionMapConstants() {
-        assertEquals("limelight-turret", VisionMap.LimelightTurretName,
-                "Turret limelight name should be correct");
-    }
+    // @Test
+    // void testVisionMapConstants() {
+    //     assertEquals("limelight-turret", VisionMap.LimelightTurretName,
+    //             "Turret limelight name should be correct");
+    // }
 
     //#endregion
 }

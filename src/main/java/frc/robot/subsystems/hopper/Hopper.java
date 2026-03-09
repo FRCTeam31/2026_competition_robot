@@ -28,8 +28,8 @@ public class Hopper extends LoggedSubsystem {
         OFF
     }
 
-    private double maxIntakeFeedInwardsPercentOut = (HopperMap.INTAKE_FEED_INVERTED ? -1 : 1)
-            * HopperMap.MAX_INTAKE_FEED_PERCENT_OUT;
+    private final double _intakeFeedInvertedSign = HopperMap.INTAKE_FEED_INVERTED ? -1 : 1;
+    private double _intakeFeedPercentOut = HopperMap.MAX_INTAKE_FEED_PERCENT_OUT;
     private double maxFeedInwardsPercentOut = (HopperMap.FEED_INVERTED ? -1 : 1) * HopperMap.MAX_FEED_PERCENT_OUT;
 
     public Hopper() {
@@ -71,10 +71,10 @@ public class Hopper extends LoggedSubsystem {
         // Intake feed motor control
         switch (inputs.IntakeFeedState) {
             case INWARDS:
-                _hopper.setIntakeFeedSpeed(maxIntakeFeedInwardsPercentOut);
+                _hopper.setIntakeFeedSpeed(_intakeFeedPercentOut * _intakeFeedInvertedSign);
                 break;
             case OUTWARDS:
-                _hopper.setIntakeFeedSpeed(-maxIntakeFeedInwardsPercentOut);
+                _hopper.setIntakeFeedSpeed(-_intakeFeedPercentOut * _intakeFeedInvertedSign);
                 break;
             case STOPPED:
             default:
@@ -132,6 +132,27 @@ public class Hopper extends LoggedSubsystem {
      */
     public Command setHopperIntakeControl(HopperIntakeState state) {
         return this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = state);
+    }
+
+    /**
+     * Toggles the intake solenoid control state between IN and OUT, and sets the intake feed state accordingly
+     */
+    public Command toggleHopperIntake() {
+        return this.runOnce(() -> {
+            SuperStructure.Hopper.IntakeControlState = SuperStructure.Hopper.IntakeControlState == HopperIntakeState.OUT
+                    ? HopperIntakeState.IN
+                    : HopperIntakeState.OUT;
+
+            SuperStructure.Hopper.IntakeFeedState = SuperStructure.Hopper.IntakeControlState == HopperIntakeState.OUT
+                    ? IntakeFeedState.INWARDS
+                    : IntakeFeedState.STOPPED;
+        });
+    }
+
+    public Command overrideIntakeFeedPercentOut(double percentOut) {
+        return this.run(() -> {
+            overrideIntakeFeedPercentOut(percentOut);
+        }).finallyDo(() -> overrideIntakeFeedPercentOut(HopperMap.MAX_INTAKE_FEED_PERCENT_OUT));
     }
 
     // #endregion

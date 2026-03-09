@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
@@ -188,9 +187,9 @@ public class SwerveModuleReal implements ISwerveModule {
 
     // Current Limits
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 80;
+    config.CurrentLimits.StatorCurrentLimit = 40;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 60;
+    config.CurrentLimits.SupplyCurrentLimit = 20;
 
     // Voltage Configuration
     config.Voltage.PeakForwardVoltage = 12;
@@ -332,7 +331,6 @@ public class SwerveModuleReal implements ISwerveModule {
     var wheelRotationsPerSecond = desiredSpeedMetersPerSecond / SwerveMap.DriveWheelCircumferenceMeters;
 
     Logger.recordOutput("Swerve/Modules/" + _name + "/DesiredWheelRPS", wheelRotationsPerSecond);
-
     // Send velocity command in rotations per second (wheel rotations)
     _driveMotor.setControl(_driveControl.withVelocity(wheelRotationsPerSecond));
   }

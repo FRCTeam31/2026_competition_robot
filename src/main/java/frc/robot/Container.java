@@ -4,23 +4,25 @@
 
 package frc.robot;
 
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.function.DoubleSupplier;
 
 import org.prime.dashboard.DashboardSection;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.PwmLEDs;
+import frc.robot.subsystems.TurretV3;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
@@ -31,19 +33,19 @@ import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.turret.Turret;
-import frc.robot.subsystems.turret.Turret.UptakeState;
+// import frc.robot.subsystems.turret.Turret;
+// import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 import frc.robot.subsystems.vision.photon.PhotonVision;
-import frc.robot.subsystems.turret.Turret.FiringState;
-import frc.robot.subsystems.turret.Turret.OperatingMode;
+// import frc.robot.subsystems.turret.Turret.FiringState;
+// import frc.robot.subsystems.turret.Turret.OperatingMode;
 
 public class Container {
-  public static TeleopDashboardTab TeleopDashboardSection;
-  public static DashboardSection CommandsDashboardSection;
   public static DashboardSection AutoDashboardSection;
-  public static DashboardSection TestDashboardSection;
+  public static TeleopDashboardTab TeleopDashboardSection;
+  // public static DashboardSection CommandsDashboardSection;
+  // public static DashboardSection TestDashboardSection;
   public static OperatorInterface OperatorInterface;
   public static SendableChooser<Command> AutoChooser;
 
@@ -54,7 +56,8 @@ public class Container {
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Climb Climb;
-  public static Turret Turret;
+  // public static Turret Turret;
+  public static TurretV3 Turret;
 
   public enum IntakeCombinedState {
     INWARDS,
@@ -65,24 +68,25 @@ public class Container {
     try {
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
-      // TeleopDashboardSection = new TeleopDashboardTab();
+      TeleopDashboardSection = new TeleopDashboardTab();
       // CommandsDashboardSection = new DashboardSection("Commands");
       // TestDashboardSection = new DashboardSection("Test");
 
       // Create subsystems
-      // LEDs = new PwmLEDs();
+      LEDs = new PwmLEDs();
 
-      // LimelightVision = new LimelightVision();
-      // LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
-      // PhotonVision = new PhotonVision();
-      // PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
-      // PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
+      LimelightVision = new LimelightVision();
+      LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
+      PhotonVision = new PhotonVision();
+      PhotonVision.addCamera(VisionMap.PhotonCam1Name, VisionMap.PhotonCam1Transform);
+      PhotonVision.addCamera(VisionMap.PhotonCam2Name, VisionMap.PhotonCam2Transform);
 
       Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
       Climb = new Climb();
-      Turret = new Turret();
+      // Turret = new Turret();
+      Turret = new TurretV3();
 
       // Create and bind the operator interface
       OperatorInterface = new OperatorInterface();
@@ -90,7 +94,7 @@ public class Container {
       OperatorInterface.bindOperatorControls();
 
       // Register the named commands from each subsystem that may be used in PathPlanner
-      // NamedCommands.registerCommands(Swerve.getNamedCommands());
+      NamedCommands.registerCommands(getNamedCommandSuppliers());
 
       // Build an auto chooser. This will use Commands.none() as the default option.
       AutoChooser = AutoBuilder.buildAutoChooser();
@@ -107,18 +111,32 @@ public class Container {
    * in MANUAL mode this immediately feeds.
    * @return Command
    */
-  public static Command startShooting() {
-    return Turret.setFiring(FiringState.FIRING)
-        .andThen(Turret.setFeed(UptakeState.FORWARDS));
-  }
+  // public static Command startShooting() {
+  //   return Turret.setFiring(FiringState.FIRING)
+  //       .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
+  //       .andThen(Turret.setFeed(UptakeState.FORWARDS));
+  // }
+
+  // public static Command startShooting(DoubleSupplier speed) {
+  //   return Turret.setShooterCommand(speed.getAsDouble())
+  //       .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
+  //       .andThen(Turret.setFeedCommand(0.4)).repeatedly();
+  // }
 
   /**
    * Stops the turret firing and returns to idle
    * @return Command
    */
+  // public static Command stopShooting() {
+  //   return Turret.setFiring(FiringState.IDLE)
+  //       .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
+  //       .andThen(Turret.setFeed(UptakeState.STOPPED));
+  // }
+
   public static Command stopShooting() {
-    return Turret.setFeed(UptakeState.STOPPED)
-        .andThen(Turret.setFiring(FiringState.IDLE));
+    return Turret.stopShooterCommand()
+        .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
+        .andThen(Turret.stopFeedCommand());
   }
 
   /**
@@ -138,12 +156,12 @@ public class Container {
     if (state == IntakeCombinedState.INWARDS) {
       return Hopper.setIntakeFeed(IntakeFeedState.INWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.INWARDS))
-          .andThen(Turret.setFeed(UptakeState.FORWARDS))
+          // .andThen(Turret.setFeed(UptakeState.FORWARDS))
           .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
     } else {
       return Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
           .andThen(Hopper.setFeed(TransferFeedState.OUTWARDS))
-          .andThen(Turret.setFeed(UptakeState.REVERSED))
+          // .andThen(Turret.setFeed(UptakeState.REVERSED))
           .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
     }
 
@@ -217,34 +235,40 @@ public class Container {
   }
   //#endregion
 
-  public static Command toggleShooterOn() {
-    return Turret.setFiring(FiringState.FIRING)
-        .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed &&
-            SuperStructure.Turret.YawOnTarget &&
-            SuperStructure.Turret.HoodOnTarget))
-        .andThen(Turret.setFeed(UptakeState.FORWARDS))
-        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
-  }
+  // public static Command toggleShooterOn() {
+  //   return Turret.setFiring(FiringState.FIRING)
+  //       .andThen(Commands.waitUntil(() -> SuperStructure.Turret.FlywheelAtTargetSpeed &&
+  //           SuperStructure.Turret.YawOnTarget &&
+  //           SuperStructure.Turret.HoodOnTarget))
+  //       .andThen(Turret.setFeed(UptakeState.FORWARDS))
+  //       .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.INWARDS);
+  // }
 
-  public static Command toggleShooterOff() {
-    return Turret.setFiring(FiringState.IDLE)
-        .andThen(Turret.setFeed(UptakeState.STOPPED))
-        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED);
-  }
+  // public static Command toggleShooterOff() {
+  //   return Turret.setFiring(FiringState.IDLE)
+  //       .andThen(Turret.setFeed(UptakeState.STOPPED))
+  //       .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED);
+  // }
 
-  public static Command startAuto() {
-    return Turret.setOperatingMode(OperatingMode.AUTO)
-        .andThen(Turret.setFiring(FiringState.IDLE));
-  }
+  // public static Command startAuto() {
+  //   return Turret.setOperatingMode(OperatingMode.AUTO)
+  //       .andThen(Turret.setFiring(FiringState.IDLE));
+  // }
 
   public static Command toggleIntakeOn() {
     return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT)
-        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS);
+        .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.INWARDS)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.STOPPED); //These have been changed for our current strategy for defense
   }
 
   public static Command toggleIntakeOff() {
     return Commands.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN)
         .andThen(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.STOPPED);
+  }
+
+  public static Command ejectBalls() {
+    return Commands.runOnce(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.OUTWARDS)
+        .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.OUTWARDS);
   }
 
   public static Command toggleClimbArmOn() {
@@ -256,16 +280,15 @@ public class Container {
   //       .andThen(() -> SuperStructure.Turret.FeedState = UptakeState.STOPPED);
   // }
 
-  public static Map<String, Supplier<Command>> getNamedCommandSuppliers() {
-    return Map.of(
-        "Enable_Autonomous_Shooting", () -> toggleShooterOn(),
-        "Disable_Autonomous_Shooting", () -> toggleShooterOff(),
-        "Start_Auto", () -> startAuto(),
-        "Take_Out_And_Enable_Intake", () -> toggleIntakeOn(),
-        "Put_In_And_Disable_Intake", () -> toggleIntakeOff(),
-        "Setup_Climb", () -> setupClimb(),
-        "Climb", () -> startClimbing(),
-        "Stop_Climb", () -> stopClimbing());
+  public static List<Pair<String, Command>> getNamedCommandSuppliers() {
+    return List.of(
+        // Pair.of("Disable_Autonomous_Shooting", toggleShooterOff()),
+        // Pair.of("Start_Auto", startAuto()),
+        Pair.of("Take_Out_And_Enable_Intake", toggleIntakeOn()),
+        Pair.of("Put_In_And_Disable_Intake", toggleIntakeOff()),
+        Pair.of("Dump_Balls", ejectBalls()),
+        Pair.of("Setup_Climb", setupClimb()),
+        Pair.of("Climb", startClimbing()),
+        Pair.of("Stop_Climb", stopClimbing()));
   }
-
 }
