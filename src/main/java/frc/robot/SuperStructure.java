@@ -7,6 +7,7 @@ import frc.robot.subsystems.climb.ClimbInputsAutoLogged;
 import frc.robot.subsystems.hopper.HopperInputsAutoLogged;
 import frc.robot.subsystems.swerve.SwerveSubsystemInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.SwerveModuleInputsAutoLogged;
+import frc.robot.subsystems.turret.TurretInputsAutoLogged;
 import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
@@ -18,7 +19,7 @@ public class SuperStructure {
 
     public static HopperInputsAutoLogged Hopper = new HopperInputsAutoLogged();
 
-    // public static TurretInputsAutoLogged Turret = new TurretInputsAutoLogged();
+    public static TurretInputsAutoLogged Turret = new TurretInputsAutoLogged();
 
     public static ClimbInputsAutoLogged Climb = new ClimbInputsAutoLogged();
 

@@ -22,7 +22,7 @@ import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.PwmLEDs;
-import frc.robot.subsystems.TurretV3;
+// import frc.robot.subsystems.TurretV3;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.Climb.ClimbState;
 import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
@@ -33,7 +33,7 @@ import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
-// import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.Turret;
 // import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
@@ -55,9 +55,8 @@ public class Container {
   public static PhotonVision PhotonVision;
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
-  public static Climb Climb;
-  // public static Turret Turret;
-  public static TurretV3 Turret;
+  public static Turret Turret;
+  // public static TurretV3 Turret;
 
   public enum IntakeCombinedState {
     INWARDS,
@@ -66,6 +65,7 @@ public class Container {
 
   public static void initialize() {
     try {
+      OperatorInterface = new OperatorInterface();
       // Create dashboard sections
       AutoDashboardSection = new DashboardSection("Auto");
       TeleopDashboardSection = new TeleopDashboardTab();
@@ -84,12 +84,10 @@ public class Container {
       Swerve = new Swerve();
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
-      Climb = new Climb();
-      // Turret = new Turret();
-      Turret = new TurretV3();
+      Turret = new Turret();
+      // Turret = new TurretV3();
 
       // Create and bind the operator interface
-      OperatorInterface = new OperatorInterface();
       OperatorInterface.bindDriverControls();
       OperatorInterface.bindOperatorControls();
 
@@ -133,11 +131,11 @@ public class Container {
   //       .andThen(Turret.setFeed(UptakeState.STOPPED));
   // }
 
-  public static Command stopShooting() {
-    return Turret.stopShooterCommand()
-        .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
-        .andThen(Turret.stopFeedCommand());
-  }
+  // public static Command stopShooting() {
+  //   return Turret.stopShooterCommand()
+  //       .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
+  //       .andThen(Turret.stopFeedCommand());
+  // }
 
   /**
    * Command to set the hopper and intake into the correct positions
@@ -165,73 +163,6 @@ public class Container {
           .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
     }
 
-  }
-
-  public static Command setupClimb() {
-    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.SETUP_IN_PROGRESS)
-        .andThen(setIntakeStates(IntakeCombinedState.OUTWARDS))
-        .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
-        .andThen(Climb.setClimb(ClimbState.UP))
-        // Time to dump all fuel
-        .andThen(Commands.waitSeconds(1))
-        .andThen(Hopper.setFeed(TransferFeedState.STOPPED))
-        .andThen(Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-        .andThen(Hopper.setHopperIntakeControl(HopperIntakeState.IN))
-        // Time for intake to fully raise
-        .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setSupport(SupportState.LOWERED))
-        .andThen(Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.SETUP_DONE))
-        .andThen(OperatorInterface.rumbleControllerShort(OperatorInterface.DriverController))
-        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.RESET)
-        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
-  }
-
-  /**
-   * Command to run when the robot should start climbing
-   * 
-   * @return Command
-   */
-  public static Command startClimbing() {
-    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_UP)
-        // Wait until climb is fully lowered
-        .andThen(Commands.waitUntil(() -> SuperStructure.Climb.LowerLimitSwitch))
-        .andThen(Climb.setBrake(FrictionBrakeState.APPLIED))
-        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.HAS_CLIMBED)
-        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.SETUP_DONE)
-        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
-  }
-
-  /**
-   * Command to run when decending after a climb
-   * 
-   * @return Command
-   */
-  public static Command stopClimbing() {
-    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_DOWN)
-        .andThen(Climb.setBrake(FrictionBrakeState.RELEASED))
-        // Time for brake to fully release
-        .andThen(Commands.waitSeconds(1))
-        .andThen(Climb.setClimb(ClimbState.UP))
-        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.CLIMBING_DONE)
-        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.HAS_CLIMBED)
-        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
-  }
-
-  /**
-   * Resets the robot to the correct state following a climb
-   * 
-   * @return Command
-   */
-  public static Command resetRobotAfterClimb() {
-    return Commands.runOnce(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.RESETTING)
-        .andThen(Climb.setSupport(SupportState.RAISED))
-        // Time for support to fully raise
-        .andThen(Commands.waitSeconds(1))
-        .andThen(homeRobotCommand())
-        .andThen(() -> SuperStructure.Climb.ClimbControlState = ClimbControlState.RESET)
-        .onlyIf(() -> SuperStructure.Climb.ClimbControlState == ClimbControlState.CLIMBING_DONE ||
-            SuperStructure.Climb.ClimbControlState == ClimbControlState.SETUP_DONE)
-        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
   //#endregion
 
@@ -286,9 +217,6 @@ public class Container {
         // Pair.of("Start_Auto", startAuto()),
         Pair.of("Take_Out_And_Enable_Intake", toggleIntakeOn()),
         Pair.of("Put_In_And_Disable_Intake", toggleIntakeOff()),
-        Pair.of("Dump_Balls", ejectBalls()),
-        Pair.of("Setup_Climb", setupClimb()),
-        Pair.of("Climb", startClimbing()),
-        Pair.of("Stop_Climb", stopClimbing()));
+        Pair.of("Dump_Balls", ejectBalls()));
   }
 }
