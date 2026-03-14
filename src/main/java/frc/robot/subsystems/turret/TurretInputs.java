@@ -14,6 +14,7 @@ public class TurretInputs {
     // Inputs
     public Rotation2d TurretRotation = Rotation2d.kZero;
     public double TurretRotationDegrees = 0;
+    public double DesiredTurretRotationDegrees = 0;
     public boolean TurretRotationResetSwitch = true;
     public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
     public double FlywheelVelocityRPM = 0;

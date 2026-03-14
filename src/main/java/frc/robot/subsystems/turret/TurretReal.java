@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
 import org.prime.util.CTREConverter;
 
@@ -25,11 +26,14 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.Robot;
 
 public class TurretReal implements ITurret {
 
@@ -41,10 +45,10 @@ public class TurretReal implements ITurret {
     private DigitalInput _turretResetLimitSwitch;
     private SparkClosedLoopController _flywheelClosedLoopController;
     private SparkClosedLoopController _hoodClosedLoopController;
+    private PIDController _yawPidController;
 
     // Stored setpoints for on-target calculations
     private double _targetFlywheelVelocityRPM = 0;
-    private double _targetYawDegrees = 0;
     private double _targetHoodDegrees = 0;
 
     public TurretReal() {
@@ -105,22 +109,30 @@ public class TurretReal implements ITurret {
         config.peakCurrentDuration = 0;
         _turretRotator.enableCurrentLimit(true);
 
-        SlotConfiguration slot0 = new SlotConfiguration();
-        slot0.kP = pid.kP;
-        slot0.kI = pid.kI;
-        slot0.kD = pid.kD;
-        slot0.kF = pid.kV;
-        config.slot0 = slot0;
+        // SlotConfiguration slot0 = new SlotConfiguration();
+        // slot0.kP = pid.kP;
+        // slot0.kI = pid.kI;
+        // slot0.kD = pid.kD;
+        // slot0.kF = pid.kF;
+        // config.slot0 = slot0;
 
-        config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
+        // config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
         // TODO: set forward and reverse soft limits based on physical limits of the turret
+        config.forwardSoftLimitEnable = true;
+        config.forwardSoftLimitThreshold = 37000;
+        config.reverseSoftLimitEnable = true;
+        config.reverseSoftLimitThreshold = 6700;
 
         // Motion Magic configuration for smooth position control
-        config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
-        config.motionAcceleration = TurretMap.YAW_MOTION_MAGIC_ACCELERATION;
+        // config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
+        // config.motionAcceleration = TurretMap.YAW_MOTION_MAGIC_ACCELERATION;
+        // config.motionCurveStrength = 1;
 
         _turretRotator.configAllSettings(config);
         _turretRotator.clearStickyFaults();
+
+        _yawPidController = pid.createPIDController(Robot.defaultPeriodSecs);
+        _yawPidController.enableContinuousInput(0, 4096 * TurretMap.TURRET_GEAR_RATIO);
     }
 
     private void configureHoodMotor(ExtendedPIDConstants pid) {
@@ -169,8 +181,7 @@ public class TurretReal implements ITurret {
                 * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
         inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RPM)
                 - _targetFlywheelVelocityRPM) <= flywheelToleranceRPM;
-        inputs.YawOnTarget = Math.abs(inputs.TurretRotation.getDegrees()
-                - _targetYawDegrees) <= TurretMap.YAW_ON_TARGET_TOLERANCE_DEGREES;
+        inputs.YawOnTarget = _yawPidController.atSetpoint();
         inputs.HoodOnTarget = Math.abs(inputs.HoodAngle.in(Degrees)
                 - _targetHoodDegrees) <= TurretMap.HOOD_ON_TARGET_TOLERANCE_DEGREES;
     }
@@ -198,9 +209,11 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlYawAngle(Angle angle) {
-        _targetYawDegrees = angle.in(Degrees);
-        _turretRotator.set(TalonSRXControlMode.MotionMagic,
-                CTREConverter.degreesToCANcoder(_targetYawDegrees, TurretMap.TURRET_GEAR_RATIO));
+        var pidOutput = _yawPidController.calculate(getTurretRotation().getRotations(), angle.in(Rotations));
+        pidOutput = -MathUtil.clamp(pidOutput, -1, 1);
+        Logger.recordOutput("Turret/YawPIDOutput", pidOutput);
+
+        _turretRotator.set(TalonSRXControlMode.PercentOutput, pidOutput);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package org.prime.subsystems.turret;
 
+import org.littletonrobotics.junction.Logger;
+
 /**
  * Utility for handling a turret dead zone -- a physical arc that the turret
  * cannot traverse (e.g., where wiring passes through).
@@ -36,6 +38,7 @@ public class TurretDeadZoneHelper {
     private final double _startRot; // dead zone start in rotations [0, 1)
     private final double _endRot; // dead zone end   in rotations [0, 1)
     private final double _dzSize; // dead zone span  in rotations (0, 1)
+    private static final double EDGE_BUFFER = 0.005;
 
     /**
      * @param deadZoneStartDegrees Start of the dead zone in degrees [0, 360)
@@ -83,6 +86,8 @@ public class TurretDeadZoneHelper {
         double currentNorm = normalizeTo01(currentRotations);
         double targetNorm = normalizeTo01(targetRotations);
 
+        Logger.recordOutput("DeadZoneHelper/computeLegalSetpoint/targetInDeadZone", isInDeadZone(targetRotations));
+
         // If target is in the dead zone, clamp to the nearer edge
         if (isInDeadZone(targetRotations)) {
             targetNorm = closerEdge(targetNorm);
@@ -92,15 +97,17 @@ public class TurretDeadZoneHelper {
         double delta = shortestDelta(currentNorm, targetNorm);
 
         // Check whether this arc crosses the dead zone
-        if (arcCrossesDeadZone(currentNorm, delta)) {
-            // Go to the dead zone edge on the current side instead
-            targetNorm = nearEdgeFor(currentNorm);
-            delta = shortestDelta(currentNorm, targetNorm);
+        var arcCrossesDeadZone = arcCrossesDeadZone(currentNorm, delta);
+        Logger.recordOutput("DeadZoneHelper/computeLegalSetpoint/arcCrossesDeadZone", arcCrossesDeadZone);
+        if (arcCrossesDeadZone) {
+            // Short arc is blocked — reverse direction to take the legal long arc
+            double longDelta = delta > 0 ? delta - 1.0 : delta + 1.0;
+            return normalizeTo01(currentRotations + longDelta);
         }
 
         // Convert back to unwrapped rotations: keep same "integer turns" as current,
         // then add the delta
-        return currentRotations + delta;
+        return normalizeTo01(currentRotations + delta);
     }
 
     /**
@@ -129,8 +136,18 @@ public class TurretDeadZoneHelper {
         double norm = normalizeTo01(currentRotations);
         double offset = offsetFromStart(norm); // 0..1, values < _dzSize are in DZ
 
+        // REPLACE with this:
         if (!isInDeadZone(currentRotations)) {
-            // Not in the dead zone -- nothing to block
+            double distToStart = normalizeTo01(_startRot - norm);
+            double distToEnd = normalizeTo01(norm - _endRot);
+
+            // Block positive input when approaching the start edge
+            if (distToStart < EDGE_BUFFER && manualInput > 0)
+                return true;
+            // Block negative input when approaching the end edge
+            if (distToEnd < EDGE_BUFFER && manualInput < 0)
+                return true;
+
             return false;
         }
 
@@ -228,16 +245,24 @@ public class TurretDeadZoneHelper {
         if (Math.abs(delta) < 1e-9)
             return false;
 
-        // Walk the arc in small steps and test.  Because the dead zone is
-        // typically small relative to a full rotation, a step count of 36
-        // (10° each) is more than sufficient for practical FRC turret geometry.
-        int steps = 36;
-        for (int i = 1; i <= steps; i++) {
-            double probe = normalizeTo01(startNorm + delta * i / steps);
-            if (offsetFromStart(probe) < _dzSize) {
-                return true;
-            }
+        // Check if the endpoint lands inside the dead zone
+        double endNorm = normalizeTo01(startNorm + delta);
+        if (offsetFromStart(endNorm) < _dzSize)
+            return true;
+
+        if (delta > 0) {
+            // CW sweep: does either dead zone edge fall strictly inside the arc?
+            double toStart = normalizeTo01(_startRot - startNorm);
+            double toEnd = normalizeTo01(_endRot - startNorm);
+            return (toStart > 1e-9 && toStart < delta)
+                    || (toEnd > 1e-9 && toEnd < delta);
+        } else {
+            // CCW sweep: same, measured backward from startNorm
+            double absDelta = -delta;
+            double toEnd = normalizeTo01(startNorm - _endRot);
+            double toStart = normalizeTo01(startNorm - _startRot);
+            return (toEnd > 1e-9 && toEnd < absDelta)
+                    || (toStart > 1e-9 && toStart < absDelta);
         }
-        return false;
     }
 }

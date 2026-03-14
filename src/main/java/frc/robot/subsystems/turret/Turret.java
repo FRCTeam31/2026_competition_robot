@@ -10,6 +10,7 @@ import org.prime.util.MutVector;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -343,12 +344,13 @@ public class Turret extends LoggedSubsystem {
     // TODO: Edited temp to prevent movement while testing
     private void actOnManualMode(TurretInputsAutoLogged inputs) {
         // Apply manual yaw setpoint (respecting dead zone)
-        var manualYawRotations = _manualYawDegrees / 360.0;
+        var manualYawRotations = Rotation2d.fromDegrees(_manualYawDegrees).getRotations();
         if (TurretMap.YAW_DEADZONE_ENABLED) {
             manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
                     SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
         }
-        // _turret.controlYawAngle(Rotations.of(manualYawRotations));
+        SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
+        _turret.controlYawAngle(Rotations.of(manualYawRotations));
 
         // Apply manual hood setpoint
         // _turret.controlHood(Degrees.of(_manualHoodDegrees));

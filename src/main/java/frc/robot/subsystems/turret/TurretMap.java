@@ -36,9 +36,9 @@ public class TurretMap {
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
-        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants();
-        public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 1000; // sensor units per 100ms (~88°/s)
-        public static final double YAW_MOTION_MAGIC_ACCELERATION = 2000; // sensor units per 100ms per second (~0.5s to cruise)
+        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(15, 0, 0);
+        // public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 1000; // sensor units per 100ms (~88°/s)
+        // public static final double YAW_MOTION_MAGIC_ACCELERATION = 2000; // sensor units per 100ms per second (~0.5s to cruise)
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
         public static final double TURRET_CORRECTION_THRESHOLD_DEGREES = 2.0;
@@ -52,8 +52,8 @@ public class TurretMap {
         // through the larger angle) that the turret physically cannot traverse.
         // Both values are in degrees, measured in the same frame as turret rotation (0–360).
         // Example: START = 170, END = 190 means a 20° dead zone centered on 180°.
-        public static final double DEADZONE_START_DEGREES = 170;
-        public static final double DEADZONE_END_DEGREES = 190;
+        public static final double DEADZONE_START_DEGREES = 315;
+        public static final double DEADZONE_END_DEGREES = 60;
 
         // ──────────────────────── Turret Geometry ───────────────────────
         public static final double TURRET_DISTANCE_FROM_ROBOT_CENTER = 0;
@@ -78,7 +78,7 @@ public class TurretMap {
                         0.1645,
                         0.013876,
                         0.075161);
-        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = RotationsPerSecond.of(2);
+        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = RotationsPerSecond.of(1);
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED_RPS = 90;
         public static final double FLYWHEEL_MIN_SPEED_RPS = 0.0;
@@ -127,7 +127,7 @@ public class TurretMap {
         /** Amount to adjust the hood angle per button press in MANUAL mode (degrees) */
         public static final double MANUAL_HOOD_STEP_DEGREES = 1.0;
         /** Amount to adjust the turret yaw per button press in MANUAL mode (degrees) */
-        public static final double MANUAL_YAW_STEP_DEGREES = 5.0;
+        public static final double MANUAL_YAW_STEP_DEGREES = 10.0;
 
         // ──────────────────────── Home Positions ─────────────────────────
         /** Yaw home position in degrees (180° = straight back) */
