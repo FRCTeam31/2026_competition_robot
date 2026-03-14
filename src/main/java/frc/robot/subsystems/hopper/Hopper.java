@@ -1,5 +1,7 @@
 package frc.robot.subsystems.hopper;
 
+import java.util.function.Supplier;
+
 import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -123,6 +125,10 @@ public class Hopper extends LoggedSubsystem {
      */
     public Command setIntakeFeed(IntakeFeedState state) {
         return this.runOnce(() -> SuperStructure.Hopper.IntakeFeedState = state);
+    }
+
+    public Command setIntakeFeedSupplier(Supplier<IntakeFeedState> state) {
+        return this.run(() -> SuperStructure.Hopper.IntakeFeedState = state.get());
     }
 
     /**
