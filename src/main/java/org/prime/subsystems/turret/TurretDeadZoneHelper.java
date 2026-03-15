@@ -6,7 +6,7 @@ import org.littletonrobotics.junction.Logger;
  * Utility for handling a turret dead zone -- a physical arc that the turret
  * cannot traverse (e.g., where wiring passes through).
  *
- * <p>All public methods work in <b>rotations</b> (1 rotation = 360°) to match
+ * <p>All public methods work in <b>rotations</b> (1 rotation = 360-degrees) to match
  * CTRE TalonFX position units.  Internally the dead zone is defined by a
  * start and end angle (in degrees, 0-360); the zone spans clockwise from
  * start to end through the "forbidden" region.</p>
@@ -50,11 +50,11 @@ public class TurretDeadZoneHelper {
         _dzSize = normalizeTo01(_endRot - _startRot);
     }
 
-    // ──────────────────────── public API ────────────────────────
+    // ------------------------ public API ------------------------
 
     /**
      * Returns {@code true} when the normalised angle (mod 1 rotation) falls
-     * inside the dead zone arc from start → end.
+     * inside the dead zone arc from start -> end.
      */
     public boolean isInDeadZone(double positionRotations) {
         double norm = normalizeTo01(positionRotations);
@@ -74,7 +74,7 @@ public class TurretDeadZoneHelper {
      *       dead zone, re-route to the near edge of the dead zone (the turret
      *       will reach the edge this cycle, and next cycle the target will be
      *       legal from the new position).</li>
-     *   <li>Otherwise return the target unchanged (adjusted to be within ±0.5
+     *   <li>Otherwise return the target unchanged (adjusted to be within +-0.5
      *       rotations of the current position so MotionMagic takes the short way).</li>
      * </ol>
      *
@@ -93,14 +93,14 @@ public class TurretDeadZoneHelper {
             targetNorm = closerEdge(targetNorm);
         }
 
-        // Compute shortest-arc delta from current to target (−0.5 .. +0.5)
+        // Compute shortest-arc delta from current to target (-0.5 .. +0.5)
         double delta = shortestDelta(currentNorm, targetNorm);
 
         // Check whether this arc crosses the dead zone
         var arcCrossesDeadZone = arcCrossesDeadZone(currentNorm, delta);
         Logger.recordOutput("DeadZoneHelper/computeLegalSetpoint/arcCrossesDeadZone", arcCrossesDeadZone);
         if (arcCrossesDeadZone) {
-            // Short arc is blocked — reverse direction to take the legal long arc
+            // Short arc is blocked - reverse direction to take the legal long arc
             double longDelta = delta > 0 ? delta - 1.0 : delta + 1.0;
             return normalizeTo01(currentRotations + longDelta);
         }
@@ -126,7 +126,7 @@ public class TurretDeadZoneHelper {
      * </ul>
      *
      * @param currentRotations Current turret position in rotations
-     * @param manualInput      Raw operator input (−1 to +1, positive = increasing rotation)
+     * @param manualInput      Raw operator input (-1 to +1, positive = increasing rotation)
      * @return {@code true} if the input should be blocked (zeroed), {@code false} if it is safe
      */
     public boolean shouldBlockManualInput(double currentRotations, double manualInput) {
@@ -153,8 +153,8 @@ public class TurretDeadZoneHelper {
 
         // We're inside the dead zone. Determine which half we're in to decide
         // which direction is "out".
-        // Closer to start edge → negative input goes out, positive goes deeper in
-        // Closer to end edge   → positive input goes out, negative goes deeper in
+        // Closer to start edge -> negative input goes out, positive goes deeper in
+        // Closer to end edge   -> positive input goes out, negative goes deeper in
         boolean closerToStart = offset < _dzSize / 2.0;
 
         if (closerToStart && manualInput > 0) {
@@ -184,7 +184,7 @@ public class TurretDeadZoneHelper {
         return _endRot;
     }
 
-    // ──────────────────────── internals ─────────────────────────
+    // ------------------------ internals -------------------------
 
     /**
      * Normalises any rotation value into [0, 1).
@@ -196,7 +196,7 @@ public class TurretDeadZoneHelper {
 
     /**
      * Shortest signed delta from {@code from} to {@code to}, both in [0,1).
-     * Result is in (−0.5, +0.5].
+     * Result is in (-0.5, +0.5].
      */
     private double shortestDelta(double from, double to) {
         double d = normalizeTo01(to - from);
@@ -238,7 +238,7 @@ public class TurretDeadZoneHelper {
 
     /**
      * Returns {@code true} when the arc from {@code start} (normalised) in the
-     * direction of {@code delta} (signed, magnitude ≤ 0.5) crosses any part of
+     * direction of {@code delta} (signed, magnitude <= 0.5) crosses any part of
      * the dead zone.
      */
     private boolean arcCrossesDeadZone(double startNorm, double delta) {

@@ -78,7 +78,7 @@ public class Swerve extends LoggedSubsystem {
     configurePathPlanner();
 
     // Configure SysId routine for drive motor characterization.
-    // All 4 modules are driven in unison, locked at 0° heading.
+    // All 4 modules are driven in unison, locked at 0-degrees heading.
     _driveSysId = new SysIdRoutineHelper(
         this,
         "SwerveDrive",
@@ -445,7 +445,7 @@ public class Swerve extends LoggedSubsystem {
       double dy = hubPosition.getY() - robotPose.getY();
       double angleToHubRadians = Math.atan2(dy, dx);
 
-      // Add π to face AWAY from the hub
+      // Add pi to face AWAY from the hub
       var awayFromHubAngle = Rotation2d.fromRadians(angleToHubRadians + Math.PI);
 
       _autoAlign.setSetpoint(awayFromHubAngle);
@@ -462,7 +462,7 @@ public class Swerve extends LoggedSubsystem {
 
   /**
    * Returns a SysId characterization command for all 4 swerve drive motors.
-   * Modules are locked at 0° heading and driven in unison.
+   * Modules are locked at 0-degrees heading and driven in unison.
    *
    * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
    * @param direction FORWARD or REVERSE

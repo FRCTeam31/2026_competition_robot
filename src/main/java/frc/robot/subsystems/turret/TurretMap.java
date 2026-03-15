@@ -24,7 +24,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import org.prime.util.IDWController;
 
 public class TurretMap {
-        // ──────────────────────── Feature Flags ─────────────────────────
+        // ------------------------ Feature Flags -------------------------
         public static final boolean UPDATE_LIMELIGHT_POSE = false;
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final boolean USE_SPEED_INTERPOLATION = false;
@@ -32,12 +32,12 @@ public class TurretMap {
         public static final boolean USE_LIMELIGHT_TARGETING = false;
         public static final boolean USE_LIMELIGHT_YAW_CORRECTION = false;
 
-        // ──────────────────────── Turret Yaw ────────────────────────────
+        // ------------------------ Turret Yaw ----------------------------
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(15, 0, 0);
-        // public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 1000; // sensor units per 100ms (~88°/s)
+        // public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 1000; // sensor units per 100ms (~88-degrees/s)
         // public static final double YAW_MOTION_MAGIC_ACCELERATION = 2000; // sensor units per 100ms per second (~0.5s to cruise)
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
         public static final double AUTO_AIM_YAW_TRIM_DEGREES = 10;
@@ -47,15 +47,15 @@ public class TurretMap {
         public static final Angle YAW_RESET_ANGLE = Degrees.of(180);
         public static final int TURRET_RESET_SWITCH_CHANNEL = 0;
 
-        // ──────────────────────── Turret Dead Zone ──────────────────────
+        // ------------------------ Turret Dead Zone ----------------------
         // The arc from DEADZONE_START to DEADZONE_END (going clockwise
         // through the larger angle) that the turret physically cannot traverse.
-        // Both values are in degrees, measured in the same frame as turret rotation (0–360).
-        // Example: START = 170, END = 190 means a 20° dead zone centered on 180°.
+        // Both values are in degrees, measured in the same frame as turret rotation (0-360).
+        // Example: START = 170, END = 190 means a 20-degrees dead zone centered on 180-degrees.
         public static final double DEADZONE_START_DEGREES = 315;
         public static final double DEADZONE_END_DEGREES = 60;
 
-        // ──────────────────────── Turret Geometry ───────────────────────
+        // ------------------------ Turret Geometry -----------------------
         public static final double TURRET_DISTANCE_FROM_ROBOT_CENTER = 0;
         public static final Rotation2d TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT = new Rotation2d()
                         .rotateBy(Rotation2d.kCCW_90deg);
@@ -65,7 +65,7 @@ public class TurretMap {
                         Units.inchesToMeters(5.75),
                         Units.inchesToMeters(15.894));
 
-        // ──────────────────────── Flywheel ──────────────────────────────
+        // ------------------------ Flywheel ------------------------------
         public static final int FLYWHEEL_LEFT_CANID = 19;
         public static final int FLYWHEEL_RIGHT_CANID = 20;
         public static final boolean FLYWHEEL_LEFT_INVERTED = false;
@@ -98,7 +98,7 @@ public class TurretMap {
                         new IDWController.Entry(1, 1, 1) // Target Velocity (in m/s), Hood Angle (in degrees), Flywheel Velocity (in Rotations Per Second)
         );
 
-        // ──────────────────────── Hood ───────────────────────────────────
+        // ------------------------ Hood -----------------------------------
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
@@ -115,13 +115,13 @@ public class TurretMap {
         public static final double HOOD_GEAR_RATIO = 6.333;
         public static final boolean HOOD_ENCODER_INVERTED = false;
 
-        // ──────────────────────── Feeder ─────────────────────────────────
+        // ------------------------ Feeder ---------------------------------
         public static final int FEEDER_CANID = 16;
         public static final boolean FEEDER_INVERTED = false;
         public static final double MAX_FEED_PERCENT_OUT = 0.4;
         public static final double FEEDER_VELOCITY_CONVERSION_FACTOR = 1.0;
 
-        // ──────────────────────── Manual Mode Steps ──────────────────────
+        // ------------------------ Manual Mode Steps ----------------------
         /** Amount to adjust the flywheel speed per button press in MANUAL mode (RPS) */
         public static final double MANUAL_FLYWHEEL_STEP_RPS = 2.0;
         /** Amount to adjust the hood angle per button press in MANUAL mode (degrees) */
@@ -129,19 +129,19 @@ public class TurretMap {
         /** Amount to adjust the turret yaw per button press in MANUAL mode (degrees) */
         public static final double MANUAL_YAW_STEP_DEGREES = 10.0;
 
-        // ──────────────────────── Home Positions ─────────────────────────
-        /** Yaw home position in degrees (180° = straight back) */
+        // ------------------------ Home Positions -------------------------
+        /** Yaw home position in degrees (180-degrees = straight back) */
         public static final double YAW_HOME_DEGREES = 180.0;
         /** Hood home angle in degrees (fully up / hood lowered) */
         public static final double HOOD_HOME_DEGREES = HOOD_MAX_ANGLE_DEGREES;
 
-        // ──────────────────────── Shot Targeting ─────────────────────────
+        // ------------------------ Shot Targeting -------------------------
         public static final Pose3d HUB_GOAL_POSITION = new Pose3d();
         public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
         public static final double MIN_SHOT_DISTANCE_METERS = 0;
         public static final double FLYWHEEL_GEAR_RATIO = 32d / 50d; // 32t on motor gear, 50t on flywheel gear
 
-        // ──────────────────────── Limelight ──────────────────────────────
+        // ------------------------ Limelight ------------------------------
         // Offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)
         // Positive X is forward, Y is left, Z is up from turret rotation center
         // Rotation is the camera's POV angle when the turret is at 0 degrees

@@ -5,14 +5,12 @@
 package frc.robot;
 
 import java.util.List;
-import java.util.function.DoubleSupplier;
 
 import org.prime.dashboard.DashboardSection;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -22,16 +20,10 @@ import frc.robot.dashboard.TeleopDashboardTab;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.PwmLEDs;
-// import frc.robot.subsystems.TurretV3;
-import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.Climb.ClimbState;
-import frc.robot.subsystems.climb.Climb.FrictionBrakeState;
-import frc.robot.subsystems.climb.Climb.SupportState;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
-import frc.robot.subsystems.climb.Climb.ClimbControlState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
 // import frc.robot.subsystems.turret.Turret.UptakeState;
@@ -200,10 +192,6 @@ public class Container {
   public static Command ejectBalls() {
     return Commands.runOnce(() -> SuperStructure.Hopper.IntakeFeedState = IntakeFeedState.OUTWARDS)
         .andThen(() -> SuperStructure.Hopper.TransferFeedState = TransferFeedState.OUTWARDS);
-  }
-
-  public static Command toggleClimbArmOn() {
-    return Commands.runOnce(() -> SuperStructure.Climb.SupportState = SupportState.RAISED);
   }
 
   // public static Command toggleIntakeOff() {

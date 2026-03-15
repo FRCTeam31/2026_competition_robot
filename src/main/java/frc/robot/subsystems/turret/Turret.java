@@ -37,9 +37,9 @@ import static org.prime.util.PhysicsConstants.GRAVITY;
  * Turret subsystem responsible for aiming and shooting fuel into the hub.
  * Supports two operating modes:
  * <ul>
- *   <li><b>AUTO</b> – Ballistics-based targeting. Holding the fire button seeks all
+ *   <li><b>AUTO</b> - Ballistics-based targeting. Holding the fire button seeks all
  *       setpoints, waits for lock-on, then feeds. Releasing returns to home.</li>
- *   <li><b>MANUAL</b> – Operator directly adjusts yaw, hood, and flywheel setpoints
+ *   <li><b>MANUAL</b> - Operator directly adjusts yaw, hood, and flywheel setpoints
  *       via incremental commands. Fire button simply runs the feed motors.</li>
  * </ul>
  */
@@ -57,7 +57,7 @@ public class Turret extends LoggedSubsystem {
         STOPPED
     }
 
-    /** Ephemeral firing state — active only while the fire button is held. */
+    /** Ephemeral firing state - active only while the fire button is held. */
     public enum FiringState {
         /** Not firing. In AUTO mode the turret returns to home position. */
         IDLE,
@@ -69,7 +69,7 @@ public class Turret extends LoggedSubsystem {
      * Tracks the progress of the turret's shot readiness pipeline.
      */
     public enum LockOnState {
-        /** Ballistics solution found — a valid aim vector exists. */
+        /** Ballistics solution found - a valid aim vector exists. */
         SHOT_CALCULATED,
         /** No valid ballistics solution. */
         SHOT_NOT_CALCULATED
@@ -308,7 +308,7 @@ public class Turret extends LoggedSubsystem {
                 _turret.setFeederSpeed(0);
             }
         } else {
-            // IDLE — return to home, flywheel to idle, stop feed
+            // IDLE - return to home, flywheel to idle, stop feed
             goToHomePosition();
         }
 
@@ -316,7 +316,7 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Sends the turret to its home position: yaw to 180°, hood fully up (lowered),
+     * Sends the turret to its home position: yaw to 180-degrees, hood fully up (lowered),
      * flywheel to idle speed, feed stopped.
      */
     private void goToHomePosition() {
