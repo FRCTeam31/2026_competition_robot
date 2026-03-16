@@ -3,43 +3,38 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.5783867141162524,
-        "y": 4.858078291814946
+        "x": 1.0,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.8201042153375195,
-        "y": 4.858078291814946
+        "x": 2.0,
+        "y": 4.0
       },
       "isLocked": false,
-      "linkedName": "CSup"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.45972222222222214,
-        "y": 4.858078291814946
+        "x": 2.0,
+        "y": 4.0
       },
       "prevControl": {
-        "x": 0.7122231129269982,
-        "y": 4.858078291814946
+        "x": 1.0,
+        "y": 4.0
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "LeftSetup"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.5,
-      "rotationDegrees": 90.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 1.0,
+    "maxAcceleration": 2.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -47,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Climbleft",
+  "folder": "Tests",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
