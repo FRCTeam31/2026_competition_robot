@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve.module;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -66,16 +67,17 @@ public class SwerveModuleReal implements ISwerveModule {
   private final MotionMagicVoltage _steeringControl = new MotionMagicVoltage(0);
   private final VelocityVoltage _driveControl = new VelocityVoltage(0);
 
-  public SwerveModuleReal(String name, SwerveModuleMap moduleMap, ExecutorService configurationService) {
+  public SwerveModuleReal(String name, SwerveModuleMap moduleMap, ExecutorService configurationService,
+      CANBus canivore) {
     _name = name;
     _map = moduleMap;
     _executorService = configurationService;
     _dashboardSection = new DashboardSection("Drive/" + _name);
     _dashboardSection.putBoolean(_optimizeModuleKey, true);
 
-    setupCanCoder();
-    setupSteeringMotor(SwerveMap.SteeringPID);
-    setupDriveMotor(SwerveMap.DrivePID);
+    setupCanCoder(canivore);
+    setupSteeringMotor(SwerveMap.SteeringPID, canivore);
+    setupDriveMotor(SwerveMap.DrivePID, canivore);
 
     BaseStatusSignal.setUpdateFrequencyForAll(1000, _drivePosition, _driveVelocity, _steeringAzimuth);
     BaseStatusSignal.setUpdateFrequencyForAll(50, _driveVoltage, _steeringPosition);
@@ -85,8 +87,8 @@ public class SwerveModuleReal implements ISwerveModule {
   /**
    * Configures the CANCoder first so it can be used as a remote sensor
    */
-  private void setupCanCoder() {
-    _encoder = new CANcoder(_map.CANCoderCanId, _map.CANivoreBusName);
+  private void setupCanCoder(CANBus canivore) {
+    _encoder = new CANcoder(_map.CANCoderCanId, canivore);
     _encoder.clearStickyFaults();
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
@@ -102,8 +104,8 @@ public class SwerveModuleReal implements ISwerveModule {
   /**
    * Configures the steering motor with Motion Magic and CANCoder as remote sensor
    */
-  private void setupSteeringMotor(ExtendedPIDConstants pid) {
-    _steeringMotor = new TalonFX(_map.SteeringMotorCanId, _map.CANivoreBusName);
+  private void setupSteeringMotor(ExtendedPIDConstants pid, CANBus canivore) {
+    _steeringMotor = new TalonFX(_map.SteeringMotorCanId, canivore);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -175,8 +177,8 @@ public class SwerveModuleReal implements ISwerveModule {
   /**
    * Configures the drive motor with velocity PID control
    */
-  private void setupDriveMotor(ExtendedPIDConstants pid) {
-    _driveMotor = new TalonFX(_map.DriveMotorCanId, _map.CANivoreBusName);
+  private void setupDriveMotor(ExtendedPIDConstants pid, CANBus canivore) {
+    _driveMotor = new TalonFX(_map.DriveMotorCanId, canivore);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 

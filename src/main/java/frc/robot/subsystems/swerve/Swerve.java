@@ -11,11 +11,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.dashboard.DrivetrainDashboardSection;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
@@ -41,7 +39,6 @@ import org.prime.sysid.SysIdRoutineHelper;
 
 public class Swerve extends LoggedSubsystem {
 
-  private DrivetrainDashboardSection _drivetrainDashboardSection;
   private ImpactRumbleHelper _rumbleHelper;
 
   // IO
@@ -72,8 +69,6 @@ public class Swerve extends LoggedSubsystem {
 
     // Configure AutoAlign
     _autoAlign = new AutoAlign(SwerveMap.AutoAlignPID);
-
-    _drivetrainDashboardSection = new DrivetrainDashboardSection();
 
     configurePathPlanner();
 
@@ -120,9 +115,9 @@ public class Swerve extends LoggedSubsystem {
     // Set up PP to feed current path poses to the dashboard's field widget
     // PathPlannerLogging.setLogCurrentPoseCallback(pose -> Container.TeleopDashboardSection.setFieldRobotPose(pose));
     PathPlannerLogging
-        .setLogTargetPoseCallback(pose -> Container.TeleopDashboardSection.getFieldTargetPose().setPose(pose));
+        .setLogTargetPoseCallback(pose -> Container.Dashboard.getFieldTargetPose().setPose(pose));
     PathPlannerLogging
-        .setLogActivePathCallback(poses -> Container.TeleopDashboardSection.getFieldPath().setPoses(poses));
+        .setLogActivePathCallback(poses -> Container.Dashboard.getFieldPath().setPoses(poses));
 
     // Configure PathPlanner holonomic control
     _primeHolonomicController = new PrimeHolonomicDriveController(
@@ -274,13 +269,12 @@ public class Swerve extends LoggedSubsystem {
   public void periodic() {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
+
     SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
     processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
-    // TODO: Disabled Temp
-    // Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-    // Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
+    Container.Dashboard.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
 
     // Update LEDs
     recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
@@ -290,11 +284,6 @@ public class Swerve extends LoggedSubsystem {
     if (DriverStation.isAutonomousEnabled()) {
       recordOutput("pp-translation-error", _primeHolonomicController.getTranslationError());
     }
-
-    // Update dashboard
-    recordOutput("estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
-    _drivetrainDashboardSection.setAutoAlignEnabled(SuperStructure.Swerve.UseAutoAlign);
-    _drivetrainDashboardSection.setAutoAlignTarget(_autoAlign.getSetpoint());
 
     // Update rumble
     _rumbleHelper.addSample(
@@ -373,6 +362,7 @@ public class Swerve extends LoggedSubsystem {
           ? angle + 180
           : angle;
       _autoAlign.setSetpoint(Rotation2d.fromDegrees(setpoint));
+      SuperStructure.Swerve.AutoAlignSetpoint = setpoint;
       setAutoAlignEnabled(true);
     });
   }
@@ -449,6 +439,7 @@ public class Swerve extends LoggedSubsystem {
       var awayFromHubAngle = Rotation2d.fromRadians(angleToHubRadians + Math.PI);
 
       _autoAlign.setSetpoint(awayFromHubAngle);
+      SuperStructure.Swerve.AutoAlignSetpoint = awayFromHubAngle.getDegrees();
       setAutoAlignEnabled(true);
     }).finallyDo(() -> setAutoAlignEnabled(false));
   }

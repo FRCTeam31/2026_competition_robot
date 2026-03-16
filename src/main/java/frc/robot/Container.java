@@ -6,8 +6,6 @@ package frc.robot;
 
 import java.util.List;
 
-import org.prime.dashboard.DashboardSection;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -16,7 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.dashboard.TeleopDashboardTab;
+import frc.robot.dashboard.DriverDashboard;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.PwmLEDs;
@@ -26,18 +24,12 @@ import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.turret.Turret;
-// import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.LimelightVision;
 import frc.robot.subsystems.vision.photon.PhotonVision;
-// import frc.robot.subsystems.turret.Turret.FiringState;
-// import frc.robot.subsystems.turret.Turret.OperatingMode;
 
 public class Container {
-  public static DashboardSection AutoDashboardSection;
-  public static TeleopDashboardTab TeleopDashboardSection;
-  // public static DashboardSection CommandsDashboardSection;
-  // public static DashboardSection TestDashboardSection;
+  public static DriverDashboard Dashboard;
   public static OperatorInterface OperatorInterface;
   public static SendableChooser<Command> AutoChooser;
 
@@ -58,11 +50,8 @@ public class Container {
   public static void initialize() {
     try {
       OperatorInterface = new OperatorInterface();
-      // Create dashboard sections
-      AutoDashboardSection = new DashboardSection("Auto");
-      TeleopDashboardSection = new TeleopDashboardTab();
-      // CommandsDashboardSection = new DashboardSection("Commands");
-      // TestDashboardSection = new DashboardSection("Test");
+      // Create dashboard
+      Dashboard = new DriverDashboard();
 
       // Create subsystems
       LEDs = new PwmLEDs();
@@ -88,7 +77,7 @@ public class Container {
 
       // Build an auto chooser. This will use Commands.none() as the default option.
       AutoChooser = AutoBuilder.buildAutoChooser();
-      AutoDashboardSection.putData("Auto Chooser", AutoChooser);
+      Dashboard.putData("Auto Chooser", AutoChooser);
     } catch (Exception e) {
       DriverStation.reportError("[ERROR] >> Failed to initialize Container: " + e.getMessage(), e.getStackTrace());
     }

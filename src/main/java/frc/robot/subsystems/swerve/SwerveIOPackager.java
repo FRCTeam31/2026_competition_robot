@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.CANBus;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -32,10 +34,11 @@ import frc.robot.subsystems.swerve.module.SwerveModuleSim;
 public class SwerveIOPackager {
 
   public SwerveDriveKinematics Kinematics;
-  private SwerveDrivePoseEstimator m_poseEstimator;
+  private SwerveDrivePoseEstimator _poseEstimator;
 
   private IGyro _gyro;
   private double _simGyroOmega = 0;
+  private CANBus _canivore;
   private ISwerveModule _frontLeftModule, _frontRightModule, _rearLeftModule, _rearRightModule;
 
   private GyroInputsAutoLogged _gyroInputs = new GyroInputsAutoLogged();
@@ -62,24 +65,29 @@ public class SwerveIOPackager {
         : new GyroSim(0);
     _gyro.updateInputs(_gyroInputs, 0);
 
+    _canivore = new CANBus("CANivore");
     _frontLeftModule = isReal
-        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule, _configurationExecutorService)
+        ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule, _configurationExecutorService,
+            _canivore)
         : new SwerveModuleSim("FrontLeftModule", SwerveMap.FrontLeftSwerveModule);
     _frontRightModule = isReal
-        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule, _configurationExecutorService)
+        ? new SwerveModuleReal("FrontRightModule", SwerveMap.FrontRightSwerveModule, _configurationExecutorService,
+            _canivore)
         : new SwerveModuleSim("FrontRightModule", SwerveMap.FrontRightSwerveModule);
     _rearLeftModule = isReal
-        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule, _configurationExecutorService)
+        ? new SwerveModuleReal("RearLeftModule", SwerveMap.RearLeftSwerveModule, _configurationExecutorService,
+            _canivore)
         : new SwerveModuleSim("RearLeftModule", SwerveMap.RearLeftSwerveModule);
     _rearRightModule = isReal
-        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule, _configurationExecutorService)
+        ? new SwerveModuleReal("RearRightModule", SwerveMap.RearRightSwerveModule, _configurationExecutorService,
+            _canivore)
         : new SwerveModuleSim("RearRightModule", SwerveMap.RearRightSwerveModule);
 
     System.out.println("Shutting down configuration thread pool, execution will end when all tasks close");
     _configurationExecutorService.shutdown();
 
     // Create pose estimator
-    m_poseEstimator = new SwerveDrivePoseEstimator(Kinematics, _gyroInputs.Rotation,
+    _poseEstimator = new SwerveDrivePoseEstimator(Kinematics, _gyroInputs.Rotation,
         getModulePositions(), new Pose2d());
 
     // Store current Drive and Steering PID values in Preferences
@@ -119,8 +127,8 @@ public class SwerveIOPackager {
 
     // var modulePositions = getModulePositions();
     // Update pose estimator and set logged pose
-    m_poseEstimator.update(_gyroInputs.Rotation, getModulePositions());
-    swerveInputs.EstimatedRobotPose = m_poseEstimator.getEstimatedPosition();
+    _poseEstimator.update(_gyroInputs.Rotation, getModulePositions());
+    swerveInputs.EstimatedRobotPose = _poseEstimator.getEstimatedPosition();
 
     checkPreferences();
 
@@ -222,8 +230,8 @@ public class SwerveIOPackager {
   public void resetGyro() {
     _gyro.reset(Robot.onBlueAlliance() ? 180 : 0);
     _gyro.updateInputs(_gyroInputs, 0);
-    m_poseEstimator.resetPosition(_gyroInputs.Rotation, getModulePositions(),
-        m_poseEstimator.getEstimatedPosition());
+    _poseEstimator.resetPosition(_gyroInputs.Rotation, getModulePositions(),
+        _poseEstimator.getEstimatedPosition());
   }
 
   /**
@@ -231,7 +239,7 @@ public class SwerveIOPackager {
    * @param pose
    */
   public void setEstimatorPose(Pose2d pose) {
-    m_poseEstimator.resetPosition(_gyroInputs.Rotation, getModulePositions(), pose);
+    _poseEstimator.resetPosition(_gyroInputs.Rotation, getModulePositions(), pose);
   }
 
   /**
@@ -242,7 +250,7 @@ public class SwerveIOPackager {
    */
   public void addPoseEstimatorVisionMeasurement(Pose2d pose, double timestamp,
       Matrix<N3, N1> stdDeviations) {
-    m_poseEstimator.addVisionMeasurement(pose, timestamp, stdDeviations);
+    _poseEstimator.addVisionMeasurement(pose, timestamp, stdDeviations);
   }
 
   /**

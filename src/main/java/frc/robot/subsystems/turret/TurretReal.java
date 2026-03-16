@@ -3,7 +3,6 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
@@ -33,6 +32,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.Container;
 import frc.robot.Robot;
 
 public class TurretReal implements ITurret {
@@ -109,30 +109,31 @@ public class TurretReal implements ITurret {
         config.peakCurrentDuration = 0;
         _turretRotator.enableCurrentLimit(true);
 
-        // SlotConfiguration slot0 = new SlotConfiguration();
-        // slot0.kP = pid.kP;
-        // slot0.kI = pid.kI;
-        // slot0.kD = pid.kD;
-        // slot0.kF = pid.kF;
-        // config.slot0 = slot0;
+        // Configure PID constants in slot 0
+        SlotConfiguration slot0 = new SlotConfiguration();
+        slot0.kP = 0.2; // static value for testing
+        // slot0.kI = 0;
+        // slot0.kD = 0;
+        slot0.kF = 0.1; // static value for testing
+        config.slot0 = slot0;
 
-        // config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
-        // TODO: set forward and reverse soft limits based on physical limits of the turret
+        config.primaryPID.selectedFeedbackSensor = FeedbackDevice.CTRE_MagEncoder_Relative;
         config.forwardSoftLimitEnable = true;
         config.forwardSoftLimitThreshold = 37000;
         config.reverseSoftLimitEnable = true;
         config.reverseSoftLimitThreshold = 6700;
 
         // Motion Magic configuration for smooth position control
-        // config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
-        // config.motionAcceleration = TurretMap.YAW_MOTION_MAGIC_ACCELERATION;
-        // config.motionCurveStrength = 1;
+        config.motionCruiseVelocity = TurretMap.YAW_MOTION_MAGIC_CRUISE_VELOCITY;
+        config.motionAcceleration = TurretMap.YAW_MOTION_MAGIC_ACCELERATION;
+        config.motionCurveStrength = 1;
 
         _turretRotator.configAllSettings(config);
         _turretRotator.clearStickyFaults();
 
         _yawPidController = pid.createPIDController(Robot.defaultPeriodSecs);
         _yawPidController.enableContinuousInput(0, 4096 * TurretMap.TURRET_GEAR_RATIO);
+        Container.Dashboard.putData("Turret/YawPIDController", _yawPidController);
     }
 
     private void configureHoodMotor(ExtendedPIDConstants pid) {

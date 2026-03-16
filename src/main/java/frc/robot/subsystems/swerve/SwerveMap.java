@@ -5,7 +5,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.MomentOfInertia;
 
 import frc.robot.subsystems.swerve.module.SwerveModuleMap;
 

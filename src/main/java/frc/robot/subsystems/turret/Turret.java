@@ -33,6 +33,10 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
+import org.prime.dashboard.Elastic;
+import org.prime.dashboard.Elastic.Notification;
+import org.prime.dashboard.Elastic.NotificationLevel;
+
 /**
  * Turret subsystem responsible for aiming and shooting fuel into the hub.
  * Supports two operating modes:
@@ -117,6 +121,12 @@ public class Turret extends LoggedSubsystem {
     private final double maxFeedInwardsPercentOut = (TurretMap.FEEDER_INVERTED ? -1 : 1)
             * TurretMap.MAX_FEED_PERCENT_OUT;
 
+    // Notifications
+    private Notification _targetTooCloseNotification = new Notification(NotificationLevel.WARNING,
+            "Turret - SHOT NOT CALCULATED", "Target too close!");
+    private Notification _exceptionWhileCalculatingShotNotification = new Notification(NotificationLevel.ERROR,
+            "Turret - SHOT NOT CALCULATED", "Exception while calculating shot solution!");
+
     /**
      * Constructs the Turret subsystem, selecting the real or simulated IO layer
      * based on the current runtime environment.
@@ -172,6 +182,7 @@ public class Turret extends LoggedSubsystem {
 
         var targetDistance = targetPose.getTranslation().getDistance(robotPose.getTranslation());
         if (targetDistance < TurretMap.MIN_SHOT_DISTANCE_METERS) {
+            Elastic.sendNotification(_targetTooCloseNotification);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
             return;
         }
@@ -215,6 +226,7 @@ public class Turret extends LoggedSubsystem {
                         .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
             }
         } catch (Exception e) {
+            Elastic.sendNotification(_exceptionWhileCalculatingShotNotification);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
         }
     }
@@ -291,7 +303,7 @@ public class Turret extends LoggedSubsystem {
             }
 
             // Hood
-            var pitch = _mutNominalTargetVector.getPitch();
+            // var pitch = _mutNominalTargetVector.getPitch();
             // _turret.controlHood(Degrees.of(pitch));
 
             // Flywheel

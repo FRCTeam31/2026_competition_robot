@@ -1,10 +1,8 @@
 package org.prime.util;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Time;
-import frc.robot.subsystems.turret.TurretMap;
 
 /**
  * Vector object that permanently changes with addition and subtraction.

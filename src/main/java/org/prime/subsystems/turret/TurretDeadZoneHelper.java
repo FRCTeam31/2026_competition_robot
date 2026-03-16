@@ -33,6 +33,7 @@ import org.littletonrobotics.junction.Logger;
  *       drive the turret into the dead zone from an edge.</li>
  * </ol>
  */
+@SuppressWarnings("unused")
 public class TurretDeadZoneHelper {
 
     private final double _startRot; // dead zone start in rotations [0, 1)
