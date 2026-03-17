@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.util.Color;
@@ -61,6 +62,7 @@ public class Robot extends LoggedRobot {
     // Set up the dashboard
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath()); // Start the web server for downloading elastic layout from robot
     Elastic.selectTab("Auto");
+    Preferences.removeAll();
 
     // Set an LED pattern to display when the robot goes disabled after a match
     new BooleanEvent(EventLoop, () -> DriverStation.isFMSAttached() && DriverStation.isDisabled() && _hasEnteredTeleop)
@@ -137,7 +139,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     DataLogManager.log("Robot disabled");
-    // CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
+    CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
   }
 
   /**
@@ -159,7 +161,7 @@ public class Robot extends LoggedRobot {
     if (_autonomousCommand != null)
       _autonomousCommand.cancel();
 
-    // _autonomousCommand = Container.AutoChooser.getSelected();
+    _autonomousCommand = Container.AutoChooser.getSelected();
 
     if (_autonomousCommand == null || _autonomousCommand == Commands.none()) {
       DriverStation.reportError("[ERROR] >> No auto command selected", false);
@@ -170,7 +172,7 @@ public class Robot extends LoggedRobot {
       }
 
       // Schedule the auto command
-      // CommandScheduler.getInstance().schedule(_autonomousCommand);
+      CommandScheduler.getInstance().schedule(_autonomousCommand);
     }
   }
 
@@ -182,12 +184,10 @@ public class Robot extends LoggedRobot {
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
 
-    // if (_autonomousCommand != null) {
-    //   // Cancel the auto command if it's still running
-    //   _autonomousCommand.cancel();
-    // } else {
-    //   Container.Swerve.resetGyro();
-    // }
+    if (_autonomousCommand != null) {
+      // Cancel the auto command if it's still running
+      _autonomousCommand.cancel();
+    }
   }
 
   /**

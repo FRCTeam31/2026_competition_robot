@@ -91,15 +91,15 @@ public class SwerveIOPackager {
         getModulePositions(), new Pose2d());
 
     // Store current Drive and Steering PID values in Preferences
-    Preferences.initDouble("DriveKp", SwerveMap.DrivePID.kP);
-    Preferences.initDouble("DriveKi", SwerveMap.DrivePID.kI);
-    Preferences.initDouble("DriveKd", SwerveMap.DrivePID.kD);
-    Preferences.initDouble("DriveKs", SwerveMap.DrivePID.kS);
-    Preferences.initDouble("DriveKv", SwerveMap.DrivePID.kV);
-    Preferences.initDouble("DriveKa", SwerveMap.DrivePID.kA);
-    Preferences.initDouble("SteerKp", SwerveMap.SteeringPID.kP);
-    Preferences.initDouble("SteerKi", SwerveMap.SteeringPID.kI);
-    Preferences.initDouble("SteerKd", SwerveMap.SteeringPID.kD);
+    // Preferences.initDouble("DriveKp", SwerveMap.DrivePID.kP);
+    // Preferences.initDouble("DriveKi", SwerveMap.DrivePID.kI);
+    // Preferences.initDouble("DriveKd", SwerveMap.DrivePID.kD);
+    // Preferences.initDouble("DriveKs", SwerveMap.DrivePID.kS);
+    // Preferences.initDouble("DriveKv", SwerveMap.DrivePID.kV);
+    // Preferences.initDouble("DriveKa", SwerveMap.DrivePID.kA);
+    // Preferences.initDouble("SteerKp", SwerveMap.SteeringPID.kP);
+    // Preferences.initDouble("SteerKi", SwerveMap.SteeringPID.kI);
+    // Preferences.initDouble("SteerKd", SwerveMap.SteeringPID.kD);
   }
 
   /**
