@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.swerve.util.LocalADStarADK;
 
 public class Robot extends LoggedRobot {
@@ -65,17 +66,14 @@ public class Robot extends LoggedRobot {
     Preferences.removeAll();
 
     // Set an LED pattern to display when the robot goes disabled after a match
-    new BooleanEvent(EventLoop, () -> DriverStation.isFMSAttached() && DriverStation.isDisabled() && _hasEnteredTeleop)
+    new BooleanEvent(EventLoop, () -> DriverStation.isDisabled() && _hasEnteredTeleop)
         .rising()
         .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
             Container.LEDs.setAllSectionPatternsCommand(
-                LEDPattern.solid(getAllianceColor()).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.85))),
-            Commands.waitSeconds(3.15),
-            Container.LEDs.setAllSectionPatternsCommand(
-                LEDPattern.solid(Color.kGreen).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.15))),
-            Commands.waitSeconds(0.75),
+                LEDPatterns.fastBlink(Color.kGreen, Units.Milliseconds.of(50))),
+            Commands.waitSeconds(0.5),
             Container.LEDs
-                .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(4))))
+                .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(3))))
             .ignoringDisable(true)));
   }
 

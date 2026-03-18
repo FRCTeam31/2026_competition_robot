@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -23,7 +24,6 @@ import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
-import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.vision.VisionMap;
 
 import frc.robot.FieldTargets.TargetType;
@@ -264,6 +264,10 @@ public class Turret extends LoggedSubsystem {
             case STOPPED:
                 break;
         }
+
+        if (DriverStation.isEnabled()) {
+            TurretLEDHelper.updateLEDs(inputs);
+        }
     }
 
     // =========================== AUTO MODE ============================
@@ -285,7 +289,6 @@ public class Turret extends LoggedSubsystem {
             // Step 1: Resolve target
             if (target == null) {
                 goToHomePosition();
-                updateLEDs(inputs);
                 return;
             }
 
@@ -323,8 +326,6 @@ public class Turret extends LoggedSubsystem {
             // IDLE - return to home, flywheel to idle, stop feed
             goToHomePosition();
         }
-
-        updateLEDs(inputs);
     }
 
     /**
@@ -379,8 +380,6 @@ public class Turret extends LoggedSubsystem {
         }
 
         actOnFeedState(inputs.FeedState);
-
-        updateLEDs(inputs);
     }
 
     // =========================== SHARED HELPERS ===========================
@@ -501,46 +500,6 @@ public class Turret extends LoggedSubsystem {
             default:
                 _turret.setFeederSpeed(0);
                 break;
-        }
-    }
-
-    // =========================== LED FEEDBACK =============================
-
-    /**
-     * Updates LED patterns based on the current operating mode and firing state.
-     * <ul>
-     *   <li><b>AUTO + FIRING + all on-target</b>: green two-tone fast (shooting!)</li>
-     *   <li><b>AUTO + FIRING + shot not calculable</b>: red quick flash (constraint failure)</li>
-     *   <li><b>AUTO + FIRING + seeking</b>: yellow fast blink (locking on)</li>
-     *   <li><b>AUTO + IDLE</b>: blue slow blink (ready, auto mode)</li>
-     *   <li><b>MANUAL + FIRING</b>: yellow two-tone fast (manual shooting)</li>
-     *   <li><b>MANUAL + IDLE</b>: blue fast blink (ready, manual mode)</li>
-     * </ul>
-     */
-    private void updateLEDs(TurretInputsAutoLogged inputs) {
-        if (Container.LEDs == null)
-            return;
-
-        boolean firing = inputs.FiringState == FiringState.FIRING;
-        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
-        boolean shotFailed = inputs.ShotCalculationState == LockOnState.SHOT_NOT_CALCULATED;
-
-        if (inputs.OperatingMode == OperatingMode.AUTO) {
-            if (firing && allOnTarget) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.GreenTwoToneFast);
-            } else if (firing && shotFailed) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.RedQuickFlash);
-            } else if (firing) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowFastBlink);
-            } else {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueSlowBlink);
-            }
-        } else { // MANUAL
-            if (firing) {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.YellowTwoToneFast);
-            } else {
-                Container.LEDs.setAllSectionPatterns(LEDPatterns.BlueFastBlink);
-            }
         }
     }
 
