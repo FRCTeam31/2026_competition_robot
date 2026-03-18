@@ -1,15 +1,10 @@
 package frc.robot.oi;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import org.prime.control.Controls;
 import org.prime.control.HolonomicControlStyle;
 import org.prime.control.SupplierXboxController;
 import org.prime.sysid.SysIdRoutineHelper.TestDirection;
 import org.prime.sysid.SysIdRoutineHelper.TestType;
-
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.util.sendable.SendableBuilder.BackendKind;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -43,27 +38,10 @@ public class OperatorInterface {
                 // Swerve controls with sticks
                 // RB - Face away from hub
                 // A - Reset gyro
-                // X - Intake out position
-                // Y - Intake in position
-                // LT - Intake feed in
-                // RT - Intake feed out
-                // Start + Left d-pad - Climb setup
-                // Start + Up d-pad - Start climb
-                // Start + Right d-pad - Reset climb
-                // Start + Down d-pad - End climb
-
-                // Driver Controls:
-                // Swerve controls with sticks
-                // RB - Face away from hub
-                // A - Reset gyro
-                // X - Intake out position
-                // Y - Intake in position
-                // LT - Intake feed in
-                // RT - Intake feed out
-                // Start + Left d-pad - Climb setup
-                // Start + Up d-pad - Start climb
-                // Start + Right d-pad - Reset climb
-                // Start + Down d-pad - End climb
+                // Up d-pad - SysId quasistatic forward
+                // Down d-pad - SysId quasistatic reverse
+                // Right d-pad - SysId dynamic forward
+                // Left d-pad - SysId dynamic reverse
 
                 var controlProfile = DriverController.getSwerveControlProfile(
                                 OIMap.DefaultDriveControlStyle,
@@ -89,15 +67,21 @@ public class OperatorInterface {
                 // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
                 // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
-                // Combined climb controls
-                // DriverController.start().and(DriverController.povLeft())
-                //                 .onTrue(Container.setupClimb());
-                // DriverController.start().and(DriverController.povUp())
-                //                 .onTrue(Container.startClimbing());
-                // DriverController.start().and(DriverController.povDown())
-                //                 .onTrue(Container.stopClimbing());
-                // DriverController.start().and(DriverController.povRight())
-                //                 .onTrue(Container.resetRobotAfterClimb());
+                // SysId drive characterization routines
+                DriverController.povUp()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
+                                                TestDirection.FORWARD))
+                                .onFalse(Container.Swerve.stopAllMotorsCommand());
+                DriverController.povDown()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
+                                                TestDirection.REVERSE))
+                                .onFalse(Container.Swerve.stopAllMotorsCommand());
+                DriverController.povRight()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD))
+                                .onFalse(Container.Swerve.stopAllMotorsCommand());
+                DriverController.povLeft()
+                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE))
+                                .onFalse(Container.Swerve.stopAllMotorsCommand());
 
                 // -------------------------- TEST COMMANDS --------------------------
 
@@ -127,93 +111,27 @@ public class OperatorInterface {
 
                 // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
                 // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));
-
-                // DriverController.a().onTrue(Container.Climb.setSupport(SupportState.RAISED));
-                // DriverController.b().onTrue(Container.Climb.setSupport(SupportState.LOWERED));
-
-                // -- CLIMB TEST COMMANDS --
-
-                // Use these to manually test climb functionality before moving on to combined Commands
-                // After all subsystems arer shown to work, test the normal combined climb Commands
-
-                // DriverController.a().onTrue(Container.Climb.setClimb(ClimbState.UP));
-                // DriverController.a().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
-
-                // DriverController.b().onTrue(Container.Climb.setClimb(ClimbState.DOWN));
-                // DriverController.b().onFalse(Container.Climb.setClimb(ClimbState.STOPPED));
-
-                // DriverController.x().onTrue(Container.Climb.setBrake(FrictionBrakeState.APPLIED));
-                // DriverController.y().onTrue(Container.Climb.setBrake(FrictionBrakeState.RELEASED));
-
-                // -------------------------
-
-                // DriverController.povUp().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                // DriverController.povDown().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.REVERSE));
-                // DriverController.y().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
-                // DriverController.a().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
-                // DriverController.povUp().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                // DriverController.povDown().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.REVERSE));
-                // DriverController.y().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.FORWARD));
-                // DriverController.a().whileTrue(
-                //                 Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC, TestDirection.REVERSE));
         }
 
         public void bindOperatorControls() {
                 // Operator Controls:
-                // Up d-pad - Turret hood up
-                // Down d-pad - Turret hood down
+                // RT - Shoot (uptake + firing)
+                // RB - Transfer feed in
+                // Y - Intake out position + auto feed
+                // B - Intake in position + stop feed after 1.5s
+                // LB - Outtake (intake + transfer outwards)
+                // Up d-pad - Flywheel speed up
+                // Down d-pad - Flywheel speed down
                 // Left d-pad - Turret yaw left
                 // Right d-pad - Turret yaw right
-                // X - Flywheel up
-                // A - Flywheel down
-                // Y - 100% intake power while held
-                // RT - Shoot
-                // LT - Set turret auto mode
-                // LB - Set turret manual mode
-
-                // Y - Intake out
-                // B - Intake in
-                // RB - Outtake
-                // Start - 100% intake
-
-                // Fire fuel
-                // Operator Controls:
-                // Up d-pad - Turret hood up
-                // Down d-pad - Turret hood down
-                // Left d-pad - Turret yaw left
-                // Right d-pad - Turret yaw right
-                // X - Flywheel up
-                // A - Flywheel down
-                // Y - 100% intake power while held
-                // RT - Shoot
-                // LT - Set turret auto mode
-                // LB - Set turret manual mode
-
-                // Y - Intake out
-                // B - Intake in
-                // RB - Outtake
-                // Start - 100% intake
-
-                // Fire fuel
-                // OperatorController.rightTrigger()
-                //                 .onTrue(Container.Turret.setFeedCommand(0.3))
-                //                 .whileTrue(Container.Turret
-                //                                 .setShooterCommand(() -> _manualTurretPercentOut))
-                //                 .whileFalse(Container.Turret.setFeedCommand(0.1)
-                //                                 .andThen(Container.Turret.setShooterCommand(() -> 0.1)));
+                // Start - 100% intake feed override
 
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
                                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
-                                                .andThen(Container.Turret.setFiring(FiringState.IDLE)));
+                                                .andThen(Container.Turret.setFiring(FiringState.IDLE))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
@@ -221,9 +139,11 @@ public class OperatorInterface {
                 // Intake position control
                 OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
                                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
-                OperatorController.b().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                                .andThen(Commands.waitSeconds(1.5))
-                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)));
+                OperatorController.b().onTrue(
+                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                                                .andThen(Commands.waitSeconds(1.5))
+                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
@@ -242,18 +162,6 @@ public class OperatorInterface {
                 OperatorController.povDown()
                                 .onTrue(Container.Turret
                                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                // OperatorController.povUp()
-                //                 .onTrue(Container.Turret
-                //                                 .sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.FORWARD));
-                // OperatorController.povDown()
-                //                 .onTrue(Container.Turret
-                //                                 .sysIdFlywheelCommand(TestType.DYNAMIC, TestDirection.REVERSE));
-                // OperatorController.x()
-                //                 .onTrue(Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC,
-                //                                 TestDirection.FORWARD));
-                // OperatorController.a()
-                //                 .onTrue(Container.Turret.sysIdFlywheelCommand(TestType.QUASISTATIC,
-                //                                 TestDirection.REVERSE));
 
                 // Control intake feed percent out
                 OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
