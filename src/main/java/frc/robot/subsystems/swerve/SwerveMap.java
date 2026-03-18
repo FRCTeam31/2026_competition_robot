@@ -41,9 +41,8 @@ public class SwerveMap {
         // Feature Flags
         public static final boolean USE_LIMELIGHT_POSE_ESTIMATION = false;
 
-        // TODO: Reevaluate these constants after testing drive current limits on robot
-        public static final int DriveStallCurrentLimit = 40;
-        public static final int DriveFreeCurrentLimit = 30;
+        public static final int DriveStallCurrentLimit = 80;
+        public static final int DriveFreeCurrentLimit = 60;
 
         public static final int DriveSupplyCurrentLimitDuration = 100;
 
@@ -82,7 +81,6 @@ public class SwerveMap {
                         new Translation2d(-Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
-                        // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(114),
                         edu.wpi.first.units.Units.KilogramSquareMeters.of(3).magnitude(),
                         new ModuleConfig(

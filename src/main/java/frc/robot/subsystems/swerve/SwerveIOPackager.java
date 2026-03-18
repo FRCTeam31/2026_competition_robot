@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.Preferences;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.gyro.GyroReal;
@@ -138,7 +137,6 @@ public class SwerveIOPackager {
   /**
    * Checks the preferences for any changes and updates the PID values in each swerve module if necessary
    */
-  @SuppressWarnings("unused")
   private void checkPreferences() {
     // var driveKpChanged = Preferences.getDouble("DriveKp", SwerveMap.DrivePID.kP) != SwerveMap.DrivePID.kP;
     // var driveKiChanged = Preferences.getDouble("DriveKi", SwerveMap.DrivePID.kI) != SwerveMap.DrivePID.kI;
@@ -169,7 +167,6 @@ public class SwerveIOPackager {
     //   SwerveMap.SteeringPID.kI = Preferences.getDouble("SteerKi", SwerveMap.SteeringPID.kI);
     //   SwerveMap.SteeringPID.kD = Preferences.getDouble("SteerKd", SwerveMap.SteeringPID.kD);
 
-    //   // TODO: Fix this, it was resetting the pid on every boot
     //   // _frontLeftModule.setSteeringPID(SwerveMap.SteeringPID);
     //   // _frontRightModule.setSteeringPID(SwerveMap.SteeringPID);
     //   // _rearLeftModule.setSteeringPID(SwerveMap.SteeringPID);

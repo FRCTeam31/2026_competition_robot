@@ -354,7 +354,6 @@ public class Turret extends LoggedSubsystem {
      * are always applied. When FIRING, the feed motors run immediately
      * (no lock-on gating). When IDLE, feed is stopped.
      */
-    // TODO: Edited temp to prevent movement while testing
     private void actOnManualMode(TurretInputsAutoLogged inputs) {
         // Apply manual yaw setpoint (respecting dead zone)
         var manualYawRotations = Rotation2d.fromDegrees(_manualYawDegrees).getRotations();

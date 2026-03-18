@@ -143,7 +143,6 @@ public class TurretReal implements ITurret {
         sparkConfig.inverted(TurretMap.HOOD_INVERTED);
         sparkConfig.idleMode(IdleMode.kCoast);
 
-        // TODO: Check current limits, ensure it can run but doesn't have enough power to destory the hood
         sparkConfig.smartCurrentLimit(25, 10);
 
         sparkConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
