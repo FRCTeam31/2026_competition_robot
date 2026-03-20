@@ -36,7 +36,8 @@ public class TurretMap {
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
-        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(15, 0, 0);
+        // public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(5, 0, 0); // This one is pretty good
+        public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(5.5, 0, 0);
         public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 2000; // sensor units per 100ms
         public static final double YAW_MOTION_MAGIC_ACCELERATION = 4000; // sensor units per 100ms per second
         public static final double YAW_MAX_MANUAL_PERCENT_OUT = 1;
@@ -126,7 +127,7 @@ public class TurretMap {
         /** Amount to adjust the hood angle per button press in MANUAL mode (degrees) */
         public static final double MANUAL_HOOD_STEP_DEGREES = 1.0;
         /** Amount to adjust the turret yaw per button press in MANUAL mode (degrees) */
-        public static final double MANUAL_YAW_STEP_DEGREES = 10.0;
+        public static final double MANUAL_YAW_STEP_DEGREES = 30.0;
 
         // ------------------------ Home Positions -------------------------
         /** Yaw home position in degrees (180-degrees = straight back) */
