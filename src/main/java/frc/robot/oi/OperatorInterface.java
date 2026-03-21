@@ -16,6 +16,7 @@ import frc.robot.Container;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
+import frc.robot.subsystems.hopper.HopperMap;
 
 public class OperatorInterface {
         public static class OIMap {
@@ -129,6 +130,7 @@ public class OperatorInterface {
                 // OperatorController.rightTrigger()
                 //                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
                 //                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
+                //                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
                 //                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
                 //                                 .andThen(Container.Turret.setFiring(FiringState.IDLE))
                 //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));

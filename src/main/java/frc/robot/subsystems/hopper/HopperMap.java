@@ -15,4 +15,5 @@ public class HopperMap {
 
     public static final double MAX_FEED_PERCENT_OUT = 0.4;
     public static final boolean FEED_INVERTED = false;
+    public static final double INTAKE_OSCILLATION_CYCLE_SECONDS = 1.0;
 }
