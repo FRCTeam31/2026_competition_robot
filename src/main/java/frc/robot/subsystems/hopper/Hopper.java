@@ -171,11 +171,12 @@ public class Hopper extends LoggedSubsystem {
     */
     public Command oscillateIntake(double cycleDurationSeconds) {
         double halfCycle = cycleDurationSeconds / 2.0;
-        return Commands.repeatingSequence(
-                this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN),
-                Commands.waitSeconds(halfCycle),
-                this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT),
-                Commands.waitSeconds(halfCycle))
+        return Commands.waitSeconds(halfCycle)
+                .andThen(Commands.repeatingSequence(
+                        this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN),
+                        Commands.waitSeconds(halfCycle),
+                        this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT),
+                        Commands.waitSeconds(halfCycle)))
                 .finallyDo(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT);
     }
 
