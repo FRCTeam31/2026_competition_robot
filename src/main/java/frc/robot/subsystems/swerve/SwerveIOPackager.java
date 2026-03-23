@@ -64,7 +64,7 @@ public class SwerveIOPackager {
         : new GyroSim(0);
     _gyro.updateInputs(_gyroInputs, 0);
 
-    _canivore = new CANBus("CANivore");
+    _canivore = new CANBus("canivore");
     _frontLeftModule = isReal
         ? new SwerveModuleReal("FrontLeftModule", SwerveMap.FrontLeftSwerveModule, _configurationExecutorService,
             _canivore)

@@ -89,6 +89,10 @@ public class Turret extends LoggedSubsystem {
         STOPPED
     }
 
+    public double _testFluwheelSpeed = 0.0;
+    public double _testtargetvelocity = 0;
+    public double _testdistance = 0;
+
     // -------------------- Manual Setpoints --------------------------
     private double _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
     private double _manualYawDegrees = TurretMap.YAW_HOME_DEGREES;
@@ -181,6 +185,7 @@ public class Turret extends LoggedSubsystem {
         var robotPose = new Pose3d(SuperStructure.Swerve.EstimatedRobotPose);
 
         var targetDistance = targetPose.getTranslation().getDistance(robotPose.getTranslation());
+        _testdistance = targetDistance;
         if (targetDistance < TurretMap.MIN_SHOT_DISTANCE_METERS) {
             Elastic.sendNotification(_targetTooCloseNotification);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
@@ -285,47 +290,49 @@ public class Turret extends LoggedSubsystem {
         var turretPose = getTurretPose();
         var target = resolveAutoTarget(turretPose); // Keep logging updated even when not firing
 
-        if (inputs.FiringState == FiringState.FIRING) {
-            // Step 1: Resolve target
-            if (target == null) {
-                goToHomePosition();
-                return;
-            }
-
-            // Step 2: Calculate ballistics and seek setpoints
-            calculateTurretVectorFromRobotPose(target, turretPose);
-
-            // Yaw
-            var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
-            boolean limelightCorrectionApplied = false;
-            if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
-                limelightCorrectionApplied = aimTurretYawUsingLimelight();
-            }
-            if (!limelightCorrectionApplied) {
-                _turret.controlYawAngle(Rotations.of(robotRelativeYawRotations));
-            }
-
-            // Hood
-            // var pitch = _mutNominalTargetVector.getPitch();
-            // _turret.controlHood(Degrees.of(pitch));
-
-            // Flywheel
-            var targetVelocity = _mutNominalTargetVector.getMagnitude();
-            _targetFlywheelVelocityRPS = _flywheelController.calculate(
-                    targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
-            _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
-
-            // Step 3: Once locked on, feed
-            boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
-            if (allOnTarget) {
-                actOnFeedState(inputs.FeedState);
-            } else {
-                _turret.setFeederSpeed(0);
-            }
-        } else {
-            // IDLE - return to home, flywheel to idle, stop feed
+        //if (inputs.FiringState == FiringState.FIRING) {
+        // Step 1: Resolve target
+        if (target == null) {
             goToHomePosition();
+            return;
         }
+
+        // Step 2: Calculate ballistics and seek setpoints
+        calculateTurretVectorFromRobotPose(target, turretPose);
+
+        // Yaw
+        var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
+        boolean limelightCorrectionApplied = false;
+        if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
+            limelightCorrectionApplied = aimTurretYawUsingLimelight();
+        }
+        if (!limelightCorrectionApplied) {
+            _turret.controlYawAngle(Rotations.of(robotRelativeYawRotations));
+        }
+
+        // Hood
+        // var pitch = _mutNominalTargetVector.getPitch();
+        // _turret.controlHood(Degrees.of(pitch));
+        _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
+        // Flywheel
+        if (inputs.FiringState == FiringState.FIRING) {
+            //var targetVelocity = _mutNominalTargetVector.getMagnitude();
+            //_targetFlywheelVelocityRPS = _flywheelController.calculate(
+            //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
+            _turret.controlFlywheel(RotationsPerSecond.of(_testFluwheelSpeed));
+        }
+
+        // Step 3: Once locked on, feed
+        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        if (allOnTarget) {
+            actOnFeedState(inputs.FeedState);
+        } else {
+            _turret.setFeederSpeed(0);
+        }
+        //} else {
+        // IDLE - return to home, flywheel to idle, stop feed
+        //goToHomePosition();
+        //}
     }
 
     /**
