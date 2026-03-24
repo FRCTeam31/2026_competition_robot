@@ -25,7 +25,7 @@ import org.prime.util.IDWController;
 
 public class TurretMap {
         // ------------------------ Feature Flags -------------------------
-        public static final boolean UPDATE_LIMELIGHT_POSE = false;
+        public static final boolean UPDATE_LIMELIGHT_POSE = true;
         public static final boolean AUTO_MOTION_COMPENSATION = false;
         public static final boolean USE_SPEED_INTERPOLATION = false;
         public static final boolean YAW_DEADZONE_ENABLED = true;

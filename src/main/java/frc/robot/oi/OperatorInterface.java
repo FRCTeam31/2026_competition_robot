@@ -127,13 +127,13 @@ public class OperatorInterface {
                 // Right d-pad - Turret yaw right
                 // Start - 100% intake feed override
 
-                // OperatorController.rightTrigger()
-                //                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
-                //                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
-                //                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
-                //                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
-                //                                 .andThen(Container.Turret.setFiring(FiringState.IDLE))
-                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.rightTrigger()
+                                .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
+                                                .andThen(Container.Turret.setFiring(FiringState.FIRING)))
+                                // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
+                                .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
+                                                .andThen(Container.Turret.setFiring(FiringState.IDLE))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                 //                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
@@ -158,13 +158,13 @@ public class OperatorInterface {
                 //                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
                 // OperatorController.povLeft()
                 //                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.povRight()
-                                .onTrue(Container.Turret.adjustManualYaw(90));
-                OperatorController.povLeft()
-                                .onTrue(Container.Turret.adjustManualYaw(-90));
+                // OperatorController.povRight()
+                //                 .onTrue(Container.Turret.adjustManualYaw(90));
+                // OperatorController.povLeft()
+                //                 .onTrue(Container.Turret.adjustManualYaw(-90));
 
-                OperatorController.x().onTrue(Container.Turret.adjustManualYaw(-10));
-                OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
+                // OperatorController.x().onTrue(Container.Turret.adjustManualYaw(-10));
+                // OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
                 OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
                 OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
                 OperatorController.start().onTrue(Commands.runOnce(() -> {

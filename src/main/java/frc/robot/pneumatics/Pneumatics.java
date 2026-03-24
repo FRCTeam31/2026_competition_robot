@@ -14,7 +14,7 @@ public class Pneumatics {
             _pcm = new PneumaticHub(PneumaticsMap.PCM_CAN_ID);
             _compressor = new Compressor(PneumaticsMap.PCM_CAN_ID, PneumaticsModuleType.REVPH);
 
-            _compressor.enableDigital();
+            // _compressor.enableDigital();
         }
     }
 
