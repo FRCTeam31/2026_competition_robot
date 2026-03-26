@@ -53,7 +53,7 @@ public class OperatorInterface {
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
                 // Face away from hub
-                DriverController.rightBumper().whileTrue(Container.Swerve.faceAwayFromHubCommand());
+                // DriverController.rightBumper().whileTrue(Container.Swerve.faceAwayFromHubCommand());
 
                 // Disabled, untested and not tuned
                 // DriverController.x()
@@ -64,25 +64,33 @@ public class OperatorInterface {
                                 .onTrue(Container.Swerve.resetGyroCommand());
                 //                 .onTrue(Container.Swerve.disableAutoAlignCommand());
 
+                DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
+                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
+                DriverController.b().onTrue(
+                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                                                .andThen(Commands.waitSeconds(1.5))
+                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+
                 // Intake feed control
                 // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
                 // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
 
                 // SysId drive characterization routines
-                DriverController.povUp()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
-                                                TestDirection.FORWARD))
-                                .onFalse(Container.Swerve.stopAllMotorsCommand());
-                DriverController.povDown()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
-                                                TestDirection.REVERSE))
-                                .onFalse(Container.Swerve.stopAllMotorsCommand());
-                DriverController.povRight()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD))
-                                .onFalse(Container.Swerve.stopAllMotorsCommand());
-                DriverController.povLeft()
-                                .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE))
-                                .onFalse(Container.Swerve.stopAllMotorsCommand());
+                // DriverController.povUp()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
+                //                                 TestDirection.FORWARD))
+                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
+                // DriverController.povDown()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
+                //                                 TestDirection.REVERSE))
+                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
+                // DriverController.povRight()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD))
+                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
+                // DriverController.povLeft()
+                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE))
+                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
 
                 // -------------------------- TEST COMMANDS --------------------------
 
@@ -127,25 +135,25 @@ public class OperatorInterface {
                 // Right d-pad - Turret yaw right
                 // Start - 100% intake feed override
 
-                OperatorController.rightTrigger()
-                                .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
-                                                .andThen(Container.Turret.setFiring(FiringState.FIRING)))
-                                // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
-                                .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
-                                                .andThen(Container.Turret.setFiring(FiringState.IDLE))
-                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                // OperatorController.rightTrigger()
+                //                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
+                //                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
+                //                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
+                //                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
+                //                                 .andThen(Container.Turret.setFiring(FiringState.IDLE))
+                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                 //                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
                 // // Intake position control
-                // OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
-                //                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
-                // OperatorController.b().onTrue(
-                //                 Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                //                                 .andThen(Commands.waitSeconds(1.5))
-                //                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
+                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
+                OperatorController.b().onTrue(
+                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                                                .andThen(Commands.waitSeconds(1.5))
+                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
@@ -165,13 +173,13 @@ public class OperatorInterface {
 
                 // OperatorController.x().onTrue(Container.Turret.adjustManualYaw(-10));
                 // OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
-                OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
-                OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
-                OperatorController.start().onTrue(Commands.runOnce(() -> {
-                        System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
-                        System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
-                        System.out.println("Target Velocity: " + Container.Turret._testtargetvelocity); //target velocit
-                }));
+                // OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
+                // OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
+                // OperatorController.start().onTrue(Commands.runOnce(() -> {
+                //         System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
+                //         System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
+                //         System.out.println("Target Velocity: " + Container.Turret._testtargetvelocity); //target velocit
+                // }));
                 // OperatorController.povUp()
                 //                 .onTrue(Container.Turret
                 //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
@@ -183,10 +191,10 @@ public class OperatorInterface {
                 // OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
 
                 // Outtake
-                //         OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
-                //                         .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
-                //                         .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
-                //                                         .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
+                                .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {

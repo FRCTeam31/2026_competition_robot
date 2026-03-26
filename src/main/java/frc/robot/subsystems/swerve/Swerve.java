@@ -171,7 +171,7 @@ public class Swerve extends LoggedSubsystem {
 
     robotRelativeChassisSpeeds.omegaRadiansPerSecond = SuperStructure.Swerve.UseAutoAlign
         ? SuperStructure.Swerve.AutoAlignCorrection
-        : robotRelativeChassisSpeeds.omegaRadiansPerSecond;
+        : -robotRelativeChassisSpeeds.omegaRadiansPerSecond;
 
     // Correct drift by taking the input speeds and converting them to a desired
     // per-period speed. This is known as "discretizing"
@@ -217,6 +217,10 @@ public class Swerve extends LoggedSubsystem {
 
     if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
       evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
+    }
+
+    if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam2Name)) {
+      evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam2Name));
     }
   }
 
