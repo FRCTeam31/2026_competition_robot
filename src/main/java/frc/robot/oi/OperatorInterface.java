@@ -20,7 +20,8 @@ import frc.robot.subsystems.hopper.HopperMap;
 
 public class OperatorInterface {
         public static class OIMap {
-                public static final HolonomicControlStyle DefaultDriveControlStyle = HolonomicControlStyle.Drone;
+                // public static final HolonomicControlStyle DefaultDriveControlStyle = HolonomicControlStyle.Drone;
+                public static final HolonomicControlStyle DefaultDriveControlStyle = HolonomicControlStyle.DroneReversed;
         }
 
         public SupplierXboxController DriverController;
