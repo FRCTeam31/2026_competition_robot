@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,6 +33,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
+
+import java.util.function.Supplier;
 
 import org.prime.dashboard.Elastic;
 import org.prime.dashboard.Elastic.Notification;
@@ -531,6 +534,18 @@ public class Turret extends LoggedSubsystem {
     }
 
     // =========================== COMMAND FACTORIES ========================
+
+    public Command setHoodAngle(Angle angle) {
+        return Commands.runOnce(() -> {
+            _turret.controlHood(angle);
+        });
+    }
+
+    public Command setHoodAngleSupplier(Supplier<Angle> angle) {
+        return Commands.runOnce(() -> {
+            _turret.controlHood(angle.get());
+        });
+    }
 
     // --- Mode Toggle -------------------------------------------------
 

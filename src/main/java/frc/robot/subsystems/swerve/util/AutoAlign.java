@@ -46,6 +46,26 @@ public class AutoAlign {
                 SwerveMap.Chassis.MaxAngularSpeedRadians);
     }
 
+    public Rotation2d findNearestAngle(Rotation2d currentAngle, Rotation2d desiredAngle) {
+        double smallestDifferenceRotations = Double.MAX_VALUE;
+
+        for (var i = 0; i < 4; i++) {
+            double newAngleRotations = desiredAngle.getRotations() + 0.25 * i;
+            double newDifferenceRotations = newAngleRotations - currentAngle.getRotations();
+
+            if (newDifferenceRotations < smallestDifferenceRotations) {
+                smallestDifferenceRotations = newDifferenceRotations;
+            }
+        }
+
+        Rotation2d angle = currentAngle.plus(Rotation2d.fromRotations(smallestDifferenceRotations));
+        return angle;
+    }
+
+    public double getNearestAngleCorrection(Rotation2d currentAngle, Rotation2d desiredAngle) {
+        return getCorrection(findNearestAngle(currentAngle, desiredAngle));
+    }
+
     /**
      * Gets the current setpoint
      */

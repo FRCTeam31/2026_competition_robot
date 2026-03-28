@@ -15,7 +15,7 @@ public class SwerveMap {
                 public static final double TrackWidthMeters = Units.inchesToMeters(24.75);
                 public static final double WheelBaseMeters = Units.inchesToMeters(24.75);
                 public static final double MaxSpeedMetersPerSecond = 5.4;
-                public static final double MaxAngularSpeedRadians = Math.PI * 2;
+                public static final double MaxAngularSpeedRadians = Math.PI * 2 * 0.75;
                 public static final double BumperWidthMeters = Units.inchesToMeters(2.5);
                 public static final double ApproachDistance = (WheelBaseMeters / 2) + BumperWidthMeters - 0.1;
         }
@@ -51,7 +51,7 @@ public class SwerveMap {
                         3,
                         4,
                         10,
-                        0.061279,
+                        0.064697,
                         false,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
@@ -59,7 +59,7 @@ public class SwerveMap {
                         6,
                         5,
                         11,
-                        0.033203,
+                        0.039307,
                         false,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
@@ -67,7 +67,7 @@ public class SwerveMap {
                         7,
                         8,
                         12,
-                        0.910400,
+                        0.925781,
                         true,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), (Chassis.WheelBaseMeters / 2)));
@@ -75,8 +75,8 @@ public class SwerveMap {
                         2,
                         1,
                         9,
-                        0.834717,
-                        false,
+                        0.340332,
+                        true,
                         false,
                         new Translation2d(-Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
 
