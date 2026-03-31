@@ -30,6 +30,7 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
@@ -210,10 +211,10 @@ public class Turret extends LoggedSubsystem {
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_CALCULATED;
 
             // TODO: Enable after empirical measurements correlating distance to required flywheel speed are taken
-            if (TurretMap.USE_SPEED_INTERPOLATION) {
-                var interpolatedFlywheelSpeed = TurretMap.DISTANCE_TO_FLYWHEEL_SPEED_MAP.get(targetDistance);
-                _mutNominalTargetVector.setMagnitude(interpolatedFlywheelSpeed);
-            }
+            // if (TurretMap.USE_SPEED_INTERPOLATION) {
+            //     var interpolatedFlywheelSpeed = TurretMap.DISTANCE_TO_FLYWHEEL_SPEED_MAP.get(targetDistance);
+            //     _mutNominalTargetVector.setMagnitude(interpolatedFlywheelSpeed);
+            // }
 
             // TODO: Refine motion compensation, enable, and test
             if (TurretMap.AUTO_MOTION_COMPENSATION) {
@@ -322,6 +323,14 @@ public class Turret extends LoggedSubsystem {
             //var targetVelocity = _mutNominalTargetVector.getMagnitude();
             //_targetFlywheelVelocityRPS = _flywheelController.calculate(
             //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
+
+            // Calculate flywheel speed from target velocity
+            // Made for use with a fixed hood
+            // var targetVelocity = _mutNominalTargetVector.getMagnitude();
+            // var calculatedFlywheelSpeed = TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
+            // _turret.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
+
+            // Used for testing
             _turret.controlFlywheel(RotationsPerSecond.of(_testFluwheelSpeed));
         }
 
