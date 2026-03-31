@@ -159,13 +159,13 @@ public class OperatorInterface {
                 //         System.out.println(_servoAngle);
                 // }).andThen(Container.Turret.setHoodAngleSupplier(() -> Rotations.of(_servoAngle))));
 
-                // OperatorController.rightTrigger()
-                //                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
-                //                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
-                //                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
-                //                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
-                //                                 .andThen(Container.Turret.setFiring(FiringState.IDLE))
-                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.rightTrigger()
+                                .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
+                                                .andThen(Container.Turret.setFiring(FiringState.FIRING)))
+                                // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
+                                .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
+                                                .andThen(Container.Turret.setFiring(FiringState.IDLE))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                 //                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
@@ -215,10 +215,10 @@ public class OperatorInterface {
                 // OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
 
                 // Outtake
-                OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
-                                .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
-                                .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
-                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                // OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
+                //                 .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
+                //                 .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
+                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {

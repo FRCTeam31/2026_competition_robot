@@ -72,6 +72,8 @@ public class PhotonVisionCamera {
                 inputs.LatestResult = result;
         }
 
+        inputs.TimestampSeconds = inputs.LatestResult.getTimestampSeconds();
+
         if (inputs.LatestResult.hasTargets()) {
             inputs.TargetCount = inputs.LatestResult.getTargets().size();
             var target = inputs.LatestResult.getBestTarget();

@@ -1,8 +1,8 @@
 package frc.robot.subsystems.hopper;
 
 public class HopperMap {
-    public static final int IntakeForwardChannel = 5;
-    public static final int IntakeReverseChannel = 4;
+    public static final int IntakeForwardChannel = 4;
+    public static final int IntakeReverseChannel = 5;
 
     public static final int UPPER_FEED_CAN_ID = 15;
     public static final int LOWER_FEED_CAN_ID = 22;

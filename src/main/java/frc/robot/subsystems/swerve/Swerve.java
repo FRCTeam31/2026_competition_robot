@@ -197,13 +197,15 @@ public class Swerve extends LoggedSubsystem {
   private void processVisionEstimations() {
     // (1 rad/s is about 60 degrees/s)
     var currentRotationalVelocity = RadiansPerSecond
-        .of(Math.abs(SuperStructure.Swerve.RobotRelativeChassisSpeeds.omegaRadiansPerSecond));
-    var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond);
-    var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond);
+        .of(Math.abs(SuperStructure.Swerve.RobotRelativeChassisSpeeds.omegaRadiansPerSecond)).abs(RadiansPerSecond);
+    var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond)
+        .abs(MetersPerSecond);
+    var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond)
+        .abs(MetersPerSecond);
 
-    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60)) &&
-        currentXVelocity.lt(MetersPerSecond.of(2)) &&
-        currentYVelocity.lt(MetersPerSecond.of(2));
+    var withinPoseEstimationVelocity = currentRotationalVelocity < 60 &&
+        currentXVelocity < 2 &&
+        currentYVelocity < 2;
 
     recordOutput("withinPoseEstimationVelocity", withinPoseEstimationVelocity);
     if (!withinPoseEstimationVelocity) {
@@ -254,6 +256,9 @@ public class Swerve extends LoggedSubsystem {
     // If no targets in view, reject the update
     if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
       return;
+
+    System.out.println("Vision timestamp: " + photonInputs.TimestampSeconds
+        + " | FPGA time: " + edu.wpi.first.wpilibj.Timer.getFPGATimestamp());
 
     _swervePackager.addPoseEstimatorVisionMeasurement(
         photonInputs.BotPoseEstimate,
