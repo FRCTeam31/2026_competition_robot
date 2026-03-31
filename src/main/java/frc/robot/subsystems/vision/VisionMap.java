@@ -27,4 +27,5 @@ public class VisionMap {
         // (Fake values. Experiment and determine estimation noise on an actual robot.)
         public static final double[] kSingleTagStdDevs = { 4, 4, 8 };
         public static final double[] kMultiTagStdDevs = { 0.5, 0.5, 1 };
+        public static final double PHOTON_MAX_AVG_TAG_DISTANCE_METERS = 3;
 }

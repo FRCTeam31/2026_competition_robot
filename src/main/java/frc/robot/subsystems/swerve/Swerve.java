@@ -257,8 +257,8 @@ public class Swerve extends LoggedSubsystem {
     if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
       return;
 
-    System.out.println("Vision timestamp: " + photonInputs.TimestampSeconds
-        + " | FPGA time: " + edu.wpi.first.wpilibj.Timer.getFPGATimestamp());
+    if (photonInputs.AverageTagDistance > VisionMap.PHOTON_MAX_AVG_TAG_DISTANCE_METERS)
+      return;
 
     _swervePackager.addPoseEstimatorVisionMeasurement(
         photonInputs.BotPoseEstimate,
