@@ -199,6 +199,8 @@ public class OperatorInterface {
                 // OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
                 OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
                 OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
+                OperatorController.povRight().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 10));
+                OperatorController.povLeft().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 10));
                 OperatorController.start().onTrue(Commands.runOnce(() -> {
                         System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
                         System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
