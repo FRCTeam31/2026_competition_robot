@@ -331,7 +331,7 @@ public class Turret extends LoggedSubsystem {
             // _turret.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
 
             // Used for testing
-            _turret.controlFlywheel(RotationsPerSecond.of(_testFluwheelSpeed));
+            _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
         }
 
         // Step 3: Once locked on, feed
