@@ -95,11 +95,10 @@ public class TurretMap {
                                         Map.entry(9.0, 1000.0));
         // TODO: Find target velocities and flywheel speeds through testing
         public static final InterpolatingDoubleTreeMap TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
-        .ofEntries(
-                // Velocity in m/s and flywheel speed in RPM
-                Map.entry(0.0, 0.0),
-                Map.entry(1.0, 1.0)
-        );
+                        .ofEntries(
+                                        // Velocity in m/s and flywheel speed in RPM
+                                        Map.entry(0.0, 0.0),
+                                        Map.entry(1.0, 1.0));
         public static final List<IDWController.Entry> FLYWHEEL_IDW_ENTRIES = List.of(
                         new IDWController.Entry(0, 0, 0), // Example implementation, will replace with real data
                         new IDWController.Entry(1, 1, 1) // Target Velocity (in m/s), Hood Angle (in degrees), Flywheel Velocity (in Rotations Per Second)

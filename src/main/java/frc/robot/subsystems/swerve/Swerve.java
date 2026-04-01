@@ -11,7 +11,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Container;
@@ -34,6 +36,9 @@ import java.util.function.Supplier;
 import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
+import org.prime.dashboard.Elastic;
+import org.prime.dashboard.Elastic.Notification;
+import org.prime.dashboard.Elastic.NotificationLevel;
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 
@@ -54,6 +59,8 @@ public class Swerve extends LoggedSubsystem {
 
   // SysId characterization
   private final SysIdRoutineHelper _driveSysId;
+
+  private Alert _photonTooFarAlert = new Alert("Photon estimation skipped", AlertType.kInfo);
 
   /**
    * Creates a new Drivetrain.
@@ -257,8 +264,12 @@ public class Swerve extends LoggedSubsystem {
     if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
       return;
 
-    if (photonInputs.AverageTagDistance > VisionMap.PHOTON_MAX_AVG_TAG_DISTANCE_METERS)
+    if (photonInputs.AverageTagDistance > VisionMap.PHOTON_MAX_AVG_TAG_DISTANCE_METERS) {
+      System.out.println(photonInputs.AverageTagDistance);
+      _photonTooFarAlert.set(true);
       return;
+    }
+    _photonTooFarAlert.set(false);
 
     _swervePackager.addPoseEstimatorVisionMeasurement(
         photonInputs.BotPoseEstimate,

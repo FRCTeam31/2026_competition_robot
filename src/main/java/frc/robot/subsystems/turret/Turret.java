@@ -277,6 +277,8 @@ public class Turret extends LoggedSubsystem {
         if (DriverStation.isEnabled()) {
             TurretLEDHelper.updateLEDs(inputs);
         }
+
+        actOnFeedState(inputs.FeedState);
     }
 
     // =========================== AUTO MODE ============================
@@ -335,12 +337,12 @@ public class Turret extends LoggedSubsystem {
         }
 
         // Step 3: Once locked on, feed
-        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
-        if (allOnTarget) {
-            actOnFeedState(inputs.FeedState);
-        } else {
-            _turret.setFeederSpeed(0);
-        }
+        // boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        // if (allOnTarget) {
+        //     actOnFeedState(inputs.FeedState);
+        // } else {
+        //     _turret.setFeederSpeed(0);
+        // }
         //} else {
         // IDLE - return to home, flywheel to idle, stop feed
         //goToHomePosition();

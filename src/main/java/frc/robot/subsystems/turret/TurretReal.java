@@ -1,8 +1,10 @@
 package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Seconds;
 
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
@@ -105,9 +107,9 @@ public class TurretReal implements ITurret {
         _turretRotator.setInverted(TurretMap.TURRET_ROTATOR_INVERTED);
         _turretRotator.setNeutralMode(NeutralMode.Brake);
 
-        config.peakCurrentLimit = 40;
-        config.continuousCurrentLimit = 40;
-        config.peakCurrentDuration = 0;
+        config.peakCurrentLimit = 60;
+        config.continuousCurrentLimit = 50;
+        config.peakCurrentDuration = 50;
         _turretRotator.enableCurrentLimit(true);
 
         // Configure PID constants in slot 0
@@ -186,7 +188,8 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlYawAngle(Angle angle) {
-        var pidOutput = _yawPidController.calculate(getTurretRotation().getRotations(), angle.in(Rotations));
+        var offsetAngle = angle.plus(Degrees.of(0));
+        var pidOutput = _yawPidController.calculate(getTurretRotation().getRotations(), offsetAngle.in(Rotations));
         pidOutput = -MathUtil.clamp(pidOutput, -1, 1);
         Logger.recordOutput("Turret/YawPIDOutput", pidOutput);
 

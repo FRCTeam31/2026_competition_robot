@@ -164,20 +164,22 @@ public class OperatorInterface {
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING)))
                                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
                                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
-                                                .andThen(Container.Turret.setFiring(FiringState.IDLE))
+                                                .andThen(Container.Turret.setFiring(FiringState.FIRING))
                                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
-                // OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
-                //                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
+                OperatorController.leftBumper().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
+
+                OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
+                                .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
                 // // Intake position control
-                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
-                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
-                OperatorController.b().onTrue(
-                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                                                .andThen(Commands.waitSeconds(1.5))
-                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                // OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
+                //                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
+                // OperatorController.b().onTrue(
+                //                 Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                //                                 .andThen(Commands.waitSeconds(1.5))
+                //                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
+                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
                 // Controls to toggle Turret auto and manual
                 // OperatorController.leftTrigger()
