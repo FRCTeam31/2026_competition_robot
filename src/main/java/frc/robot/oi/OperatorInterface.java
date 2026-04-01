@@ -60,10 +60,6 @@ public class OperatorInterface {
                 // Face away from hub
                 // DriverController.rightBumper().whileTrue(Container.Swerve.faceAwayFromHubCommand());
 
-                // Disabled, untested and not tuned
-                // DriverController.x()
-                //                 .onTrue(Container.Swerve.disableAutoAlignCommand());
-
                 // Reset gyro
                 DriverController.a()
                                 .onTrue(Container.Swerve.resetGyroCommand());
@@ -167,12 +163,13 @@ public class OperatorInterface {
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING))
                                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
-                OperatorController.leftBumper().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
+                // OperatorController.leftBumper().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
 
                 OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
                 // // Intake position control
+                // TODO: re-enable intake control
                 // OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
                 //                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
                 // OperatorController.b().onTrue(
@@ -192,22 +189,22 @@ public class OperatorInterface {
                 //                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
                 // OperatorController.povLeft()
                 //                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
-                // OperatorController.povRight()
-                //                 .onTrue(Container.Turret.adjustManualYaw(90));
-                // OperatorController.povLeft()
-                //                 .onTrue(Container.Turret.adjustManualYaw(-90));
+                OperatorController.povRight()
+                                .onTrue(Container.Turret.adjustManualYaw(90));
+                OperatorController.povLeft()
+                                .onTrue(Container.Turret.adjustManualYaw(-90));
 
                 // OperatorController.x().onTrue(Container.Turret.adjustManualYaw(-10));
                 // OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
-                OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
-                OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
-                OperatorController.povRight().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 10));
-                OperatorController.povLeft().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 10));
-                OperatorController.start().onTrue(Commands.runOnce(() -> {
-                        System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
-                        System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
-                        System.out.println("Target Velocity: " + Container.Turret._testtargetvelocity); //target velocit
-                }));
+                // OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
+                // OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
+                // OperatorController.povRight().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 10));
+                // OperatorController.povLeft().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 10));
+                // OperatorController.start().onTrue(Commands.runOnce(() -> {
+                //         System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
+                //         System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
+                //         System.out.println("Target Velocity: " + Container.Turret._testtargetvelocity); //target velocit
+                // }));
                 // OperatorController.povUp()
                 //                 .onTrue(Container.Turret
                 //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));

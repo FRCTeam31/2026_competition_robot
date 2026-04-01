@@ -203,7 +203,7 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlHood(Angle angle) {
-        _hoodServo.set(angle.in(Rotations));
+        _hoodServo.set((TurretMap.HOOD_MAX_ANGLE_DEGREES - angle.in(Degrees)) / (TurretMap.HOOD_ANGLE_RANGE_DEGREES));
     }
 
     @Override

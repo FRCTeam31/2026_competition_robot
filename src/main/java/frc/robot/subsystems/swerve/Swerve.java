@@ -36,9 +36,6 @@ import java.util.function.Supplier;
 import org.prime.control.ImpactRumbleHelper;
 import org.prime.control.PrimeHolonomicDriveController;
 import org.prime.control.SwerveControlSuppliers;
-import org.prime.dashboard.Elastic;
-import org.prime.dashboard.Elastic.Notification;
-import org.prime.dashboard.Elastic.NotificationLevel;
 import org.prime.subsystems.LoggedSubsystem;
 import org.prime.sysid.SysIdRoutineHelper;
 

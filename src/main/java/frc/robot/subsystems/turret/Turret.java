@@ -17,7 +17,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -31,15 +33,12 @@ import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
 import java.util.function.Supplier;
-
-import org.prime.dashboard.Elastic;
-import org.prime.dashboard.Elastic.Notification;
-import org.prime.dashboard.Elastic.NotificationLevel;
 
 /**
  * Turret subsystem responsible for aiming and shooting fuel into the hub.
@@ -108,7 +107,7 @@ public class Turret extends LoggedSubsystem {
     private boolean _isHomingHood = false;
 
     // IDW Controller
-    private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
+    // private final IDWController _flywheelController = new IDWController(TurretMap.FLYWHEEL_IDW_ENTRIES, 2);
 
     // Mutable Vectors
     private final MutVector _mutNominalTargetVector = new MutVector();
@@ -129,11 +128,11 @@ public class Turret extends LoggedSubsystem {
     private final double maxFeedInwardsPercentOut = (TurretMap.FEEDER_INVERTED ? -1 : 1)
             * TurretMap.MAX_FEED_PERCENT_OUT;
 
-    // Notifications
-    private Notification _targetTooCloseNotification = new Notification(NotificationLevel.WARNING,
-            "Turret - SHOT NOT CALCULATED", "Target too close!");
-    private Notification _exceptionWhileCalculatingShotNotification = new Notification(NotificationLevel.ERROR,
-            "Turret - SHOT NOT CALCULATED", "Exception while calculating shot solution!");
+    // Alerts
+    private Alert _targetTooCloseAlert = new Alert("Turret - SHOT NOT CALCULATED - Target too close!",
+            AlertType.kError);
+    private Alert _exceptionWhileCalculatingShotAlert = new Alert(
+            "Turret - SHOT NOT CALCULATED - Exception while calculating shot solution!", AlertType.kError);
 
     /**
      * Constructs the Turret subsystem, selecting the real or simulated IO layer
@@ -191,10 +190,11 @@ public class Turret extends LoggedSubsystem {
         var targetDistance = targetPose.getTranslation().getDistance(robotPose.getTranslation());
         _testdistance = targetDistance;
         if (targetDistance < TurretMap.MIN_SHOT_DISTANCE_METERS) {
-            Elastic.sendNotification(_targetTooCloseNotification);
+            _targetTooCloseAlert.set(true);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
             return;
         }
+        _targetTooCloseAlert.set(false);
 
         try {
             recordOutput("Turret Pose", turretPose);
@@ -234,8 +234,10 @@ public class Turret extends LoggedSubsystem {
                 _mutNominalTargetVector
                         .minus(_mutRobotVelocityVector.plus(_mutTurretTangentVelocityVector));
             }
+
+            _exceptionWhileCalculatingShotAlert.set(false);
         } catch (Exception e) {
-            Elastic.sendNotification(_exceptionWhileCalculatingShotNotification);
+            _exceptionWhileCalculatingShotAlert.set(true);
             SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
         }
     }
@@ -317,26 +319,29 @@ public class Turret extends LoggedSubsystem {
         }
 
         // Hood
-        // var pitch = _mutNominalTargetVector.getPitch();
-        // _turret.controlHood(Degrees.of(pitch));
+        var pitch = _mutNominalTargetVector.getPitch();
+        _turret.controlHood(Degrees.of(pitch));
         _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
-            //var targetVelocity = _mutNominalTargetVector.getMagnitude();
-            //_targetFlywheelVelocityRPS = _flywheelController.calculate(
+            // var targetVelocity = _mutNominalTargetVector.getMagnitude();
+            // _targetFlywheelVelocityRPS = _flywheelController.calculate(
             //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
 
             // Calculate flywheel speed from target velocity
             // Made for use with a fixed hood
-            // var targetVelocity = _mutNominalTargetVector.getMagnitude();
-            // var calculatedFlywheelSpeed = TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
-            // _turret.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
+            var targetVelocityMPS = _mutNominalTargetVector.getMagnitude();
+            _turret.controlFlywheel(RadiansPerSecond.of(targetVelocityMPS / TurretMap.FLYWHEEL_RADIUS));
 
-            // Used for testing
-            _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
+            // var calculatedFlywheelSpeed = (double)TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
+            // _turrcet.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
+
+            // // Used for testing
+            // _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
         }
 
         // Step 3: Once locked on, feed
+        // TODO: Re-enable auto feed state processing when firing
         // boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
         // if (allOnTarget) {
         //     actOnFeedState(inputs.FeedState);
@@ -472,6 +477,7 @@ public class Turret extends LoggedSubsystem {
             return false;
         }
 
+        // var isTargetAHubCenter = ...
         if (limelightInputs.TargetHorizontalOffset == null) {
             return false;
         }
