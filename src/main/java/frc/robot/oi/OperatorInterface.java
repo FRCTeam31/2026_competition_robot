@@ -58,8 +58,7 @@ public class OperatorInterface {
                 // Operator Controls:
                 // RT - Shoot (uptake + firing)
                 // RB - Transfer feed in
-                // LB - Set turret auto
-                // LT - Set turret manual
+                // LT - Set turret auto
                 // Y - Intake out position + auto feed
                 // B - Intake in position + stop feed after 1.5s
                 // X - E-Stop intake rollers
@@ -94,10 +93,8 @@ public class OperatorInterface {
                                                 : IntakeFeedState.INWARDS));
 
                 // Controls to toggle Turret auto and manual
-                OperatorController.leftTrigger()
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
                 OperatorController.leftBumper()
-                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
+                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
 
                 // Manual turret controls
                 OperatorController.povRight()

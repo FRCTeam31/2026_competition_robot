@@ -624,11 +624,11 @@ public class Turret extends LoggedSubsystem {
      * Clamped to [0, FLYWHEEL_MAX_SPEED].
      */
     public Command adjustManualFlywheelSpeed(double deltaRPS) {
-        return this.runOnce(() -> {
+        return setOperatingMode(OperatingMode.MANUAL).andThen(this.runOnce(() -> {
             _manualFlywheelVelocityRPS = MathUtil.clamp(
                     _manualFlywheelVelocityRPS + deltaRPS,
                     0, TurretMap.FLYWHEEL_MAX_SPEED_RPS);
-        });
+        }));
     }
 
     /**
@@ -636,11 +636,11 @@ public class Turret extends LoggedSubsystem {
      * Clamped to [HOOD_MIN_ANGLE_DEGREES, HOOD_MAX_ANGLE_DEGREES].
      */
     public Command adjustManualHoodAngle(double deltaDegrees) {
-        return this.runOnce(() -> {
+        return setOperatingMode(OperatingMode.MANUAL).andThen(this.runOnce(() -> {
             _manualHoodDegrees = MathUtil.clamp(
                     _manualHoodDegrees + deltaDegrees,
                     TurretMap.HOOD_MIN_ANGLE_DEGREES, TurretMap.HOOD_MAX_ANGLE_DEGREES);
-        });
+        }));
     }
 
     /**
@@ -648,11 +648,11 @@ public class Turret extends LoggedSubsystem {
      * Clamped to [0, 360] and respects the dead zone.
      */
     public Command adjustManualYaw(double deltaDegrees) {
-        return this.runOnce(() -> {
+        return setOperatingMode(OperatingMode.MANUAL).andThen(this.runOnce(() -> {
             _manualYawDegrees = MathUtil.clamp(
                     _manualYawDegrees + deltaDegrees,
                     0, 360);
-        });
+        }));
     }
 
     /**
