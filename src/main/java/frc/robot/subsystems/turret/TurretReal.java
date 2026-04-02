@@ -67,13 +67,11 @@ public class TurretReal implements ITurret {
         _flywheelLeft = new SparkFlex(TurretMap.FLYWHEEL_LEFT_CANID, MotorType.kBrushless);
         _flywheelRight = new SparkFlex(TurretMap.FLYWHEEL_RIGHT_CANID, MotorType.kBrushless);
 
-        SparkFlexConfig defaultConfig = new SparkFlexConfig();
-        defaultConfig.idleMode(IdleMode.kCoast);
-        defaultConfig.smartCurrentLimit(60, 40);
-        defaultConfig.encoder.positionConversionFactor(TurretMap.FLYWHEEL_GEAR_RATIO);
-        defaultConfig.encoder.velocityConversionFactor(TurretMap.FLYWHEEL_GEAR_RATIO);
-
-        SparkFlexConfig leftConfig = defaultConfig;
+        SparkFlexConfig leftConfig = new SparkFlexConfig();
+        leftConfig.idleMode(IdleMode.kCoast);
+        leftConfig.smartCurrentLimit(60, 40);
+        leftConfig.encoder.positionConversionFactor(TurretMap.FLYWHEEL_GEAR_RATIO);
+        leftConfig.encoder.velocityConversionFactor(TurretMap.FLYWHEEL_GEAR_RATIO);
         leftConfig.inverted(TurretMap.FLYWHEEL_LEFT_INVERTED);
         leftConfig.closedLoop.pid(pid.kP, pid.kI, pid.kD);
         leftConfig.closedLoop.feedForward.sva(pid.kS, pid.kV, pid.kA);
@@ -82,7 +80,8 @@ public class TurretReal implements ITurret {
 
         _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        SparkFlexConfig rightConfig = defaultConfig;
+        SparkFlexConfig rightConfig = new SparkFlexConfig();
+        rightConfig.smartCurrentLimit(60, 40);
         rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
 
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -173,11 +172,7 @@ public class TurretReal implements ITurret {
 
     private MutAngularVelocity getFlywheelVelocity() {
         var leftMotorVelocity = _flywheelLeft.getEncoder().getVelocity();
-        var rightMotorVelocity = _flywheelRight.getEncoder().getVelocity();
-
-        var averageVelocity = (leftMotorVelocity + rightMotorVelocity) / 2;
-
-        return RPM.mutable(averageVelocity);
+        return RPM.mutable(leftMotorVelocity);
     }
 
     @Override

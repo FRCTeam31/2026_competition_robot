@@ -12,13 +12,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveMap;
 import frc.robot.subsystems.turret.Turret.FiringState;
+import frc.robot.subsystems.turret.Turret.OperatingMode;
 import frc.robot.subsystems.turret.Turret.UptakeState;
 import frc.robot.subsystems.turret.TurretMap;
 import frc.robot.Container;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
 import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
-import frc.robot.subsystems.hopper.HopperMap;
 
 public class OperatorInterface {
         public static class OIMap {
@@ -29,10 +29,7 @@ public class OperatorInterface {
         public SupplierXboxController DriverController;
         public SupplierXboxController OperatorController;
 
-        private double _manualTurretPercentOut = 0.1;
         private IntakeFeedState _automaticFeedState = IntakeFeedState.INWARDS;
-
-        private double _servoAngle = 0.0;
 
         public OperatorInterface() {
                 DriverController = new SupplierXboxController(Controls.DRIVER_PORT);
@@ -42,12 +39,7 @@ public class OperatorInterface {
         public void bindDriverControls() {
                 // Driver Controls:
                 // Swerve controls with sticks
-                // RB - Face away from hub
                 // A - Reset gyro
-                // Up d-pad - SysId quasistatic forward
-                // Down d-pad - SysId quasistatic reverse
-                // Right d-pad - SysId dynamic forward
-                // Left d-pad - SysId dynamic reverse
 
                 var controlProfile = DriverController.getSwerveControlProfile(
                                 OIMap.DefaultDriveControlStyle,
@@ -57,103 +49,24 @@ public class OperatorInterface {
                 // Serve controls
                 Container.Swerve.setDefaultCommand(Container.Swerve.driveFieldRelativeCommand(controlProfile));
 
-                // Face away from hub
-                // DriverController.rightBumper().whileTrue(Container.Swerve.faceAwayFromHubCommand());
-
                 // Reset gyro
                 DriverController.a()
                                 .onTrue(Container.Swerve.resetGyroCommand());
-                //                 .onTrue(Container.Swerve.disableAutoAlignCommand());
-
-                DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
-                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
-                DriverController.b().onTrue(
-                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                                                .andThen(Commands.waitSeconds(1.5))
-                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
-
-                // Intake feed control
-                // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
-                // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
-
-                // SysId drive characterization routines
-                // DriverController.povUp()
-                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
-                //                                 TestDirection.FORWARD))
-                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
-                // DriverController.povDown()
-                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.QUASISTATIC,
-                //                                 TestDirection.REVERSE))
-                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
-                // DriverController.povRight()
-                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.FORWARD))
-                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
-                // DriverController.povLeft()
-                //                 .whileTrue(Container.Swerve.sysIdDriveCommand(TestType.DYNAMIC, TestDirection.REVERSE))
-                //                 .onFalse(Container.Swerve.stopAllMotorsCommand());
-
-                // -------------------------- TEST COMMANDS --------------------------
-
-                // These commands are for testing the functionality of specific subsystems. When using, comment out
-                // all other driver controls and uncomment the controls for the subsystem below that you would like to test.
-
-                // DriverController.leftTrigger().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.INWARDS));
-                // DriverController.leftTrigger().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
-
-                // DriverController.rightBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS));
-                // DriverController.rightBumper().onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED));
-
-                // DriverController.a().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS));
-                // DriverController.a().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
-
-                // DriverController.b().onTrue(Container.Hopper.setFeed(TransferFeedState.OUTWARDS));
-                // DriverController.b().onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
-
-                // DriverController.a().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
-                // DriverController.a().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
-
-                // DriverController.b().onTrue(Container.Turret.setFeed(UptakeState.REVERSED));
-                // DriverController.b().onFalse(Container.Turret.setFeed(UptakeState.STOPPED));
-
-                // DriverController.x().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT));
-                // DriverController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN));
-
-                // DriverController.a().onTrue(Container.Turret.setFlywheel(FlywheelState.IDLE));
-                // DriverController.a().onFalse(Container.Turret.setFlywheel(FlywheelState.STOPPED));
         }
 
         public void bindOperatorControls() {
                 // Operator Controls:
                 // RT - Shoot (uptake + firing)
                 // RB - Transfer feed in
+                // LB - Set turret auto
+                // LT - Set turret manual
                 // Y - Intake out position + auto feed
                 // B - Intake in position + stop feed after 1.5s
-                // LB - Outtake (intake + transfer outwards)
+                // X - E-Stop intake rollers
                 // Up d-pad - Flywheel speed up
                 // Down d-pad - Flywheel speed down
                 // Left d-pad - Turret yaw left
                 // Right d-pad - Turret yaw right
-                // Start - 100% intake feed override
-
-                // OperatorController.b().onTrue(Container.Turret.setHoodAngle(Rotations.of(0)));
-                // OperatorController.a().onTrue(Commands.runOnce(() -> {
-                //         _servoAngle += 0.1;
-                //         System.out.println(_servoAngle);
-                // }).andThen(Container.Turret.setHoodAngle(Rotations.of(_servoAngle))));
-                // OperatorController.x().onTrue(Commands.runOnce(() -> {
-                //         _servoAngle -= 0.05;
-                //         System.out.println(_servoAngle);
-                // }).andThen(Container.Turret.setHoodAngle(Rotations.of(_servoAngle))));
-
-                // OperatorController.a().onTrue(Commands.runOnce(() -> {
-                //         _servoAngle += 0.1;
-                //         System.out.println(_servoAngle);
-                // }).andThen(Container.Turret.setHoodAngleSupplier(() -> Rotations.of(_servoAngle))));
-                // OperatorController.x().onTrue(Commands.runOnce(() -> {
-                //         _servoAngle -= 0.05;
-                //         System.out.println(_servoAngle);
-                // }).andThen(Container.Turret.setHoodAngleSupplier(() -> Rotations.of(_servoAngle))));
 
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
@@ -163,63 +76,40 @@ public class OperatorInterface {
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING))
                                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
-                // OperatorController.leftBumper().onTrue(Container.Turret.setFeed(UptakeState.FORWARDS));
-
                 OperatorController.rightBumper().onTrue(Container.Hopper.setFeed(TransferFeedState.INWARDS))
                                 .onFalse(Container.Hopper.setFeed(TransferFeedState.STOPPED));
 
-                // // Intake position control
-                // TODO: re-enable intake control
-                // OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
-                //                 .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
-                // OperatorController.b().onTrue(
-                //                 Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
-                //                                 .andThen(Commands.waitSeconds(1.5))
-                //                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
-                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.y().onTrue(Container.Hopper.setHopperIntakeControl(HopperIntakeState.OUT)
+                                .andThen(Container.Hopper.setIntakeFeedSupplier(() -> _automaticFeedState)));
+                OperatorController.b().onTrue(
+                                Container.Hopper.setHopperIntakeControl(HopperIntakeState.IN)
+                                                .andThen(Commands.waitSeconds(1.5))
+                                                .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+
+                OperatorController.x().onTrue(Commands
+                                .runOnce(() -> _automaticFeedState = _automaticFeedState != IntakeFeedState.STOPPED
+                                                ? IntakeFeedState.STOPPED
+                                                : IntakeFeedState.INWARDS));
 
                 // Controls to toggle Turret auto and manual
-                // OperatorController.leftTrigger()
-                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
-                // OperatorController.leftBumper()
-                //                 .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
+                OperatorController.leftTrigger()
+                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.AUTO));
+                OperatorController.leftBumper()
+                                .onTrue(Container.Turret.setOperatingMode(OperatingMode.MANUAL));
 
                 // Manual turret controls
-                // OperatorController.povRight()
-                //                 .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
-                // OperatorController.povLeft()
-                //                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
                 OperatorController.povRight()
-                                .onTrue(Container.Turret.adjustManualYaw(90));
+                                .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
                 OperatorController.povLeft()
-                                .onTrue(Container.Turret.adjustManualYaw(-90));
+                                .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
 
-                // OperatorController.x().onTrue(Container.Turret.adjustManualYaw(-10));
-                // OperatorController.b().onTrue(Container.Turret.adjustManualYaw(10));
-                // OperatorController.povUp().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 50));
-                // OperatorController.povDown().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 50));
-                // OperatorController.povRight().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed += 10));
-                // OperatorController.povLeft().onTrue(Commands.runOnce(() -> Container.Turret._testFluwheelSpeed -= 10));
-                // OperatorController.start().onTrue(Commands.runOnce(() -> {
-                //         System.out.println("Fluwheel Speed: " + Container.Turret._testFluwheelSpeed); //speed
-                //         System.out.println("Distance From Hub: " + Container.Turret._testdistance); //Distance from hub
-                //         System.out.println("Target Velocity: " + Container.Turret._testtargetvelocity); //target velocit
-                // }));
-                // OperatorController.povUp()
-                //                 .onTrue(Container.Turret
-                //                                 .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-                // OperatorController.povDown()
-                //                 .onTrue(Container.Turret
-                //                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
-
-                // Control intake feed percent out
-                // OperatorController.start().whileTrue(Container.Hopper.overrideIntakeFeedPercentOut(1));
-
-                // Outtake
-                // OperatorController.leftBumper().onTrue(Container.Hopper.setIntakeFeed(IntakeFeedState.OUTWARDS)
-                //                 .andThen(Container.Hopper.setFeed(TransferFeedState.OUTWARDS)))
-                //                 .onFalse(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED)
-                //                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+                OperatorController.povUp()
+                                .onTrue(Container.Turret
+                                                .adjustManualFlywheelSpeed(TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+                OperatorController.povDown()
+                                .onTrue(Container.Turret
+                                                .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {
@@ -230,21 +120,5 @@ public class OperatorInterface {
                 return Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 1))
                                 .andThen(Commands.waitSeconds(0.2))
                                 .andThen(Commands.runOnce(() -> controller.setRumble(RumbleType.kBothRumble, 0)));
-        }
-
-        public Command changeFlywheelSpeed(double change) {
-                return Commands.runOnce(() -> {
-                        var value = _manualTurretPercentOut + change;
-                        System.out.println(value);
-                        if (value >= 1) {
-                                _manualTurretPercentOut = 1;
-                        } else if (value <= -1) {
-                                _manualTurretPercentOut = -1;
-                        } else {
-                                _manualTurretPercentOut = value;
-                        }
-
-                        System.out.println(_manualTurretPercentOut);
-                });
         }
 }

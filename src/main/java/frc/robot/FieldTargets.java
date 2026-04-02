@@ -1,5 +1,6 @@
 package frc.robot;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,6 +40,31 @@ public class FieldTargets {
     public static final double HUB_HEIGHT = Units.inchesToMeters(72);
     public static final double HUB_SCORING_HEIGHT = Units.inchesToMeters(68);
     public static final double ALLIANCE_ZONE_WIDTH = Units.inchesToMeters(156.61);
+
+    // Hub Targets
+    private static final List<Integer> Usable_Center_Hub_Targets = List.of(
+            18,
+            26,
+            21,
+            5,
+            2,
+            10);
+
+    private static final List<Integer> Usable_Left_Hub_Targets = List.of(
+            9,
+            11,
+            25,
+            27);
+
+    private static final List<Integer> Usable_Right_Hub_Targets = List.of(
+            24,
+            8);
+
+    private static final Translation3d Center_Hub_Target_Offset = new Translation3d();
+    private static final Translation3d Left_Hub_Target_Offset = Center_Hub_Target_Offset
+            .plus(new Translation3d(0, 0, 0));
+    private static final Translation3d Right_Hub_Target_Offset = Center_Hub_Target_Offset
+            .plus(new Translation3d(0, 0, 0));
 
     private static final Pose3d Blue_Hub_Position = new Pose3d(
             new Translation3d(
@@ -135,6 +161,10 @@ public class FieldTargets {
             }
         }
     }
+
+    // public static Pose3d GetHubTargetFromTag() {
+
+    // }
 
     public static boolean InEnemyScoringZone(Pose2d robotPosition) {
         return Robot.onRedAlliance()

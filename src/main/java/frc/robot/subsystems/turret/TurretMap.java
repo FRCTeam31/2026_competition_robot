@@ -21,7 +21,6 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import org.prime.util.IDWController;
 
 public class TurretMap {
         // ------------------------ Feature Flags -------------------------
@@ -36,7 +35,6 @@ public class TurretMap {
         public static final int TURRET_ROTATOR_CANID = 17;
         public static final boolean TURRET_ROTATOR_INVERTED = false;
         public static final double TURRET_GEAR_RATIO = 10;
-        // public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(5, 0, 0); // This one is pretty good
         public static final ExtendedPIDConstants TURRET_ROTATOR_PID = new ExtendedPIDConstants(5.5, 0, 0);
         public static final double YAW_MOTION_MAGIC_CRUISE_VELOCITY = 2000; // sensor units per 100ms
         public static final double YAW_MOTION_MAGIC_ACCELERATION = 4000; // sensor units per 100ms per second
@@ -70,7 +68,7 @@ public class TurretMap {
         public static final int FLYWHEEL_LEFT_CANID = 19;
         public static final int FLYWHEEL_RIGHT_CANID = 20;
         public static final boolean FLYWHEEL_LEFT_INVERTED = false;
-        public static final double FLYWHEEL_RAMP_PERIOD = 1;
+        public static final double FLYWHEEL_RAMP_PERIOD = 0.1;
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants(
                         0,
                         0,
@@ -84,26 +82,12 @@ public class TurretMap {
         public static final double FLYWHEEL_MAX_SPEED_RPS = 90;
         public static final double FLYWHEEL_MIN_SPEED_RPS = 0.0;
         public static final double FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT = 5.0; // 5% tolerance
-        // public static final InterpolatingDoubleTreeMap DISTANCE_TO_FLYWHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
-        //                 .ofEntries(
-        //                                 Map.entry(2.0, 300.0),
-        //                                 Map.entry(3.0, 400.0),
-        //                                 Map.entry(4.0, 500.0),
-        //                                 Map.entry(5.0, 600.0),
-        //                                 Map.entry(6.0, 700.0),
-        //                                 Map.entry(7.0, 800.0),
-        //                                 Map.entry(8.0, 900.0),
-        //                                 Map.entry(9.0, 1000.0));
         // TODO: Find target velocities and flywheel speeds through testing
         public static final InterpolatingDoubleTreeMap TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(
                                         // Velocity in m/s and flywheel speed in RPM
                                         Map.entry(0.0, 0.0),
                                         Map.entry(1.0, 1.0));
-        // public static final List<IDWController.Entry> FLYWHEEL_IDW_ENTRIES = List.of(
-        //                 new IDWController.Entry(0, 0, 0), // Example implementation, will replace with real data
-        //                 new IDWController.Entry(1, 1, 1) // Target Velocity (in m/s), Hood Angle (in degrees), Flywheel Velocity (in Rotations Per Second)
-        // );
 
         // ------------------------ Hood -----------------------------------
         public static final int HOOD_CAN_ID = 18;
@@ -111,18 +95,12 @@ public class TurretMap {
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         public static final double HOOD_ANGLE_RANGE_DEGREES = HOOD_MAX_ANGLE_DEGREES - HOOD_MIN_ANGLE_DEGREES;
-        // public static final double HOOD_MIN_ANGLE_DEGREES = HOOD_MAX_ANGLE_DEGREES; // Hood fully extended
         public static final ExtendedPIDConstants HOOD_PID = new ExtendedPIDConstants(0.1, 0, 0);
-        // public static final double HOOD_MAX_MOTION_MAX_VELOCITY = 100; // RPM
-        // public static final double HOOD_MAX_MOTION_MAX_ACCELERATION = 200; // RPM per second
-        // public static final double HOOD_MAX_MOTION_ALLOWED_ERROR = 0.5; // degrees
-        // public static final double PITCH_MAX_MANUAL_PERCENT_OUT = 0.2;
         public static final double HOOD_ON_TARGET_TOLERANCE_DEGREES = 1.0;
         public static final Distance HOOD_GEAR_RADIUS = Millimeters.of(10);
         public static final AngularVelocity HOOD_SIM_MAX_SPEED = RadiansPerSecond.of(183.33 * Math.PI * 2);
         public static final double HOOD_GEAR_RATIO = 6.333;
         public static final int HOOD_SERVO_CHANNEL = 9;
-        // public static final boolean HOOD_ENCODER_INVERTED = false;
 
         // ------------------------ Feeder ---------------------------------
         public static final int FEEDER_CANID = 16;
