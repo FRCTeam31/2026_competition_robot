@@ -38,6 +38,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 /**
@@ -90,6 +91,11 @@ public class Turret extends LoggedSubsystem {
         REVERSED,
         /** Feeder stopped. */
         STOPPED
+    }
+
+    private enum TargetingType {
+        kPose,
+        kLimelight
     }
 
     public double _testFluwheelSpeed = 0.0;
@@ -305,8 +311,12 @@ public class Turret extends LoggedSubsystem {
             return;
         }
 
+        if (target.type == TargetingType.kLimelight) {
+            turretPose = Pose3d.kZero;
+        }
+
         // Step 2: Calculate ballistics and seek setpoints
-        calculateTurretVectorFromRobotPose(target, turretPose);
+        calculateTurretVectorFromRobotPose(target.pose, turretPose);
 
         // Yaw
         var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
@@ -409,19 +419,31 @@ public class Turret extends LoggedSubsystem {
 
     // =========================== SHARED HELPERS ===========================
 
+    private record TargetingData(Pose3d pose, TargetingType type) {
+    }
+
     /**
      * Resolves the target position for auto-aiming and logs the predicted projectile trajectory.
      *
      * @param turretPose The turret's field-relative 3D pose, used as the trajectory origin
      * @return The resolved target {@link Pose3d}, or null if in a dead zone
      */
-    private Pose3d resolveAutoTarget(Pose3d turretPose) {
+    private TargetingData resolveAutoTarget(Pose3d turretPose) {
         var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
+        var targetType = TargetingType.kPose;
 
         if (target.targetType() == TargetType.kDead) {
             recordOutput("Target Pose", (Pose3d) null);
             recordOutput("Optimal Fuel Trajectory", (Pose3d) null);
             return null;
+        }
+
+        if (TurretMap.USE_LIMELIGHT_TARGETING) {
+            targetType = TargetingType.kLimelight;
+            var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+            target = FieldTargets.GetHubTargetFromTag(
+                    limelightInputs.CurrentResults.targets_Fiducials[0].fiducialID,
+                    limelightInputs.TagPoseRobotSpace);
         }
 
         recordOutput("Target Pose", target);
@@ -461,7 +483,7 @@ public class Turret extends LoggedSubsystem {
         }
 
         recordOutput("Optimal Fuel Trajectory", trajectory);
-        return target.targetPose();
+        return new TargetingData(target.targetPose(), targetType);
     }
 
     /**

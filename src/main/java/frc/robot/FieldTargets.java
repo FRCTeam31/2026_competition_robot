@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -26,7 +27,8 @@ public class FieldTargets {
         kHub,
         kPassing,
         kFarPassing,
-        kDead
+        kDead,
+        kNone
     }
 
     public static final AprilTagFieldLayout FieldTagLayout = AprilTagFieldLayout
@@ -42,29 +44,29 @@ public class FieldTargets {
     public static final double ALLIANCE_ZONE_WIDTH = Units.inchesToMeters(156.61);
 
     // Hub Targets
-    private static final List<Integer> Usable_Center_Hub_Targets = List.of(
-            18,
-            26,
-            21,
-            5,
-            2,
-            10);
+    private static final List<Double> Usable_Center_Hub_Targets = List.of(
+            18d,
+            26d,
+            21d,
+            5d,
+            2d,
+            10d);
 
-    private static final List<Integer> Usable_Left_Hub_Targets = List.of(
-            9,
-            11,
-            25,
-            27);
+    private static final List<Double> Usable_Left_Hub_Targets = List.of(
+            9d,
+            11d,
+            25d,
+            27d);
 
-    private static final List<Integer> Usable_Right_Hub_Targets = List.of(
-            24,
-            8);
+    private static final List<Double> Usable_Right_Hub_Targets = List.of(
+            24d,
+            8d);
 
-    private static final Translation3d Center_Hub_Target_Offset = new Translation3d();
-    private static final Translation3d Left_Hub_Target_Offset = Center_Hub_Target_Offset
-            .plus(new Translation3d(0, 0, 0));
-    private static final Translation3d Right_Hub_Target_Offset = Center_Hub_Target_Offset
-            .plus(new Translation3d(0, 0, 0));
+    private static final Transform3d Center_Hub_Target_Offset = new Transform3d();
+    private static final Transform3d Left_Hub_Target_Offset = Center_Hub_Target_Offset
+            .plus(new Transform3d(0, 0, 0, Rotation3d.kZero));
+    private static final Transform3d Right_Hub_Target_Offset = Center_Hub_Target_Offset
+            .plus(new Transform3d(0, 0, 0, Rotation3d.kZero));
 
     private static final Pose3d Blue_Hub_Position = new Pose3d(
             new Translation3d(
@@ -162,9 +164,17 @@ public class FieldTargets {
         }
     }
 
-    // public static Pose3d GetHubTargetFromTag() {
+    public static TargetData GetHubTargetFromTag(Double tagId, Pose3d tagPose) {
+        if (Usable_Center_Hub_Targets.contains(tagId)) {
+            return new TargetData(tagPose.plus(Center_Hub_Target_Offset), TargetType.kHub);
+        } else if (Usable_Left_Hub_Targets.contains(tagId)) {
+            return new TargetData(tagPose.plus(Left_Hub_Target_Offset), TargetType.kHub);
+        } else if (Usable_Right_Hub_Targets.contains(tagId)) {
+            return new TargetData(tagPose.plus(Right_Hub_Target_Offset), TargetType.kHub);
+        }
 
-    // }
+        return new TargetData(null, TargetType.kNone);
+    }
 
     public static boolean InEnemyScoringZone(Pose2d robotPosition) {
         return Robot.onRedAlliance()

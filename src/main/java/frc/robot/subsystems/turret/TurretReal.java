@@ -78,12 +78,14 @@ public class TurretReal implements ITurret {
         leftConfig.closedLoopRampRate(TurretMap.FLYWHEEL_RAMP_PERIOD);
         leftConfig.closedLoop.positionWrappingEnabled(true);
 
+        _flywheelLeft.clearFaults();
         _flywheelLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         SparkFlexConfig rightConfig = new SparkFlexConfig();
         rightConfig.smartCurrentLimit(60, 40);
         rightConfig.follow(TurretMap.FLYWHEEL_LEFT_CANID, true);
 
+        _flywheelRight.clearFaults();
         _flywheelRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         _flywheelClosedLoopController = _flywheelLeft.getClosedLoopController();
