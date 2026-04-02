@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.Objects;
+
 import org.littletonrobotics.junction.Logger;
 import org.prime.control.ExtendedPIDConstants;
 import org.prime.util.CTREConverter;
@@ -200,6 +202,10 @@ public class TurretReal implements ITurret {
 
     @Override
     public void controlHood(Angle angle) {
+        if (Objects.equals(TurretMap.HOOD_ANGLE_RANGE_DEGREES, 0.0)) {
+            return;
+        }
+
         _hoodServo.set((TurretMap.HOOD_MAX_ANGLE_DEGREES - angle.in(Degrees)) / (TurretMap.HOOD_ANGLE_RANGE_DEGREES));
     }
 
