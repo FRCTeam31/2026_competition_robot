@@ -52,7 +52,7 @@ public class SwerveMap {
                         4,
                         10,
                         0.064697,
-                        false,
+                        true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
         public static final SwerveModuleMap FrontRightSwerveModule = new SwerveModuleMap(
@@ -60,7 +60,7 @@ public class SwerveMap {
                         5,
                         11,
                         0.039307,
-                        false,
+                        true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearLeftSwerveModule = new SwerveModuleMap(
@@ -68,7 +68,7 @@ public class SwerveMap {
                         8,
                         12,
                         0.925781,
-                        true,
+                        false,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), (Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearRightSwerveModule = new SwerveModuleMap(
@@ -76,7 +76,7 @@ public class SwerveMap {
                         1,
                         9,
                         0.340332,
-                        true,
+                        false,
                         false,
                         new Translation2d(-Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
 
