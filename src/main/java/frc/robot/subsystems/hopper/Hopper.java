@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
-import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 
 public class Hopper extends LoggedSubsystem {
     private IHopper _hopper;
