@@ -1,13 +1,9 @@
 package frc.robot.subsystems.turret;
 
 import org.prime.subsystems.LoggedSubsystem;
-import org.prime.sysid.SysIdRoutineHelper;
 import org.prime.subsystems.turret.TurretDeadZoneHelper;
 import org.prime.subsystems.turret.TurretUtilities;
-import org.prime.util.IDWController;
 import org.prime.util.MutVector;
-
-import com.ctre.phoenix.time.StopWatch;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -17,11 +13,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,13 +28,11 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
-import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 /**

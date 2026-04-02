@@ -1,12 +1,8 @@
 package frc.robot.oi;
 
-import static edu.wpi.first.units.Units.Rotations;
-
 import org.prime.control.Controls;
 import org.prime.control.HolonomicControlStyle;
 import org.prime.control.SupplierXboxController;
-import org.prime.sysid.SysIdRoutineHelper.TestDirection;
-import org.prime.sysid.SysIdRoutineHelper.TestType;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -56,16 +52,16 @@ public class OperatorInterface {
 
         public void bindOperatorControls() {
                 // Operator Controls:
-                // RT - Shoot (uptake + firing)
+                // RT - Shoot (uptake + firing + transfer)
                 // RB - Transfer feed in
-                // LT - Set turret auto
+                // LB - Set turret auto
                 // Y - Intake out position + auto feed
                 // B - Intake in position + stop feed after 1.5s
                 // X - E-Stop intake rollers
-                // Up d-pad - Flywheel speed up
-                // Down d-pad - Flywheel speed down
-                // Left d-pad - Turret yaw left
-                // Right d-pad - Turret yaw right
+                // Up d-pad - Flywheel speed up / manual mode
+                // Down d-pad - Flywheel speed down / manual mode
+                // Left d-pad - Turret yaw CCW / manual mode
+                // Right d-pad - Turret yaw CW / manual mode
 
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
