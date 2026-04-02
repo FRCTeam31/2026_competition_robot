@@ -249,19 +249,19 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
-        var startTime = Timer.getFPGATimestamp();
+        // var startTime = Timer.getFPGATimestamp();
         switch (inputs.OperatingMode) {
             case AUTO:
                 actOnAutoMode(inputs);
-                System.out.println(
-                        "Turret/periodic/actOnAutoMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
-                startTime = Timer.getFPGATimestamp();
+                // System.out.println(
+                //         "Turret/periodic/actOnAutoMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+                // startTime = Timer.getFPGATimestamp();
                 break;
             case MANUAL:
                 actOnManualMode(inputs);
-                System.out.println(
-                        "Turret/periodic/actOnManualMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
-                startTime = Timer.getFPGATimestamp();
+                // System.out.println(
+                //         "Turret/periodic/actOnManualMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+                // startTime = Timer.getFPGATimestamp();
                 break;
             case STOPPED:
                 break;
@@ -272,8 +272,8 @@ public class Turret extends LoggedSubsystem {
         // }
 
         actOnFeedState(inputs.FeedState);
-        System.out
-                .println("Turret/periodic/actOnFeedState - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+        // System.out
+        //         .println("Turret/periodic/actOnFeedState - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
     }
 
     // =========================== AUTO MODE ============================
@@ -385,14 +385,14 @@ public class Turret extends LoggedSubsystem {
                     SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
         }
         SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
-        _turret.controlYawAngle(Rotations.of(manualYawRotations));
+        _turret.controlYawAngle(Rotations.mutable(manualYawRotations));
 
         // Apply manual hood setpoint
         // _turret.controlHood(Degrees.of(_manualHoodDegrees));
 
         // Apply manual flywheel speed
         _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
-        _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
+        _turret.controlFlywheel(RotationsPerSecond.mutable(_targetFlywheelVelocityRPS));
 
         // Feed: run immediately when firing, stop when idle
         if (inputs.FiringState == FiringState.FIRING) {
