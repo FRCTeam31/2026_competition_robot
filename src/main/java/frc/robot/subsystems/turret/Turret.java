@@ -338,13 +338,12 @@ public class Turret extends LoggedSubsystem {
         }
 
         // Step 3: Once locked on, feed
-        // TODO: Re-enable auto feed state processing when firing
-        // boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
-        // if (allOnTarget) {
-        //     actOnFeedState(inputs.FeedState);
-        // } else {
-        //     _turret.setFeederSpeed(0);
-        // }
+        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        if (allOnTarget) {
+            actOnFeedState(inputs.FeedState);
+        } else {
+            _turret.setFeederSpeed(0);
+        }
         //} else {
         // IDLE - return to home, flywheel to idle, stop feed
         //goToHomePosition();

@@ -70,7 +70,8 @@ public class OperatorInterface {
 
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
-                                                .andThen(Container.Turret.setFiring(FiringState.FIRING)))
+                                                .andThen(Container.Turret.setFiring(FiringState.FIRING))
+                                                .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS)))
                                 // .andThen(Container.Hopper.oscillateIntake(HopperMap.INTAKE_OSCILLATION_CYCLE_SECONDS)))
                                 .onFalse(Container.Turret.setFeed(UptakeState.STOPPED)
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING))
