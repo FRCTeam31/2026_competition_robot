@@ -159,13 +159,13 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
     // Cancel any auto command that's still running
-    _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
-        .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
-        .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
     if (_autonomousCommand != null)
       _autonomousCommand.cancel();
 
-    _autonomousCommand = Container.AutoChooser.getSelected();
+    // _autonomousCommand = Container.AutoChooser.getSelected();
+    _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
+        .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
 
     if (_autonomousCommand == null || _autonomousCommand == Commands.none()) {
       DriverStation.reportError("[ERROR] >> No auto command selected", false);
