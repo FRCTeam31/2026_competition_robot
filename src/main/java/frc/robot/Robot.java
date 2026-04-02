@@ -66,15 +66,15 @@ public class Robot extends LoggedRobot {
     Preferences.removeAll();
 
     // Set an LED pattern to display when the robot goes disabled after a match
-    new BooleanEvent(EventLoop, () -> DriverStation.isDisabled() && _hasEnteredTeleop)
-        .rising()
-        .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
-            Container.LEDs.setAllSectionPatternsCommand(
-                LEDPatterns.fastBlink(Color.kGreen, Units.Milliseconds.of(50))),
-            Commands.waitSeconds(0.5),
-            Container.LEDs
-                .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(3))))
-            .ignoringDisable(true)));
+    // new BooleanEvent(EventLoop, () -> DriverStation.isDisabled() && _hasEnteredTeleop)
+    //     .rising()
+    //     .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
+    //         Container.LEDs.setAllSectionPatternsCommand(
+    //             LEDPatterns.fastBlink(Color.kGreen, Units.Milliseconds.of(50))),
+    //         Commands.waitSeconds(0.5),
+    //         Container.LEDs
+    //             .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(3))))
+    //         .ignoringDisable(true)));
   }
 
   /**

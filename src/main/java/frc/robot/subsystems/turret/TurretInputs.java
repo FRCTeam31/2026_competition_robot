@@ -16,7 +16,7 @@ public class TurretInputs {
     public double TurretRotationDegrees = 0;
     public double DesiredTurretRotationDegrees = 0;
     public boolean TurretRotationResetSwitch = true;
-    public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
+    // public MutAngularVelocity FlywheelVelocity = RotationsPerSecond.mutable(0);
     public double FlywheelVelocityRPM = 0;
     public Angle HoodAngle = Degrees.of(0);
     public Angle FlywheelAngle = Degrees.of(0);

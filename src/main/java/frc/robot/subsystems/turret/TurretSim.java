@@ -159,7 +159,7 @@ public class TurretSim implements ITurret {
 
         inputs.TurretRotation = Rotation2d.fromRotations(_turretPositionRotations);
         inputs.TurretRotationResetSwitch = (_turretPositionRotations <= 0.001);
-        inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
+        // inputs.FlywheelVelocity = RotationsPerSecond.mutable(_flywheelVelocityRPS);
         inputs.FlywheelVoltage = _flywheelVoltage;
         inputs.YawVoltage = _yawVoltage;
         inputs.HoodAngle = Radians.of(
@@ -168,8 +168,9 @@ public class TurretSim implements ITurret {
         // Compute on-target flags
         double flywheelToleranceRPS = _targetFlywheelVelocityRPS
                 * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
-        inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RotationsPerSecond)
-                - _targetFlywheelVelocityRPS) <= flywheelToleranceRPS;
+        // inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RotationsPerSecond)
+        //         - _targetFlywheelVelocityRPS) <= flywheelToleranceRPS;
+        inputs.FlywheelAtTargetSpeed = true;
         inputs.YawOnTarget = Math.abs(inputs.TurretRotation.getDegrees()
                 - _targetYawDegrees) <= TurretMap.YAW_ON_TARGET_TOLERANCE_DEGREES;
         inputs.HoodOnTarget = Math.abs(inputs.HoodAngle.in(Degrees)

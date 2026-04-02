@@ -7,6 +7,8 @@ import org.prime.subsystems.turret.TurretUtilities;
 import org.prime.util.IDWController;
 import org.prime.util.MutVector;
 
+import com.ctre.phoenix.time.StopWatch;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -19,6 +21,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -123,11 +126,6 @@ public class Turret extends LoggedSubsystem {
     // Yaw setpoint filter to smooth out noise from pose estimation
     private final LinearFilter _yawFilter = LinearFilter.singlePoleIIR(0.2, Robot.defaultPeriodSecs);
 
-    // SysId characterization routines
-    private final SysIdRoutineHelper _flywheelSysId;
-    private final SysIdRoutineHelper _yawSysId;
-    private boolean _runningSysId = false;
-
     // Boolean Events
     private BooleanEvent _turretYawResetSwitchEvent;
 
@@ -153,26 +151,6 @@ public class Turret extends LoggedSubsystem {
         _deadZoneHelper = new TurretDeadZoneHelper(
                 TurretMap.DEADZONE_START_DEGREES,
                 TurretMap.DEADZONE_END_DEGREES);
-
-        // Configure SysId routine for flywheel characterization
-        _flywheelSysId = new SysIdRoutineHelper(
-                this,
-                "TurretFlywheel",
-                (voltage) -> _turret.setFlywheelVoltage(voltage.in(Units.Volts)),
-                (log) -> log.motor("flywheel")
-                        .voltage(Units.Volts.of(SuperStructure.Turret.FlywheelVoltage))
-                        .angularVelocity(SuperStructure.Turret.FlywheelVelocity)
-                        .angularPosition(SuperStructure.Turret.FlywheelAngle));
-
-        // Configure SysId routine for turret yaw characterization
-        _yawSysId = new SysIdRoutineHelper(
-                this,
-                "TurretYaw",
-                (voltage) -> _turret.setYawVoltage(voltage.in(Units.Volts)),
-                (log) -> log.motor("yaw")
-                        .voltage(Units.Volts.of(SuperStructure.Turret.YawVoltage))
-                        .angularPosition(Units.Rotations.of(
-                                SuperStructure.Turret.TurretRotation.getRotations())));
 
         _turretYawResetSwitchEvent = new BooleanEvent(Robot.EventLoop,
                 () -> SuperStructure.Turret.TurretRotationResetSwitch)
@@ -555,7 +533,11 @@ public class Turret extends LoggedSubsystem {
 
     @Override
     public void periodic() {
+        var startTime = Timer.getFPGATimestamp();
         _turret.updateInputs(SuperStructure.Turret);
+        System.out.println("Turret/periodic/UPDATE_INPUTS - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+        startTime = Timer.getFPGATimestamp();
+
         if (TurretMap.UPDATE_LIMELIGHT_POSE) {
             var llPose = TurretUtilities.calculateSensorPose(
                     TurretMap.TURRET_ROBOT_ORIGIN,
@@ -564,11 +546,18 @@ public class Turret extends LoggedSubsystem {
 
             Container.LimelightVision.setCameraPose(VisionMap.LimelightTurretName, llPose);
         }
+        System.out
+                .println("Turret/periodic/UPDATE_LL_POSE - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+        startTime = Timer.getFPGATimestamp();
 
         processInputs(SuperStructure.Turret);
+        System.out.println("Turret/periodic/processInputs - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+        startTime = Timer.getFPGATimestamp();
 
-        if (!_isHomingHood && !_runningSysId) {
+        if (!_isHomingHood) {
             actOnState(SuperStructure.Turret);
+            System.out
+                    .println("Turret/periodic/actOnState - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
         }
     }
 
@@ -673,24 +662,6 @@ public class Turret extends LoggedSubsystem {
      */
     public Command setAutoYawTrimInput(double input) {
         return this.runOnce(() -> _manualYawInput = input);
-    }
-
-    // --- SysId ---------------------------------------------------------
-
-    public Command sysIdFlywheelCommand(SysIdRoutineHelper.TestType testType,
-            SysIdRoutineHelper.TestDirection direction) {
-        return Commands.sequence(
-                Commands.runOnce(() -> _runningSysId = true),
-                _flywheelSysId.getCommand(testType, direction))
-                .finallyDo(() -> _runningSysId = false);
-    }
-
-    public Command sysIdYawCommand(SysIdRoutineHelper.TestType testType,
-            SysIdRoutineHelper.TestDirection direction) {
-        return Commands.sequence(
-                Commands.runOnce(() -> _runningSysId = true),
-                _yawSysId.getCommand(testType, direction))
-                .finallyDo(() -> _runningSysId = false);
     }
 
     // --- Homing --------------------------------------------------------

@@ -35,7 +35,7 @@ public class Container {
   public static OperatorInterface OperatorInterface;
   public static SendableChooser<Command> AutoChooser;
 
-  public static PwmLEDs LEDs;
+  // public static PwmLEDs LEDs;
   public static Swerve Swerve;
   public static LimelightVision LimelightVision;
   public static PhotonVision PhotonVision;
@@ -56,7 +56,7 @@ public class Container {
       Dashboard = new DriverDashboard();
 
       // Create subsystems
-      LEDs = new PwmLEDs();
+      // LEDs = new PwmLEDs();
 
       LimelightVision = new LimelightVision();
       LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);

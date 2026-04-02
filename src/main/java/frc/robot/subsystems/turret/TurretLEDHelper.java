@@ -61,13 +61,13 @@ public class TurretLEDHelper {
      * </ul>
      */
     public static void updateLEDs(TurretInputsAutoLogged inputs) {
-        if (Container.LEDs == null)
-            return;
+        // if (Container.LEDs == null)
+        //     return;
 
-        LEDPattern desiredPattern = resolveDesiredLedPattern(inputs);
-        if (desiredPattern != null && desiredPattern != _lastLedPattern) {
-            Container.LEDs.setAllSectionPatterns(desiredPattern);
-            _lastLedPattern = desiredPattern;
-        }
+        // LEDPattern desiredPattern = resolveDesiredLedPattern(inputs);
+        // if (desiredPattern != null && desiredPattern != _lastLedPattern) {
+        //     Container.LEDs.setAllSectionPatterns(desiredPattern);
+        //     _lastLedPattern = desiredPattern;
+        // }
     }
 }

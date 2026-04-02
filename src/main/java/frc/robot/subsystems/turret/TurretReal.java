@@ -149,8 +149,8 @@ public class TurretReal implements ITurret {
         inputs.TurretRotation = getTurretRotation();
         inputs.TurretRotationDegrees = inputs.TurretRotation.getDegrees();
         inputs.TurretRotationResetSwitch = !_turretResetLimitSwitch.get();
-        inputs.FlywheelVelocity = getFlywheelVelocity();
-        inputs.FlywheelVelocityRPM = inputs.FlywheelVelocity.in(RPM);
+        // inputs.FlywheelVelocity = getFlywheelVelocity();
+        inputs.FlywheelVelocityRPM = getFlywheelVelocity().in(RPM);
         inputs.FlywheelVoltage = _flywheelLeft.getAppliedOutput() * _flywheelLeft.getBusVoltage();
         inputs.YawVoltage = _turretRotator.getMotorOutputVoltage();
         inputs.HoodAngle = Degrees.of(_hoodServo.getAngle());
@@ -159,7 +159,7 @@ public class TurretReal implements ITurret {
         // Compute on-target flags
         double flywheelToleranceRPM = _targetFlywheelVelocityRPM
                 * TurretMap.FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT / 100.0;
-        inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocity.in(RPM)
+        inputs.FlywheelAtTargetSpeed = Math.abs(inputs.FlywheelVelocityRPM
                 - _targetFlywheelVelocityRPM) <= flywheelToleranceRPM;
         inputs.YawOnTarget = _yawPidController.atSetpoint();
         inputs.HoodOnTarget = Math.abs(inputs.HoodAngle.in(Degrees)
