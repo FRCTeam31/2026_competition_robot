@@ -29,8 +29,11 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
 import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.swerve.util.LocalADStarADK;
+import frc.robot.subsystems.turret.Turret.FiringState;
+import frc.robot.subsystems.turret.Turret.UptakeState;
 
 public class Robot extends LoggedRobot {
 
@@ -156,6 +159,9 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
     // Cancel any auto command that's still running
+    _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
+        .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
     if (_autonomousCommand != null)
       _autonomousCommand.cancel();
 
@@ -179,6 +185,7 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void teleopInit() {
+    // CommandScheduler.getInstance().schedule();
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
 
