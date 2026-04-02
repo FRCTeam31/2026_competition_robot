@@ -285,7 +285,7 @@ public class Turret extends LoggedSubsystem {
         //if (inputs.FiringState == FiringState.FIRING) {
         // Step 1: Resolve target
         if (target == null) {
-            goToHomePosition();
+            _turret.controlHood(Degrees.of(TurretMap.HOOD_MAX_ANGLE_DEGREES));
             return;
         }
 
