@@ -175,7 +175,7 @@ public class Swerve extends LoggedSubsystem {
 
     robotRelativeChassisSpeeds.omegaRadiansPerSecond = SuperStructure.Swerve.UseAutoAlign
         ? SuperStructure.Swerve.AutoAlignCorrection
-        : -robotRelativeChassisSpeeds.omegaRadiansPerSecond;
+        : robotRelativeChassisSpeeds.omegaRadiansPerSecond;
 
     // Correct drift by taking the input speeds and converting them to a desired
     // per-period speed. This is known as "discretizing"

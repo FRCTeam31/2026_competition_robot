@@ -77,7 +77,7 @@ public class TurretMap {
                         0.1645,
                         0.013876,
                         0.075161);
-        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = RotationsPerSecond.of(1);
+        public static final AngularVelocity FLYWHEEL_IDLE_VELOCITY = RotationsPerSecond.of(45);
         public static final double FLYWHEEL_RADIUS = 0.0505;
         public static final double FLYWHEEL_MAX_SPEED_RPS = 90;
         public static final double FLYWHEEL_MIN_SPEED_RPS = 0.0;
