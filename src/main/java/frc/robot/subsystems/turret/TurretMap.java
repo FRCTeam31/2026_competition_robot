@@ -68,7 +68,7 @@ public class TurretMap {
         public static final int FLYWHEEL_LEFT_CANID = 19;
         public static final int FLYWHEEL_RIGHT_CANID = 20;
         public static final boolean FLYWHEEL_LEFT_INVERTED = false;
-        public static final double FLYWHEEL_RAMP_PERIOD = 0.1;
+        public static final double FLYWHEEL_RAMP_PERIOD = 0.05;
         public static final ExtendedPIDConstants FLYWHEEL_PID = new ExtendedPIDConstants(
                         0,
                         0,
