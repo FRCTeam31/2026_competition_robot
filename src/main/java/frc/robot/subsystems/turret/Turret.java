@@ -249,22 +249,31 @@ public class Turret extends LoggedSubsystem {
      * @param inputs The current turret inputs snapshot from {@link SuperStructure}
      */
     private void actOnState(TurretInputsAutoLogged inputs) {
+        var startTime = Timer.getFPGATimestamp();
         switch (inputs.OperatingMode) {
             case AUTO:
                 actOnAutoMode(inputs);
+                System.out.println(
+                        "Turret/periodic/actOnAutoMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+                startTime = Timer.getFPGATimestamp();
                 break;
             case MANUAL:
                 actOnManualMode(inputs);
+                System.out.println(
+                        "Turret/periodic/actOnManualMode - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
+                startTime = Timer.getFPGATimestamp();
                 break;
             case STOPPED:
                 break;
         }
 
-        if (DriverStation.isEnabled()) {
-            TurretLEDHelper.updateLEDs(inputs);
-        }
+        // if (DriverStation.isEnabled()) {
+        //     TurretLEDHelper.updateLEDs(inputs);
+        // }
 
         actOnFeedState(inputs.FeedState);
+        System.out
+                .println("Turret/periodic/actOnFeedState - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
     }
 
     // =========================== AUTO MODE ============================
@@ -533,10 +542,7 @@ public class Turret extends LoggedSubsystem {
 
     @Override
     public void periodic() {
-        var startTime = Timer.getFPGATimestamp();
         _turret.updateInputs(SuperStructure.Turret);
-        System.out.println("Turret/periodic/UPDATE_INPUTS - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
-        startTime = Timer.getFPGATimestamp();
 
         if (TurretMap.UPDATE_LIMELIGHT_POSE) {
             var llPose = TurretUtilities.calculateSensorPose(
@@ -546,18 +552,11 @@ public class Turret extends LoggedSubsystem {
 
             Container.LimelightVision.setCameraPose(VisionMap.LimelightTurretName, llPose);
         }
-        System.out
-                .println("Turret/periodic/UPDATE_LL_POSE - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
-        startTime = Timer.getFPGATimestamp();
 
         processInputs(SuperStructure.Turret);
-        System.out.println("Turret/periodic/processInputs - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
-        startTime = Timer.getFPGATimestamp();
 
         if (!_isHomingHood) {
             actOnState(SuperStructure.Turret);
-            System.out
-                    .println("Turret/periodic/actOnState - " + ((Timer.getFPGATimestamp() - startTime) * 1000) + "ms");
         }
     }
 
