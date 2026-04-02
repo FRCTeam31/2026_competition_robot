@@ -185,7 +185,10 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void teleopInit() {
-    // CommandScheduler.getInstance().schedule();
+    CommandScheduler.getInstance().schedule(Container.Turret.setFeed(UptakeState.STOPPED)
+        .andThen(Container.Turret.setFiring(FiringState.FIRING))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
 

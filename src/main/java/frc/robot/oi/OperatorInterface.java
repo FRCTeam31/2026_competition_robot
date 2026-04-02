@@ -94,9 +94,9 @@ public class OperatorInterface {
 
                 // Manual turret controls
                 OperatorController.povRight()
-                                .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
-                OperatorController.povLeft()
                                 .onTrue(Container.Turret.adjustManualYaw(-TurretMap.MANUAL_YAW_STEP_DEGREES));
+                OperatorController.povLeft()
+                                .onTrue(Container.Turret.adjustManualYaw(TurretMap.MANUAL_YAW_STEP_DEGREES));
 
                 OperatorController.povUp()
                                 .onTrue(Container.Turret
