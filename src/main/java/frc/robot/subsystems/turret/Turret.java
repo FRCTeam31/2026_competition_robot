@@ -307,9 +307,9 @@ public class Turret extends LoggedSubsystem {
         }
 
         // Hood
-        var pitch = _mutNominalTargetVector.getPitch();
-        System.out.println(pitch);
-        _turret.controlHood(Degrees.of(pitch));
+        // var pitch = _mutNominalTargetVector.getPitch();
+        // System.out.println(pitch);
+        // _turret.controlHood(Degrees.of(pitch));
         _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
