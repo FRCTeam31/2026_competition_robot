@@ -372,7 +372,7 @@ public class SwerveModuleReal implements ISwerveModule {
    */
   private MutDistance getModuleDistance() {
     // Get position in wheel rotations from the motor
-    var wheelRotations = _drivePosition.getValue().in(Rotations);
+    var wheelRotations = -_drivePosition.getValue().in(Rotations);
 
     // Convert to meters
     var distMeters = wheelRotations * SwerveMap.DriveWheelCircumferenceMeters;
