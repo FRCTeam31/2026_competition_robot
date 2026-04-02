@@ -11,6 +11,8 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -40,7 +42,7 @@ public class Container {
   public static Pneumatics Pneumatics;
   public static Hopper Hopper;
   public static Turret Turret;
-  // public static TurretV3 Turret;
+  public static PowerDistribution PD;
 
   public enum IntakeCombinedState {
     INWARDS,
@@ -66,7 +68,7 @@ public class Container {
       Pneumatics = new Pneumatics();
       Hopper = new Hopper();
       Turret = new Turret();
-      // Turret = new TurretV3();
+      PD = new PowerDistribution(1, ModuleType.kRev);
 
       // Create and bind the operator interface
       OperatorInterface.bindDriverControls();
