@@ -28,6 +28,7 @@ import frc.robot.subsystems.vision.VisionMap;
 
 import frc.robot.FieldTargets.TargetType;
 
+import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
@@ -48,7 +49,7 @@ import java.util.function.Supplier;
  */
 public class Turret extends LoggedSubsystem {
     private ITurret _turret;
-    private final TurretDeadZoneHelper _deadZoneHelper;
+    // private final TurretDeadZoneHelper _deadZoneHelper;
 
     /** The turret's high-level operating mode, toggled by the operator. */
     public enum OperatingMode {
@@ -159,9 +160,9 @@ public class Turret extends LoggedSubsystem {
                 ? new TurretReal()
                 : new TurretSim();
 
-        _deadZoneHelper = new TurretDeadZoneHelper(
-                TurretMap.DEADZONE_START_DEGREES,
-                TurretMap.DEADZONE_END_DEGREES);
+        // _deadZoneHelper = new TurretDeadZoneHelper(
+        //         TurretMap.DEADZONE_START_DEGREES,
+        //         TurretMap.DEADZONE_END_DEGREES);
 
         _turretYawResetSwitchEvent = new BooleanEvent(Robot.EventLoop,
                 () -> SuperStructure.Turret.TurretRotationResetSwitch)
@@ -302,13 +303,7 @@ public class Turret extends LoggedSubsystem {
         var turretPose = getTurretPose();
         var target = resolveAutoTarget(); // Keep logging updated even when not firing
 
-        //if (inputs.FiringState == FiringState.FIRING) {
         // Step 1: Resolve target
-        if (target == null) {
-            // _turret.controlHood(Degrees.of(TurretMap.HOOD_MAX_ANGLE_DEGREES));
-            return;
-        }
-
         if (target.type == TargetingType.kLimelight) {
             turretPose = Pose3d.kZero;
         }
@@ -323,14 +318,13 @@ public class Turret extends LoggedSubsystem {
             limelightCorrectionApplied = aimTurretYawUsingLimelight();
         }
         if (!limelightCorrectionApplied) {
-            _turret.controlYawAngle(Rotations.of(robotRelativeYawRotations));
+            var rot = Rotations.mutable(robotRelativeYawRotations);
+            SuperStructure.Turret.DesiredTurretRotationDegrees = rot.in(Degrees);
+            _turret.controlYawAngle(rot);
         }
 
         // Resolve hood and flywheel settings with distance and interpolation
         var shotSolution = resolveShotSolution(target.pose, turretPose);
-
-        // Hood
-        // _turret.controlHood(Degrees.of(shotSolution.hoodAngleDegrees()));
 
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
@@ -340,32 +334,8 @@ public class Turret extends LoggedSubsystem {
                 return;
             }
             recordOutput("ShotState", ShotState.SHOT_CALCULATED);
-            // ITurret.controlFlywheel accepts an AngularVelocity; use RotationsPerSecond
             _turret.controlFlywheel(RotationsPerSecond.of(shotSolution.flywheelRPS()));
         }
-
-        // // Hood
-        // // var pitch = _mutNominalTargetVector.getPitch();
-        // // System.out.println(pitch);
-        // // _turret.controlHood(Degrees.of(pitch));
-        // _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
-        // // Flywheel
-        // if (inputs.FiringState == FiringState.FIRING) {
-        //     // var targetVelocity = _mutNominalTargetVector.getMagnitude();
-        //     // _targetFlywheelVelocityRPS = _flywheelController.calculate(
-        //     //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
-
-        //     // Calculate flywheel speed from target velocity
-        //     // Made for use with a fixed hood
-        //     var targetVelocityMPS = _mutNominalTargetVector.getMagnitude();
-        //     _turret.controlFlywheel(RadiansPerSecond.of(targetVelocityMPS / TurretMap.FLYWHEEL_RADIUS));
-
-        //     // var calculatedFlywheelSpeed = (double)TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
-        //     // _turrcet.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
-
-        //     // // Used for testing
-        //     // _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
-        // }
 
         // Step 3: Once locked on, feed
         boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget;
@@ -374,10 +344,6 @@ public class Turret extends LoggedSubsystem {
         } else {
             _turret.setFeederSpeed(0);
         }
-        //} else {
-        // IDLE - return to home, flywheel to idle, stop feed
-        //goToHomePosition();
-        //}
     }
 
     /**
@@ -386,10 +352,6 @@ public class Turret extends LoggedSubsystem {
      */
     private void goToHomePosition() {
         var homeYawRotations = TurretMap.YAW_HOME_DEGREES / 360.0;
-        if (TurretMap.YAW_DEADZONE_ENABLED) {
-            homeYawRotations = _deadZoneHelper.computeLegalSetpoint(
-                    SuperStructure.Turret.TurretRotation.getRotations(), homeYawRotations);
-        }
         _turret.controlYawAngle(Rotations.of(homeYawRotations));
         // _turret.controlHood(Degrees.of(TurretMap.HOOD_HOME_DEGREES));
 
@@ -408,18 +370,18 @@ public class Turret extends LoggedSubsystem {
      */
     private void actOnManualMode(TurretInputsAutoLogged inputs) {
         // Apply manual yaw setpoint (respecting dead zone)
-        var manualYawRotations = Rotation2d.fromDegrees(_manualYawDegrees).getRotations();
-        if (TurretMap.YAW_DEADZONE_ENABLED) {
-            manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
-                    SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
-        }
+        var manualYawRotations = Rotation2d
+                .fromDegrees(MathUtil.clamp(_manualYawDegrees, TurretMap.DEADZONE_END_DEGREES,
+                        TurretMap.DEADZONE_START_DEGREES))
+                .getRotations();
+        // if (TurretMap.YAW_DEADZONE_ENABLED) {
+        //     manualYawRotations = MathUtil.clamp(manualYawRotations, lowRotLimit, highRotLimit);
+
+        // manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
+        //         SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
+        // }
         SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
         _turret.controlYawAngle(Rotations.mutable(manualYawRotations));
-        // _turret.controlHood(
-        //         Degrees.mutable(TurretMap.HOOD_MIN_ANGLE_DEGREES + (TurretMap.HOOD_ANGLE_RANGE_DEGREES / 2)));
-
-        // Apply manual hood setpoint
-        // _turret.controlHood(Degrees.of(_manualHoodDegrees));
 
         // Apply manual flywheel speed
         _turret.controlFlywheel(_manualFlywheelVelocityRPS);
@@ -526,22 +488,25 @@ public class Turret extends LoggedSubsystem {
 
         var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
         var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
+        var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
+        var lowRotLimit = TurretMap.DEADZONE_END_DEGREES / 360;
+        var highRotLimit = TurretMap.DEADZONE_START_DEGREES / 360;
 
-        if (TurretMap.YAW_DEADZONE_ENABLED) {
-            var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
-            var desiredDegrees = normRots * 360;
+        // if (TurretMap.YAW_DEADZONE_ENABLED) {
+        //     var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
+        //     var desiredDegrees = normRots * 360;
 
-            // Avoid setting any deadzone setpoint at all
-            if (desiredDegrees < TurretMap.DEADZONE_END_DEGREES || desiredDegrees > TurretMap.DEADZONE_START_DEGREES) {
-                return 0.5; // Always return to 0.5 rotations (180 degrees)
-            }
+        //     // Avoid setting any deadzone setpoint at all
+        //     if (desiredDegrees < TurretMap.DEADZONE_END_DEGREES || desiredDegrees > TurretMap.DEADZONE_START_DEGREES) {
+        //         return 0.5; // Always return to 0.5 rotations (180 degrees)
+        //     }
 
-            // robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
-            //         SuperStructure.Turret.TurretRotation.getRotations(),
-            //         robotRelativeYawRotations);
-        }
+        //     // robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
+        //     //         SuperStructure.Turret.TurretRotation.getRotations(),
+        //     //         robotRelativeYawRotations);
+        // }
 
-        return robotRelativeYawRotations;
+        return MathUtil.clamp(normRots, lowRotLimit, highRotLimit);
     }
 
     /**
