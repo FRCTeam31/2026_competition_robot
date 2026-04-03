@@ -90,8 +90,8 @@ public class TurretMap {
         public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MAX_HOOD_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(Map.entry(MAX_HOOD_MIN_DIST_METERS, RPM.of(2700).in(RotationsPerSecond)),
                                         Map.entry(Units.inchesToMeters(97.5), RPM.of(3200).in(RotationsPerSecond)),
-                                        Map.entry(Units.inchesToMeters(109.5), RPM.of(3400).in(RotationsPerSecond)),
-                                        Map.entry(MAX_HOOD_MAX_DIST_METERS, RPM.of(3600).in(RotationsPerSecond)));
+                                        Map.entry(Units.inchesToMeters(109.5), RPM.of(3500).in(RotationsPerSecond)),
+                                        Map.entry(MAX_HOOD_MAX_DIST_METERS, RPM.of(3700).in(RotationsPerSecond)));
 
         public static double MIN_HOOD_MIN_DIST_METERS = Units.inchesToMeters(72);
         public static double MIN_HOOD_MAX_DIST_METERS = Units.inchesToMeters(239);
