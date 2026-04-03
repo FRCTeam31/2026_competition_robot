@@ -51,8 +51,8 @@ public class TurretMap {
         // through the larger angle) that the turret physically cannot traverse.
         // Both values are in degrees, measured in the same frame as turret rotation (0-360).
         // Example: START = 170, END = 190 means a 20-degrees dead zone centered on 180-degrees.
-        public static final double DEADZONE_START_DEGREES = 315;
-        public static final double DEADZONE_END_DEGREES = 60;
+        public static final double DEADZONE_START_DEGREES = 285;
+        public static final double DEADZONE_END_DEGREES = 75;
 
         // ------------------------ Turret Geometry -----------------------
         public static final Rotation2d TURRET_ROTATION_FROM_ROBOT_CENTER_TANGENT = new Rotation2d()
