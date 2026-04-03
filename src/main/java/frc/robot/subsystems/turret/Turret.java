@@ -641,7 +641,7 @@ public class Turret extends LoggedSubsystem {
         return setOperatingMode(OperatingMode.MANUAL).andThen(this.runOnce(() -> {
             _manualYawDegrees = MathUtil.clamp(
                     _manualYawDegrees + deltaDegrees,
-                    0, 360);
+                    TurretMap.DEADZONE_END_DEGREES, TurretMap.DEADZONE_START_DEGREES);
         }));
     }
 
