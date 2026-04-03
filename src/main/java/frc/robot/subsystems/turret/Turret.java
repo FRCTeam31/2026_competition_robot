@@ -305,7 +305,7 @@ public class Turret extends LoggedSubsystem {
         //if (inputs.FiringState == FiringState.FIRING) {
         // Step 1: Resolve target
         if (target == null) {
-            _turret.controlHood(Degrees.of(TurretMap.HOOD_MAX_ANGLE_DEGREES));
+            // _turret.controlHood(Degrees.of(TurretMap.HOOD_MAX_ANGLE_DEGREES));
             return;
         }
 
@@ -330,7 +330,7 @@ public class Turret extends LoggedSubsystem {
         var shotSolution = resolveShotSolution(target.pose, turretPose);
 
         // Hood
-        _turret.controlHood(Degrees.of(shotSolution.hoodAngleDegrees()));
+        // _turret.controlHood(Degrees.of(shotSolution.hoodAngleDegrees()));
 
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
@@ -415,8 +415,8 @@ public class Turret extends LoggedSubsystem {
         }
         SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
         _turret.controlYawAngle(Rotations.mutable(manualYawRotations));
-        _turret.controlHood(
-                Degrees.mutable(TurretMap.HOOD_MIN_ANGLE_DEGREES + (TurretMap.HOOD_ANGLE_RANGE_DEGREES / 2)));
+        // _turret.controlHood(
+        //         Degrees.mutable(TurretMap.HOOD_MIN_ANGLE_DEGREES + (TurretMap.HOOD_ANGLE_RANGE_DEGREES / 2)));
 
         // Apply manual hood setpoint
         // _turret.controlHood(Degrees.of(_manualHoodDegrees));
@@ -479,12 +479,12 @@ public class Turret extends LoggedSubsystem {
         }
 
         // Fall back to min-hood map (Phase 2), if populated
-        if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
-            return new ShotSolution(
-                    TurretMap.TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP.get(distanceMeters),
-                    TurretMap.HOOD_HALF_ANGLE_DEGREES,
-                    ShotState.SHOT_CALCULATED);
-        }
+        // if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
+        //     return new ShotSolution(
+        //             TurretMap.TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP.get(distanceMeters),
+        //             TurretMap.HOOD_HALF_ANGLE_DEGREES,
+        //             ShotState.SHOT_CALCULATED);
+        // }
 
         return ShotSolution.notCalculated();
     }
