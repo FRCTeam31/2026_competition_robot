@@ -378,6 +378,8 @@ public class Turret extends LoggedSubsystem {
         }
         SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
         _turret.controlYawAngle(Rotations.mutable(manualYawRotations));
+        _turret.controlHood(
+                Degrees.mutable(TurretMap.HOOD_MIN_ANGLE_DEGREES + (TurretMap.HOOD_ANGLE_RANGE_DEGREES / 2)));
 
         // Apply manual hood setpoint
         // _turret.controlHood(Degrees.of(_manualHoodDegrees));

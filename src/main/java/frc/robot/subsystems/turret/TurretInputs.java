@@ -22,7 +22,7 @@ public class TurretInputs {
     public Angle FlywheelAngle = Degrees.of(0);
 
     // Operating mode (persists across firing cycles)
-    public Turret.OperatingMode OperatingMode = Turret.OperatingMode.AUTO;
+    public Turret.OperatingMode OperatingMode = Turret.OperatingMode.MANUAL;
 
     // Firing state (ephemeral: FIRING while button held, IDLE when released)
     public Turret.FiringState FiringState = Turret.FiringState.IDLE;
