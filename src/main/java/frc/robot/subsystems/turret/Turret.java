@@ -350,16 +350,16 @@ public class Turret extends LoggedSubsystem {
      * Sends the turret to its home position: yaw to 180-degrees, hood fully up (lowered),
      * flywheel to idle speed, feed stopped.
      */
-    private void goToHomePosition() {
-        var homeYawRotations = TurretMap.YAW_HOME_DEGREES / 360.0;
-        _turret.controlYawAngle(Rotations.of(homeYawRotations));
-        // _turret.controlHood(Degrees.of(TurretMap.HOOD_HOME_DEGREES));
+    // private void goToHomePosition() {
+    //     var homeYawRotations = TurretMap.YAW_HOME_DEGREES / 360.0;
+    //     _turret.controlYawAngle(Rotations.of(homeYawRotations));
+    //     // _turret.controlHood(Degrees.of(TurretMap.HOOD_HOME_DEGREES));
 
-        _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
-        _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
+    //     _targetFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+    //     _turret.controlFlywheel(RotationsPerSecond.of(_targetFlywheelVelocityRPS));
 
-        _turret.setFeederSpeed(0);
-    }
+    //     _turret.setFeederSpeed(0);
+    // }
 
     // =========================== MANUAL MODE ==============================
 
@@ -371,15 +371,9 @@ public class Turret extends LoggedSubsystem {
     private void actOnManualMode(TurretInputsAutoLogged inputs) {
         // Apply manual yaw setpoint (respecting dead zone)
         var manualYawRotations = Rotation2d
-                .fromDegrees(MathUtil.clamp(_manualYawDegrees, TurretMap.DEADZONE_END_DEGREES,
-                        TurretMap.DEADZONE_START_DEGREES))
+                .fromDegrees(_manualYawDegrees)
                 .getRotations();
-        // if (TurretMap.YAW_DEADZONE_ENABLED) {
-        //     manualYawRotations = MathUtil.clamp(manualYawRotations, lowRotLimit, highRotLimit);
 
-        // manualYawRotations = _deadZoneHelper.computeLegalSetpoint(
-        //         SuperStructure.Turret.TurretRotation.getRotations(), manualYawRotations);
-        // }
         SuperStructure.Turret.DesiredTurretRotationDegrees = Rotation2d.fromRotations(manualYawRotations).getDegrees();
         _turret.controlYawAngle(Rotations.mutable(manualYawRotations));
 
