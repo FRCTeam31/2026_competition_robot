@@ -86,10 +86,10 @@ public class OperatorInterface {
                                                 .andThen(Container.Hopper.setIntakeFeed(IntakeFeedState.STOPPED))
                                                 .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
-                OperatorController.x().onTrue(Commands
-                                .runOnce(() -> _automaticFeedState = _automaticFeedState != IntakeFeedState.STOPPED
-                                                ? IntakeFeedState.STOPPED
-                                                : IntakeFeedState.INWARDS));
+                // OperatorController.x().onTrue(Commands
+                //                 .runOnce(() -> _automaticFeedState = _automaticFeedState != IntakeFeedState.STOPPED
+                //                                 ? IntakeFeedState.STOPPED
+                //                                 : IntakeFeedState.INWARDS));
 
                 // Controls to toggle Turret auto and manual
                 OperatorController.leftBumper()
@@ -107,6 +107,9 @@ public class OperatorInterface {
                 OperatorController.povDown()
                                 .onTrue(Container.Turret
                                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
+
+                OperatorController.a().onTrue(Container.Turret.adjustManualHoodAngle(0.1));
+                OperatorController.x().onTrue(Container.Turret.adjustManualHoodAngle(0.1));
         }
 
         public void setControllerRumbleIntensity(SupplierXboxController controller, double intensity) {
