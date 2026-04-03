@@ -190,7 +190,7 @@ public class TurretDeadZoneHelper {
     /**
      * Normalises any rotation value into [0, 1).
      */
-    static double normalizeTo01(double rotations) {
+    public static double normalizeTo01(double rotations) {
         double mod = rotations % 1.0;
         return mod < 0 ? mod + 1.0 : mod;
     }

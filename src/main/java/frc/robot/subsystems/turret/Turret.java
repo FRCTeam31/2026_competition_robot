@@ -522,15 +522,23 @@ public class Turret extends LoggedSubsystem {
 
     private double getRobotRelativeYawSetpoint(MutVector aimVector) {
         var fieldYawDeg = aimVector.getYaw();
-        fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
+        // fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
 
         var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
         var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
 
         if (TurretMap.YAW_DEADZONE_ENABLED) {
-            robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
-                    SuperStructure.Turret.TurretRotation.getRotations(),
-                    robotRelativeYawRotations);
+            var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
+            var desiredDegrees = normRots * 360;
+
+            // Avoid setting any deadzone setpoint at all
+            if (desiredDegrees < TurretMap.DEADZONE_END_DEGREES || desiredDegrees > TurretMap.DEADZONE_START_DEGREES) {
+                return 0.5; // Always return to 0.5 rotations (180 degrees)
+            }
+
+            // robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
+            //         SuperStructure.Turret.TurretRotation.getRotations(),
+            //         robotRelativeYawRotations);
         }
 
         return robotRelativeYawRotations;
