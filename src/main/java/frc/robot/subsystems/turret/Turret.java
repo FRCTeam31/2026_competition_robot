@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -25,7 +26,7 @@ import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.VisionMap;
-
+import frc.robot.subsystems.vision.limelight.helpers.LimelightTarget_Fiducial;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degree;
@@ -317,18 +318,29 @@ public class Turret extends LoggedSubsystem {
 
         // Yaw
         var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
-        boolean limelightCorrectionApplied = false;
+        LimelightTarget_Fiducial primaryCenterHubFiducial = null;
         if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
-            limelightCorrectionApplied = aimTurretYawUsingLimelight();
+            primaryCenterHubFiducial = aimTurretYawUsingLimelight();
         }
-        if (!limelightCorrectionApplied) {
+        if (primaryCenterHubFiducial == null) {
             var rot = Rotations.mutable(robotRelativeYawRotations);
             SuperStructure.Turret.DesiredTurretRotationDegrees = rot.in(Degrees);
             _turret.controlYawAngle(rot);
         }
 
         // Resolve hood and flywheel settings with distance and interpolation
-        var shotSolution = resolveShotSolution(target.pose, turretPose);
+        ShotSolution shotSolution = null;
+        if (primaryCenterHubFiducial != null) {
+            var distanceMeters = primaryCenterHubFiducial.getTargetPose_CameraSpace().getTranslation().toTranslation2d()
+                    .getDistance(Translation2d.kZero);
+
+            shotSolution = resolveShotSolution(distanceMeters);
+        } else {
+            var distanceMeters = target.pose.getTranslation().toTranslation2d()
+                    .getDistance(turretPose.getTranslation().toTranslation2d());
+
+            shotSolution = resolveShotSolution(distanceMeters);
+        }
 
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
@@ -414,22 +426,19 @@ public class Turret extends LoggedSubsystem {
             return null;
         }
 
-        if (TurretMap.USE_LIMELIGHT_TARGETING) {
-            targetType = TargetingType.kLimelight;
-            var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
-            target = FieldTargets.GetHubTargetFromTag(
-                    limelightInputs.CurrentResults.targets_Fiducials[0].fiducialID,
-                    limelightInputs.TagPoseRobotSpace);
-        }
+        // if (TurretMap.USE_LIMELIGHT_TARGETING) {
+        //     targetType = TargetingType.kLimelight;
+        //     var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
+        //     target = FieldTargets.GetHubTargetFromTag(
+        //             limelightInputs.CurrentResults.targets_Fiducials[0].fiducialID,
+        //             limelightInputs.TagPoseRobotSpace);
+        // }
 
         recordOutput("Target Pose", target.targetPose());
         return new TargetingData(target.targetPose(), targetType);
     }
 
-    private ShotSolution resolveShotSolution(Pose3d targetPose, Pose3d turretPose) {
-        var distanceMeters = targetPose.getTranslation().toTranslation2d()
-                .getDistance(turretPose.getTranslation().toTranslation2d());
-
+    private ShotSolution resolveShotSolution(double distanceMeters) {
         // Prefer max-hood map
         if (distanceMeters < TurretMap.MAX_HOOD_MAX_DIST_METERS) {
             return new ShotSolution(
@@ -438,14 +447,6 @@ public class Turret extends LoggedSubsystem {
                     ShotState.SHOT_CALCULATED);
         }
 
-        // Fall back to min-hood map (Phase 2), if populated
-        // if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
-        //     return new ShotSolution(
-        //             TurretMap.TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP.get(distanceMeters),
-        //             TurretMap.HOOD_HALF_ANGLE_DEGREES,
-        //             ShotState.SHOT_CALCULATED);
-        // }
-
         return ShotSolution.notCalculated();
     }
 
@@ -453,56 +454,55 @@ public class Turret extends LoggedSubsystem {
      * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
      * @return true if correction was applied, false otherwise
      */
-    private boolean aimTurretYawUsingLimelight() {
+    private LimelightTarget_Fiducial aimTurretYawUsingLimelight() {
         var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
 
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
         if (!isTargetingHub) {
-            return false;
+            return null;
         }
 
-        // var isTargetAHubCenter = ...
-        if (limelightInputs.TargetHorizontalOffset == null) {
-            return false;
+        LimelightTarget_Fiducial primaryCenterHubFiducial = null;
+        for (var i = 0; i < limelightInputs.CurrentResults.targets_Fiducials.length; i++) {
+            var target = limelightInputs.CurrentResults.targets_Fiducials[i];
+            if (FieldTargets.Usable_Center_Hub_Targets.contains(target.fiducialID)) {
+                primaryCenterHubFiducial = target;
+                break;
+            }
         }
 
-        var horizontalError = limelightInputs.TargetHorizontalOffset;
-        if (Math.abs(horizontalError.getDegrees()) < TurretMap.TURRET_CORRECTION_THRESHOLD_DEGREES) {
-            return false;
+        if (primaryCenterHubFiducial == null) {
+            return null;
         }
 
-        double errorRotations = horizontalError.getDegrees() / 360.0;
-        double currentPositionRotations = SuperStructure.Turret.TurretRotation.getRotations();
-        double correctedPositionRotations = _yawFilter.calculate(currentPositionRotations + errorRotations);
+        // Apply a correction based on horizontal offset.
+        // tx is positive when target is right of crosshair; verify sign matches turret convention.
+        // Use a gain < 1.0 to reduce oscillation from latency/inertia.
+        var txCorrectionDegrees = primaryCenterHubFiducial.tx * 0.7;
+        var correctedYawDegrees = SuperStructure.Turret.TurretRotationDegrees + txCorrectionDegrees;
 
-        _turret.controlYawAngle(Rotations.of(correctedPositionRotations));
-        return true;
+        // Apply the same dead-zone / mechanical limits as the pose-based path
+        correctedYawDegrees = MathUtil.clamp(
+                correctedYawDegrees,
+                TurretMap.DEADZONE_END_DEGREES,
+                TurretMap.DEADZONE_START_DEGREES);
+
+        SuperStructure.Turret.DesiredTurretRotationDegrees = correctedYawDegrees;
+
+        // Convert to rotations for consistency with the pose-based path
+        _turret.controlYawAngle(Rotations.of(correctedYawDegrees / 360.0));
+        return primaryCenterHubFiducial;
     }
 
     private double getRobotRelativeYawSetpoint(MutVector aimVector) {
         var fieldYawDeg = aimVector.getYaw();
-        // fieldYawDeg += _manualYawInput * TurretMap.AUTO_AIM_YAW_TRIM_DEGREES;
 
         var robotHeadingDeg = SuperStructure.Swerve.EstimatedRobotPose.getRotation().getDegrees();
         var robotRelativeYawRotations = _yawFilter.calculate((fieldYawDeg - robotHeadingDeg) / 360.0);
         var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
         var lowRotLimit = TurretMap.DEADZONE_END_DEGREES / 360;
         var highRotLimit = TurretMap.DEADZONE_START_DEGREES / 360;
-
-        // if (TurretMap.YAW_DEADZONE_ENABLED) {
-        //     var normRots = TurretDeadZoneHelper.normalizeTo01(robotRelativeYawRotations);
-        //     var desiredDegrees = normRots * 360;
-
-        //     // Avoid setting any deadzone setpoint at all
-        //     if (desiredDegrees < TurretMap.DEADZONE_END_DEGREES || desiredDegrees > TurretMap.DEADZONE_START_DEGREES) {
-        //         return 0.5; // Always return to 0.5 rotations (180 degrees)
-        //     }
-
-        //     // robotRelativeYawRotations = _deadZoneHelper.computeLegalSetpoint(
-        //     //         SuperStructure.Turret.TurretRotation.getRotations(),
-        //     //         robotRelativeYawRotations);
-        // }
 
         return MathUtil.clamp(normRots, lowRotLimit, highRotLimit);
     }

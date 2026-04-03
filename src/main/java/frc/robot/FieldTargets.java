@@ -44,7 +44,7 @@ public class FieldTargets {
         public static final double ALLIANCE_ZONE_WIDTH = Units.inchesToMeters(156.61);
 
         // Hub Targets
-        private static final List<Double> Usable_Center_Hub_Targets = List.of(
+        public static final List<Double> Usable_Center_Hub_Targets = List.of(
                         18d,
                         26d,
                         21d,
