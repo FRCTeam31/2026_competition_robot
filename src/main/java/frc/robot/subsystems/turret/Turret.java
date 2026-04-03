@@ -300,7 +300,7 @@ public class Turret extends LoggedSubsystem {
      */
     private void actOnAutoMode(TurretInputsAutoLogged inputs) {
         var turretPose = getTurretPose();
-        var target = resolveAutoTarget(turretPose); // Keep logging updated even when not firing
+        var target = resolveAutoTarget(); // Keep logging updated even when not firing
 
         //if (inputs.FiringState == FiringState.FIRING) {
         // Step 1: Resolve target
@@ -438,18 +438,17 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Resolves the target position for auto-aiming and logs the predicted projectile trajectory.
+     * Resolves the target position for auto-aiming. Supports both pose-based
+     * and limelight-based targeting (feature-flagged).
      *
-     * @param turretPose The turret's field-relative 3D pose, used as the trajectory origin
-     * @return The resolved target {@link Pose3d}, or null if in a dead zone
+     * @return The resolved {@link TargetingData}, or null if in a dead zone
      */
-    private TargetingData resolveAutoTarget(Pose3d turretPose) {
+    private TargetingData resolveAutoTarget() {
         var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
         var targetType = TargetingType.kPose;
 
         if (target.targetType() == TargetType.kDead) {
             recordOutput("Target Pose", (Pose3d) null);
-            recordOutput("Optimal Fuel Trajectory", (Pose3d) null);
             return null;
         }
 
@@ -461,43 +460,7 @@ public class Turret extends LoggedSubsystem {
                     limelightInputs.TagPoseRobotSpace);
         }
 
-        recordOutput("Target Pose", target);
-
-        double velocityX = _mutNominalTargetVector.getX();
-        double velocityY = _mutNominalTargetVector.getY();
-        double velocityZ = _mutNominalTargetVector.getZ();
-
-        double initialX = turretPose.getX();
-        double initialY = turretPose.getY();
-        double initialZ = turretPose.getZ();
-
-        double horizontalSpeed = Math.hypot(velocityX, velocityY);
-        double deltaX = target.targetPose().getX() - initialX;
-        double deltaY = target.targetPose().getY() - initialY;
-        double distance = Math.hypot(deltaX, deltaY);
-        double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
-
-        var timeStep = 0.05;
-        int numPoints = (int) (totalTime / timeStep) + 1;
-        Pose3d[] trajectory = new Pose3d[numPoints];
-
-        for (int i = 0; i < numPoints; i++) {
-            double t = (numPoints > 1) ? totalTime * i / (numPoints - 1) : 0;
-            double x = initialX + velocityX * t;
-            double y = initialY + velocityY * t;
-            double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
-            double vx = velocityX;
-            double vy = velocityY;
-            double vz = velocityZ - GRAVITY * t;
-            double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
-            double yaw = Math.atan2(vy, vx);
-
-            trajectory[i] = new Pose3d(
-                    new Translation3d(x, y, z),
-                    new Rotation3d(0, pitch, yaw));
-        }
-
-        recordOutput("Optimal Fuel Trajectory", trajectory);
+        recordOutput("Target Pose", target.targetPose());
         return new TargetingData(target.targetPose(), targetType);
     }
 

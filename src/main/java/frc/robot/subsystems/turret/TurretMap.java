@@ -85,13 +85,13 @@ public class TurretMap {
         public static final double FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT = 5.0; // 5% tolerance
 
         // Distance in meters and flywheel speed in RPM
-        public static double MAX_HOOD_MIN_DIST_METERS = Units.inchesToMeters(24);
-        public static double MAX_HOOD_MAX_DIST_METERS = Units.inchesToMeters(117);
+        public static double MAX_HOOD_MIN_DIST_METERS = Units.inchesToMeters(47.5);
+        public static double MAX_HOOD_MAX_DIST_METERS = Units.inchesToMeters(140.5);
         public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MAX_HOOD_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(
                                         Map.entry(MAX_HOOD_MIN_DIST_METERS, RPM.of(2700).in(RotationsPerSecond)),
-                                        Map.entry(Units.inchesToMeters(74), RPM.of(3200).in(RotationsPerSecond)),
-                                        Map.entry(Units.inchesToMeters(86), RPM.of(3400).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(97.5), RPM.of(3200).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(109.5), RPM.of(3400).in(RotationsPerSecond)),
                                         Map.entry(MAX_HOOD_MAX_DIST_METERS, RPM.of(3600).in(RotationsPerSecond)));
 
         public static double MIN_HOOD_MIN_DIST_METERS = 0;
