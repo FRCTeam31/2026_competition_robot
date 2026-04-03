@@ -108,7 +108,7 @@ public class OperatorInterface {
                                 .onTrue(Container.Turret
                                                 .adjustManualFlywheelSpeed(-TurretMap.MANUAL_FLYWHEEL_STEP_RPS));
 
-                OperatorController.a().onTrue(Container.Turret.adjustManualHoodAngle(0.1));
+                OperatorController.a().onTrue(Container.Turret.adjustManualHoodAngle(-0.1));
                 OperatorController.x().onTrue(Container.Turret.adjustManualHoodAngle(0.1));
         }
 
