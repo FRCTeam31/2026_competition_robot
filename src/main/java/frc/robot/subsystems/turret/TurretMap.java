@@ -106,7 +106,7 @@ public class TurretMap {
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
         public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        // public static final double HOOD_MAX_ANGLE_DEGREES = 23.85; // Hood fully retracted
+        public static final double HOOD_HALF_ANGLE_DEGREES = 23.85;
         public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         // public static final double HOOD_MIN_ANGLE_DEGREES = HOOD_MAX_ANGLE_DEGREES; // Hood fully extended
         public static final double HOOD_ANGLE_RANGE_DEGREES = HOOD_MAX_ANGLE_DEGREES - HOOD_MIN_ANGLE_DEGREES;
