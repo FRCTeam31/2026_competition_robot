@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.LEDPattern;
 import frc.robot.Container;
 import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.turret.Turret.FiringState;
-import frc.robot.subsystems.turret.Turret.LockOnState;
+import frc.robot.subsystems.turret.Turret.ShotState;
 import frc.robot.subsystems.turret.Turret.OperatingMode;
 
 public class TurretLEDHelper {
@@ -19,7 +19,7 @@ public class TurretLEDHelper {
     public static LEDPattern resolveDesiredLedPattern(TurretInputsAutoLogged inputs) {
         boolean firing = inputs.FiringState == FiringState.FIRING;
         boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
-        boolean shotFailed = inputs.ShotCalculationState == LockOnState.SHOT_NOT_CALCULATED;
+        boolean shotFailed = inputs.ShotCalculationState == ShotState.SHOT_NOT_CALCULATED;
 
         if (inputs.OperatingMode == OperatingMode.AUTO) {
             if (firing && allOnTarget) {
