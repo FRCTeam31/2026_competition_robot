@@ -304,6 +304,10 @@ public class Turret extends LoggedSubsystem {
         var target = resolveAutoTarget(); // Keep logging updated even when not firing
 
         // Step 1: Resolve target
+        if (target == null) {
+            // dead target
+            return;
+        }
         if (target.type == TargetingType.kLimelight) {
             turretPose = Pose3d.kZero;
         }
