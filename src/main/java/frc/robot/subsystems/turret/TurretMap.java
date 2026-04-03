@@ -88,16 +88,19 @@ public class TurretMap {
         public static double MAX_HOOD_MIN_DIST_METERS = Units.inchesToMeters(47.5);
         public static double MAX_HOOD_MAX_DIST_METERS = Units.inchesToMeters(140.5);
         public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MAX_HOOD_MAP = InterpolatingDoubleTreeMap
-                        .ofEntries(
-                                        Map.entry(MAX_HOOD_MIN_DIST_METERS, RPM.of(2700).in(RotationsPerSecond)),
+                        .ofEntries(Map.entry(MAX_HOOD_MIN_DIST_METERS, RPM.of(2700).in(RotationsPerSecond)),
                                         Map.entry(Units.inchesToMeters(97.5), RPM.of(3200).in(RotationsPerSecond)),
                                         Map.entry(Units.inchesToMeters(109.5), RPM.of(3400).in(RotationsPerSecond)),
                                         Map.entry(MAX_HOOD_MAX_DIST_METERS, RPM.of(3600).in(RotationsPerSecond)));
 
-        public static double MIN_HOOD_MIN_DIST_METERS = 0;
-        public static double MIN_HOOD_MAX_DIST_METERS = 10;
+        public static double MIN_HOOD_MIN_DIST_METERS = Units.inchesToMeters(72);
+        public static double MIN_HOOD_MAX_DIST_METERS = Units.inchesToMeters(239);
         public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP = InterpolatingDoubleTreeMap
-                        .ofEntries();
+                        .ofEntries(Map.entry(MIN_HOOD_MIN_DIST_METERS, RPM.of(2000).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(108), RPM.of(2600).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(152), RPM.of(3100).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(213), RPM.of(3700).in(RotationsPerSecond)),
+                                        Map.entry(MIN_HOOD_MAX_DIST_METERS, RPM.of(4200).in(RotationsPerSecond)));
 
         // ------------------------ Hood -----------------------------------
         public static final int HOOD_CAN_ID = 18;

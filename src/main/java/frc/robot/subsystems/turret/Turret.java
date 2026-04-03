@@ -478,14 +478,13 @@ public class Turret extends LoggedSubsystem {
                     ShotState.SHOT_CALCULATED);
         }
 
-        // TODO: Enable after phase 2 measurements
         // Fall back to min-hood map (Phase 2), if populated
-        // if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
-        //     return new ShotSolution(
-        //             TurretMap.TARGET_DIST_FLYSPEED_MIN_HOOD_MAP.get(distanceMeters),
-        //             TurretMap.HOOD_MIN_ANGLE_DEGREES,
-        //             ShotState.SHOT_CALCULATED);
-        // }
+        if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
+            return new ShotSolution(
+                    TurretMap.TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP.get(distanceMeters),
+                    TurretMap.HOOD_HALF_ANGLE_DEGREES,
+                    ShotState.SHOT_CALCULATED);
+        }
 
         return ShotSolution.notCalculated();
     }
