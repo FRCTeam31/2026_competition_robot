@@ -4,6 +4,7 @@ import java.util.Map;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Millimeters;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
@@ -82,12 +83,21 @@ public class TurretMap {
         public static final double FLYWHEEL_MAX_SPEED_RPS = 90;
         public static final double FLYWHEEL_MIN_SPEED_RPS = 0.0;
         public static final double FLYWHEEL_AT_SPEED_TOLERANCE_PERCENT = 5.0; // 5% tolerance
-        // TODO: Find target velocities and flywheel speeds through testing
-        public static final InterpolatingDoubleTreeMap TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP = InterpolatingDoubleTreeMap
+
+        // Distance in meters and flywheel speed in RPM
+        public static double MAX_HOOD_MIN_DIST_METERS = Units.inchesToMeters(47.5);
+        public static double MAX_HOOD_MAX_DIST_METERS = Units.inchesToMeters(140.5);
+        public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MAX_HOOD_MAP = InterpolatingDoubleTreeMap
                         .ofEntries(
-                                        // Velocity in m/s and flywheel speed in RPM
-                                        Map.entry(0.0, 0.0),
-                                        Map.entry(1.0, 1.0));
+                                        Map.entry(MAX_HOOD_MIN_DIST_METERS, RPM.of(2700).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(97.5), RPM.of(3200).in(RotationsPerSecond)),
+                                        Map.entry(Units.inchesToMeters(109.5), RPM.of(3400).in(RotationsPerSecond)),
+                                        Map.entry(MAX_HOOD_MAX_DIST_METERS, RPM.of(3600).in(RotationsPerSecond)));
+
+        public static double MIN_HOOD_MIN_DIST_METERS = 0;
+        public static double MIN_HOOD_MAX_DIST_METERS = 10;
+        public static final InterpolatingDoubleTreeMap TARGET_DIST_FLYSPEED_RPS_MIN_HOOD_MAP = InterpolatingDoubleTreeMap
+                        .ofEntries();
 
         // ------------------------ Hood -----------------------------------
         public static final int HOOD_CAN_ID = 18;

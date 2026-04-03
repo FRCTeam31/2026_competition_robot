@@ -28,7 +28,7 @@ public class TurretInputs {
     public Turret.FiringState FiringState = Turret.FiringState.IDLE;
 
     // Lock-on tracking
-    public Turret.LockOnState ShotCalculationState = Turret.LockOnState.SHOT_NOT_CALCULATED;
+    public Turret.ShotState ShotCalculationState = Turret.ShotState.SHOT_NOT_CALCULATED;
 
     // Feed direction
     public Turret.UptakeState FeedState = Turret.UptakeState.STOPPED;

@@ -62,11 +62,12 @@ public class FieldTargets {
                         24d,
                         8d);
 
-        private static final Transform3d Center_Hub_Target_Offset = new Transform3d();
+        private static final Transform3d Center_Hub_Target_Offset = new Transform3d(Units.inchesToMeters(-23.5), 0, 0,
+                        Rotation3d.kZero);
         private static final Transform3d Left_Hub_Target_Offset = Center_Hub_Target_Offset
-                        .plus(new Transform3d(0, 0, 0, Rotation3d.kZero));
+                        .plus(new Transform3d(0, Units.inchesToMeters(14), 0, Rotation3d.kZero));
         private static final Transform3d Right_Hub_Target_Offset = Center_Hub_Target_Offset
-                        .plus(new Transform3d(0, 0, 0, Rotation3d.kZero));
+                        .plus(new Transform3d(0, Units.inchesToMeters(-14), 0, Rotation3d.kZero));
 
         private static final Pose3d Blue_Hub_Position = new Pose3d(
                         new Translation3d(

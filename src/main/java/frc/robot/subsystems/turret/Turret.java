@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
@@ -28,7 +29,6 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
@@ -71,12 +71,31 @@ public class Turret extends LoggedSubsystem {
     /**
      * Tracks the progress of the turret's shot readiness pipeline.
      */
-    public enum LockOnState {
+    public enum ShotState {
         /** Ballistics solution found - a valid aim vector exists. */
         SHOT_CALCULATED,
         /** No valid ballistics solution. */
         SHOT_NOT_CALCULATED
     }
+
+    public record ShotSolution(
+            double flywheelRPS,
+            double hoodAngleDegrees,
+            ShotState state) {
+        public static ShotSolution notCalculated() {
+            return new ShotSolution(0.0, TurretMap.HOOD_MAX_ANGLE_DEGREES, ShotState.SHOT_NOT_CALCULATED);
+        }
+    }
+
+    // public record ShotSolution(
+    //     double flywheelRPS,
+    //     double hoodAngleDegrees,
+    //     ShotState state
+    // ) {
+    //     public static ShotSolution notCalculated() {
+    //         return new ShotSolution(0.0, TurretMap.HOOD_MAX_ANGLE_DEGREES, ShotState.NOT_CALCULATED);
+    //     }
+    // }
 
     /** Represents the direction of the feeder/uptake mechanism. */
     public enum UptakeState {
@@ -98,7 +117,7 @@ public class Turret extends LoggedSubsystem {
     public double _testdistance = 0;
 
     // -------------------- Manual Setpoints --------------------------
-    private double _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+    private AngularVelocity _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.mutableCopy();
     private double _manualYawDegrees = TurretMap.YAW_HOME_DEGREES;
     private double _manualHoodDegrees = TurretMap.HOOD_HOME_DEGREES;
 
@@ -167,7 +186,7 @@ public class Turret extends LoggedSubsystem {
         _testdistance = targetDistance;
         if (targetDistance < TurretMap.MIN_SHOT_DISTANCE_METERS) {
             _targetTooCloseAlert.set(true);
-            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
+            SuperStructure.Turret.ShotCalculationState = ShotState.SHOT_NOT_CALCULATED;
             return;
         }
         _targetTooCloseAlert.set(false);
@@ -184,7 +203,7 @@ public class Turret extends LoggedSubsystem {
                     TurretMap.HOOD_MAX_ANGLE_DEGREES,
                     TurretMap.FLYWHEEL_MIN_SPEED_RPS,
                     TurretMap.FLYWHEEL_MAX_SPEED_RPS);
-            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_CALCULATED;
+            SuperStructure.Turret.ShotCalculationState = ShotState.SHOT_CALCULATED;
 
             // TODO: Enable after empirical measurements correlating distance to required flywheel speed are taken
             // if (TurretMap.USE_SPEED_INTERPOLATION) {
@@ -214,7 +233,7 @@ public class Turret extends LoggedSubsystem {
             _exceptionWhileCalculatingShotAlert.set(false);
         } catch (Exception e) {
             _exceptionWhileCalculatingShotAlert.set(true);
-            SuperStructure.Turret.ShotCalculationState = LockOnState.SHOT_NOT_CALCULATED;
+            SuperStructure.Turret.ShotCalculationState = ShotState.SHOT_NOT_CALCULATED;
         }
     }
 
@@ -281,7 +300,7 @@ public class Turret extends LoggedSubsystem {
      */
     private void actOnAutoMode(TurretInputsAutoLogged inputs) {
         var turretPose = getTurretPose();
-        var target = resolveAutoTarget(turretPose); // Keep logging updated even when not firing
+        var target = resolveAutoTarget(); // Keep logging updated even when not firing
 
         //if (inputs.FiringState == FiringState.FIRING) {
         // Step 1: Resolve target
@@ -307,31 +326,49 @@ public class Turret extends LoggedSubsystem {
             _turret.controlYawAngle(Rotations.of(robotRelativeYawRotations));
         }
 
+        // Resolve hood and flywheel settings with distance and interpolation
+        var shotSolution = resolveShotSolution(target.pose, turretPose);
+
         // Hood
-        // var pitch = _mutNominalTargetVector.getPitch();
-        // System.out.println(pitch);
-        // _turret.controlHood(Degrees.of(pitch));
-        _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
+        _turret.controlHood(Degrees.of(shotSolution.hoodAngleDegrees()));
+
         // Flywheel
         if (inputs.FiringState == FiringState.FIRING) {
-            // var targetVelocity = _mutNominalTargetVector.getMagnitude();
-            // _targetFlywheelVelocityRPS = _flywheelController.calculate(
-            //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
-
-            // Calculate flywheel speed from target velocity
-            // Made for use with a fixed hood
-            var targetVelocityMPS = _mutNominalTargetVector.getMagnitude();
-            _turret.controlFlywheel(RadiansPerSecond.of(targetVelocityMPS / TurretMap.FLYWHEEL_RADIUS));
-
-            // var calculatedFlywheelSpeed = (double)TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
-            // _turrcet.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
-
-            // // Used for testing
-            // _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
+            if (shotSolution.state() == ShotState.SHOT_NOT_CALCULATED) {
+                _turret.setFeederSpeed(0); // never shoot blind - change if we want a default
+                recordOutput("ShotState", ShotState.SHOT_NOT_CALCULATED);
+                return;
+            }
+            recordOutput("ShotState", ShotState.SHOT_CALCULATED);
+            // ITurret.controlFlywheel accepts an AngularVelocity; use RotationsPerSecond
+            _turret.controlFlywheel(RotationsPerSecond.of(shotSolution.flywheelRPS()));
         }
 
+        // // Hood
+        // // var pitch = _mutNominalTargetVector.getPitch();
+        // // System.out.println(pitch);
+        // // _turret.controlHood(Degrees.of(pitch));
+        // _testtargetvelocity = _mutNominalTargetVector.getMagnitude();
+        // // Flywheel
+        // if (inputs.FiringState == FiringState.FIRING) {
+        //     // var targetVelocity = _mutNominalTargetVector.getMagnitude();
+        //     // _targetFlywheelVelocityRPS = _flywheelController.calculate(
+        //     //      targetVelocity, SuperStructure.Turret.HoodAngle.in(Degrees));
+
+        //     // Calculate flywheel speed from target velocity
+        //     // Made for use with a fixed hood
+        //     var targetVelocityMPS = _mutNominalTargetVector.getMagnitude();
+        //     _turret.controlFlywheel(RadiansPerSecond.of(targetVelocityMPS / TurretMap.FLYWHEEL_RADIUS));
+
+        //     // var calculatedFlywheelSpeed = (double)TurretMap.TARGET_VELOCITY_TO_FLYHEEL_SPEED_MAP.get(targetVelocity);
+        //     // _turrcet.controlFlywheel(RPM.of(calculatedFlywheelSpeed));
+
+        //     // // Used for testing
+        //     // _turret.controlFlywheel(RPM.of(_testFluwheelSpeed));
+        // }
+
         // Step 3: Once locked on, feed
-        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget && inputs.HoodOnTarget;
+        boolean allOnTarget = inputs.FlywheelAtTargetSpeed && inputs.YawOnTarget;
         if (allOnTarget) {
             actOnFeedState(inputs.FeedState);
         } else {
@@ -385,8 +422,7 @@ public class Turret extends LoggedSubsystem {
         // _turret.controlHood(Degrees.of(_manualHoodDegrees));
 
         // Apply manual flywheel speed
-        _targetFlywheelVelocityRPS = _manualFlywheelVelocityRPS;
-        _turret.controlFlywheel(RotationsPerSecond.mutable(_targetFlywheelVelocityRPS));
+        _turret.controlFlywheel(_manualFlywheelVelocityRPS);
 
         // Feed: run immediately when firing, stop when idle
         if (inputs.FiringState == FiringState.FIRING) {
@@ -404,18 +440,17 @@ public class Turret extends LoggedSubsystem {
     }
 
     /**
-     * Resolves the target position for auto-aiming and logs the predicted projectile trajectory.
+     * Resolves the target position for auto-aiming. Supports both pose-based
+     * and limelight-based targeting (feature-flagged).
      *
-     * @param turretPose The turret's field-relative 3D pose, used as the trajectory origin
-     * @return The resolved target {@link Pose3d}, or null if in a dead zone
+     * @return The resolved {@link TargetingData}, or null if in a dead zone
      */
-    private TargetingData resolveAutoTarget(Pose3d turretPose) {
+    private TargetingData resolveAutoTarget() {
         var target = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose);
         var targetType = TargetingType.kPose;
 
         if (target.targetType() == TargetType.kDead) {
             recordOutput("Target Pose", (Pose3d) null);
-            recordOutput("Optimal Fuel Trajectory", (Pose3d) null);
             return null;
         }
 
@@ -427,44 +462,32 @@ public class Turret extends LoggedSubsystem {
                     limelightInputs.TagPoseRobotSpace);
         }
 
-        recordOutput("Target Pose", target);
+        recordOutput("Target Pose", target.targetPose());
+        return new TargetingData(target.targetPose(), targetType);
+    }
 
-        double velocityX = _mutNominalTargetVector.getX();
-        double velocityY = _mutNominalTargetVector.getY();
-        double velocityZ = _mutNominalTargetVector.getZ();
+    private ShotSolution resolveShotSolution(Pose3d targetPose, Pose3d turretPose) {
+        var distanceMeters = targetPose.getTranslation().toTranslation2d()
+                .getDistance(turretPose.getTranslation().toTranslation2d());
 
-        double initialX = turretPose.getX();
-        double initialY = turretPose.getY();
-        double initialZ = turretPose.getZ();
-
-        double horizontalSpeed = Math.hypot(velocityX, velocityY);
-        double deltaX = target.targetPose().getX() - initialX;
-        double deltaY = target.targetPose().getY() - initialY;
-        double distance = Math.hypot(deltaX, deltaY);
-        double totalTime = (horizontalSpeed > 1e-6) ? distance / horizontalSpeed : 0;
-
-        var timeStep = 0.05;
-        int numPoints = (int) (totalTime / timeStep) + 1;
-        Pose3d[] trajectory = new Pose3d[numPoints];
-
-        for (int i = 0; i < numPoints; i++) {
-            double t = (numPoints > 1) ? totalTime * i / (numPoints - 1) : 0;
-            double x = initialX + velocityX * t;
-            double y = initialY + velocityY * t;
-            double z = initialZ + velocityZ * t - 0.5 * GRAVITY * t * t;
-            double vx = velocityX;
-            double vy = velocityY;
-            double vz = velocityZ - GRAVITY * t;
-            double pitch = Math.atan2(vz, Math.sqrt(vx * vx + vy * vy));
-            double yaw = Math.atan2(vy, vx);
-
-            trajectory[i] = new Pose3d(
-                    new Translation3d(x, y, z),
-                    new Rotation3d(0, pitch, yaw));
+        // Prefer max-hood map
+        if (distanceMeters < TurretMap.MAX_HOOD_MAX_DIST_METERS) {
+            return new ShotSolution(
+                    TurretMap.TARGET_DIST_FLYSPEED_RPS_MAX_HOOD_MAP.get(distanceMeters),
+                    TurretMap.HOOD_MAX_ANGLE_DEGREES,
+                    ShotState.SHOT_CALCULATED);
         }
 
-        recordOutput("Optimal Fuel Trajectory", trajectory);
-        return new TargetingData(target.targetPose(), targetType);
+        // TODO: Enable after phase 2 measurements
+        // Fall back to min-hood map (Phase 2), if populated
+        // if (distanceMeters <= TurretMap.MIN_HOOD_MAX_DIST_METERS) {
+        //     return new ShotSolution(
+        //             TurretMap.TARGET_DIST_FLYSPEED_MIN_HOOD_MAP.get(distanceMeters),
+        //             TurretMap.HOOD_MIN_ANGLE_DEGREES,
+        //             ShotState.SHOT_CALCULATED);
+        // }
+
+        return ShotSolution.notCalculated();
     }
 
     /**
@@ -582,7 +605,7 @@ public class Turret extends LoggedSubsystem {
                 // Reset manual setpoints to home when switching back to auto
                 _manualYawDegrees = TurretMap.YAW_HOME_DEGREES;
                 _manualHoodDegrees = TurretMap.HOOD_HOME_DEGREES;
-                _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.in(RotationsPerSecond);
+                _manualFlywheelVelocityRPS = TurretMap.FLYWHEEL_IDLE_VELOCITY.mutableCopy();
             }
         });
     }
@@ -620,9 +643,9 @@ public class Turret extends LoggedSubsystem {
      */
     public Command adjustManualFlywheelSpeed(double deltaRPS) {
         return setOperatingMode(OperatingMode.MANUAL).andThen(this.runOnce(() -> {
-            _manualFlywheelVelocityRPS = MathUtil.clamp(
-                    _manualFlywheelVelocityRPS + deltaRPS,
-                    0, TurretMap.FLYWHEEL_MAX_SPEED_RPS);
+            _manualFlywheelVelocityRPS = RotationsPerSecond.mutable(MathUtil.clamp(
+                    _manualFlywheelVelocityRPS.in(RotationsPerSecond) + deltaRPS,
+                    0, TurretMap.FLYWHEEL_MAX_SPEED_RPS));
         }));
     }
 
