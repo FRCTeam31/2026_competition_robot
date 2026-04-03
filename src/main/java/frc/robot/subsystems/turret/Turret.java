@@ -33,6 +33,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static org.prime.util.PhysicsConstants.GRAVITY;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -670,5 +671,13 @@ public class Turret extends LoggedSubsystem {
                     _turret.setHoodPercentOut(0);
                     _isHomingHood = false;
                 });
+    }
+
+    // Default Command
+
+    public Command controlTurretYawWithStick(DoubleSupplier value) {
+        return Commands.run(() -> {
+            adjustManualYaw(value.getAsDouble() * TurretMap.TURRET_YAW_MANUAL_SENSITIVITY);
+        });
     }
 }

@@ -92,8 +92,8 @@ public class TurretMap {
         // ------------------------ Hood -----------------------------------
         public static final int HOOD_CAN_ID = 18;
         public static final boolean HOOD_INVERTED = false;
-        // public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
-        public static final double HOOD_MAX_ANGLE_DEGREES = 23.85; // Hood fully retracted
+        public static final double HOOD_MAX_ANGLE_DEGREES = 35.1; // Hood fully retracted
+        // public static final double HOOD_MAX_ANGLE_DEGREES = 23.85; // Hood fully retracted
         // public static final double HOOD_MIN_ANGLE_DEGREES = 12.6; // Hood fully extended
         public static final double HOOD_MIN_ANGLE_DEGREES = HOOD_MAX_ANGLE_DEGREES; // Hood fully extended
         public static final double HOOD_ANGLE_RANGE_DEGREES = HOOD_MAX_ANGLE_DEGREES - HOOD_MIN_ANGLE_DEGREES;
@@ -129,6 +129,7 @@ public class TurretMap {
         public static final double HUB_OVERSHOOT_HEIGHT = 0.2;
         public static final double MIN_SHOT_DISTANCE_METERS = 0;
         public static final double FLYWHEEL_GEAR_RATIO = 32d / 50d; // 32t on motor gear, 50t on flywheel gear
+        public static final double TURRET_YAW_MANUAL_SENSITIVITY = 30 / 50;
 
         // ------------------------ Limelight ------------------------------
         // Offset from turret rotation center (in meters) and fixed rotation relative to turret (in radians)

@@ -63,6 +63,9 @@ public class OperatorInterface {
                 // Left d-pad - Turret yaw CCW / manual mode
                 // Right d-pad - Turret yaw CW / manual mode
 
+                // Container.Turret.setDefaultCommand(Container.Turret
+                //                 .controlTurretYawWithStick(OperatorController.getLeftStickXSupplier(0)));
+
                 OperatorController.rightTrigger()
                                 .onTrue(Container.Turret.setFeed(UptakeState.FORWARDS)
                                                 .andThen(Container.Turret.setFiring(FiringState.FIRING))
