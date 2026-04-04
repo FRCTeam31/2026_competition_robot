@@ -163,9 +163,9 @@ public class Robot extends LoggedRobot {
       _autonomousCommand.cancel();
 
     // _autonomousCommand = Container.AutoChooser.getSelected();
-    // _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
-    //     .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
-    //     .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
+    _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
+        .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
 
     if (_autonomousCommand == null || _autonomousCommand == Commands.none()) {
       DriverStation.reportError("[ERROR] >> No auto command selected", false);
@@ -185,9 +185,9 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void teleopInit() {
-    // CommandScheduler.getInstance().schedule(Container.Turret.setFeed(UptakeState.STOPPED)
-    //     .andThen(Container.Turret.setFiring(FiringState.FIRING))
-    //     .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+    CommandScheduler.getInstance().schedule(Container.Turret.setFeed(UptakeState.STOPPED)
+        .andThen(Container.Turret.setFiring(FiringState.IDLE))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
 
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
