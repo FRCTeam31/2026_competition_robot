@@ -45,6 +45,7 @@ public class LimelightHelpers {
     /**
      * Represents a Color/Retroreflective Target Result extracted from JSON Output
      */
+    @AutoLog
     public static class LimelightTarget_Retro {
 
         @JsonProperty("t6c_ts")
@@ -139,6 +140,7 @@ public class LimelightHelpers {
     /**
      * Represents an AprilTag/Fiducial Target Result extracted from JSON Output
      */
+    @AutoLog
     public static class LimelightTarget_Fiducial {
 
         @JsonProperty("fID")
@@ -238,6 +240,7 @@ public class LimelightHelpers {
     /**
      * Represents a Barcode Target Result extracted from JSON Output
      */
+    @AutoLog
     public static class LimelightTarget_Barcode {
 
         /**
@@ -287,6 +290,7 @@ public class LimelightHelpers {
     /**
      * Represents a Neural Classifier Pipeline Result extracted from JSON Output
      */
+    @AutoLog
     public static class LimelightTarget_Classifier {
 
         @JsonProperty("class")
@@ -320,6 +324,7 @@ public class LimelightHelpers {
     /**
      * Represents a Neural Detector Pipeline Result extracted from JSON Output
      */
+    @AutoLog
     public static class LimelightTarget_Detector {
 
         @JsonProperty("class")
@@ -359,6 +364,7 @@ public class LimelightHelpers {
     /**
      * Represents hardware statistics from the Limelight.
      */
+    @AutoLog
     public static class HardwareReport {
         @JsonProperty("cid")
         public String cameraId;
@@ -385,6 +391,7 @@ public class LimelightHelpers {
     /**
      * Represents IMU data from the JSON results.
      */
+    @AutoLog
     public static class IMUResults {
         @JsonProperty("data")
         public double[] data;
@@ -431,6 +438,7 @@ public class LimelightHelpers {
     /**
      * Represents capture rewind buffer statistics.
      */
+    @AutoLog
     public static class RewindStats {
         @JsonProperty("bufferUsage")
         public double bufferUsage;
@@ -616,6 +624,7 @@ public class LimelightHelpers {
     /**
      * Represents a Limelight Raw Fiducial result from Limelight's NetworkTables output.
      */
+    @AutoLog
     public static class RawFiducial {
         public int id = 0;
         public double txnc = 0;
@@ -657,6 +666,7 @@ public class LimelightHelpers {
     /**
      * Represents a Limelight Raw Target/Contour result from Limelight's NetworkTables output.
      */
+    @AutoLog
     public static class RawTarget {
         public double txnc = 0;
         public double tync = 0;
@@ -684,6 +694,7 @@ public class LimelightHelpers {
     /**
      * Represents a Limelight Raw Neural Detector result from Limelight's NetworkTables output.
      */
+    @AutoLog
     public static class RawDetection {
         public int classId = 0;
         public double txnc = 0;
@@ -787,6 +798,7 @@ public class LimelightHelpers {
     /**
      * Encapsulates the state of an internal Limelight IMU.
      */
+    @AutoLog
     public static class IMUData {
         public double robotYaw = 0.0;
         public double Roll = 0.0;
