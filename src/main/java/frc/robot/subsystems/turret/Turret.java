@@ -461,6 +461,7 @@ public class Turret extends LoggedSubsystem {
 
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
                 .targetType() == TargetType.kHub;
+        recordOutput("isTargetingHub", isTargetingHub);
         if (!isTargetingHub) {
             return null;
         }
@@ -475,8 +476,12 @@ public class Turret extends LoggedSubsystem {
         }
 
         if (primaryCenterHubFiducial == null) {
+            recordOutput("targetedCenterHub", false);
             return null;
         }
+
+        recordOutput("targetedCenterHub", true);
+        recordOutput("targetedFiducialID", primaryCenterHubFiducial.fiducialID);
 
         // Apply a correction based on horizontal offset.
         // tx is positive when target is right of crosshair; verify sign matches turret convention.
