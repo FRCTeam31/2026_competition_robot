@@ -320,11 +320,11 @@ public class Turret extends LoggedSubsystem {
 
         // Yaw
         var robotRelativeYawRotations = getRobotRelativeYawSetpoint(_mutNominalTargetVector);
-        LimelightTarget_Fiducial primaryCenterHubFiducial = null;
+        Pose3d limelightTargetPoseCameraSpace = null;
         if (TurretMap.USE_LIMELIGHT_YAW_CORRECTION) {
-            primaryCenterHubFiducial = aimTurretYawUsingLimelight();
+            limelightTargetPoseCameraSpace = aimTurretYawUsingLimelight();
         }
-        if (primaryCenterHubFiducial == null) {
+        if (limelightTargetPoseCameraSpace == null) {
             var rot = Rotations.mutable(robotRelativeYawRotations);
             SuperStructure.Turret.DesiredTurretRotationDegrees = rot.in(Degrees);
             _turret.controlYawAngle(rot);
@@ -332,8 +332,8 @@ public class Turret extends LoggedSubsystem {
 
         // Resolve hood and flywheel settings with distance and interpolation
         ShotSolution shotSolution = null;
-        if (primaryCenterHubFiducial != null) {
-            var distanceMeters = primaryCenterHubFiducial.getTargetPose_CameraSpace().getTranslation().toTranslation2d()
+        if (limelightTargetPoseCameraSpace != null) {
+            var distanceMeters = limelightTargetPoseCameraSpace.getTranslation().toTranslation2d()
                     .getDistance(Translation2d.kZero);
 
             shotSolution = resolveShotSolution(distanceMeters);
@@ -456,7 +456,7 @@ public class Turret extends LoggedSubsystem {
      * Corrects the turret's yaw position based on the horizontal offset from the limelight target.
      * @return true if correction was applied, false otherwise
      */
-    private LimelightTarget_Fiducial aimTurretYawUsingLimelight() {
+    private Pose3d aimTurretYawUsingLimelight() {
         var limelightInputs = SuperStructure.VisionLimelights.get(VisionMap.LimelightTurretName);
 
         boolean isTargetingHub = FieldTargets.GetTargetPosition(SuperStructure.Swerve.EstimatedRobotPose)
@@ -466,27 +466,23 @@ public class Turret extends LoggedSubsystem {
             return null;
         }
 
-        LimelightTarget_Fiducial primaryCenterHubFiducial = null;
-        for (var i = 0; i < limelightInputs.CurrentResults.targets_Fiducials.length; i++) {
-            var target = limelightInputs.CurrentResults.targets_Fiducials[i];
-            if (FieldTargets.Usable_Center_Hub_Targets.contains(target.fiducialID)) {
-                primaryCenterHubFiducial = target;
-                break;
-            }
+        Pose3d targetPoseCameraSpace = null;
+        if (FieldTargets.Usable_Center_Hub_Targets.contains(limelightInputs.PrimaryTagId)) {
+            targetPoseCameraSpace = limelightInputs.TagPoseCameraSpace;
         }
 
-        if (primaryCenterHubFiducial == null) {
+        if (targetPoseCameraSpace == null) {
             recordOutput("targetedCenterHub", false);
             return null;
         }
 
         recordOutput("targetedCenterHub", true);
-        recordOutput("targetedFiducialID", primaryCenterHubFiducial.fiducialID);
+        recordOutput("targetedFiducialID", limelightInputs.PrimaryTagId);
 
         // Apply a correction based on horizontal offset.
         // tx is positive when target is right of crosshair; verify sign matches turret convention.
         // Use a gain < 1.0 to reduce oscillation from latency/inertia.
-        var txCorrectionDegrees = primaryCenterHubFiducial.tx * 0.7;
+        var txCorrectionDegrees = limelightInputs.TX * 0.7;
         var correctedYawDegrees = SuperStructure.Turret.TurretRotationDegrees + txCorrectionDegrees;
 
         // Apply the same dead-zone / mechanical limits as the pose-based path
@@ -499,7 +495,7 @@ public class Turret extends LoggedSubsystem {
 
         // Convert to rotations for consistency with the pose-based path
         _turret.controlYawAngle(Rotations.of(correctedYawDegrees / 360.0));
-        return primaryCenterHubFiducial;
+        return targetPoseCameraSpace;
     }
 
     private double getRobotRelativeYawSetpoint(MutVector aimVector) {

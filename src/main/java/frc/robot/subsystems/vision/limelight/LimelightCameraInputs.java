@@ -37,4 +37,10 @@ public class LimelightCameraInputs {
      * The pose of the target relative to the robot, as calculated from the limelight's horizontal and vertical offsets and the known height of the target. 
      */
     public Pose3d TagPoseRobotSpace = new Pose3d();
+
+    public Pose3d TagPoseCameraSpace = new Pose3d();
+
+    public double PrimaryTagId = -1;
+
+    public double TX = 0;
 }

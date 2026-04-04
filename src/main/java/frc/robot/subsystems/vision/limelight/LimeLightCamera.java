@@ -24,6 +24,9 @@ public class LimeLightCamera implements AutoCloseable {
         inputs.CurrentResults = LimelightHelpers.getLatestResults(_limelightName);
         inputs.TargetValid = LimelightHelpers.getTV(_limelightName);
         inputs.TagPoseRobotSpace = LimelightHelpers.getTargetPose3d_RobotSpace(_limelightName);
+        inputs.TagPoseCameraSpace = LimelightHelpers.getTargetPose3d_CameraSpace(_limelightName);
+        inputs.PrimaryTagId = LimelightHelpers.getFiducialID(_limelightName);
+        inputs.TX = LimelightHelpers.getTX(_limelightName);
     }
 
     //#region Basic Targeting Data
