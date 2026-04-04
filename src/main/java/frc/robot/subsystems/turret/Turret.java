@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
@@ -334,7 +335,8 @@ public class Turret extends LoggedSubsystem {
         ShotSolution shotSolution = null;
         if (limelightTargetPoseCameraSpace != null) {
             var distanceMeters = limelightTargetPoseCameraSpace.getTranslation().toTranslation2d()
-                    .getDistance(Translation2d.kZero);
+                    .getDistance(Translation2d.kZero)
+                    + Units.inchesToMeters(23.5); // Add half hub distance for target->mid hub
 
             shotSolution = resolveShotSolution(distanceMeters);
         } else {
@@ -467,8 +469,13 @@ public class Turret extends LoggedSubsystem {
         }
 
         Pose3d targetPoseCameraSpace = null;
-        if (FieldTargets.Usable_Center_Hub_Targets.contains(limelightInputs.PrimaryTagId)) {
-            targetPoseCameraSpace = limelightInputs.TagPoseCameraSpace;
+
+        for (var i = 0; i < limelightInputs.CurrentResults.targets_Fiducials.length; i++) {
+            var target = limelightInputs.CurrentResults.targets_Fiducials[i];
+            if (FieldTargets.Usable_Center_Hub_Targets.contains(target.fiducialID)) {
+                targetPoseCameraSpace = target.getTargetPose_CameraSpace();
+                break;
+            }
         }
 
         if (targetPoseCameraSpace == null) {
@@ -482,7 +489,7 @@ public class Turret extends LoggedSubsystem {
         // Apply a correction based on horizontal offset.
         // tx is positive when target is right of crosshair; verify sign matches turret convention.
         // Use a gain < 1.0 to reduce oscillation from latency/inertia.
-        var txCorrectionDegrees = -1 * (limelightInputs.TX * 0.7);
+        var txCorrectionDegrees = -1 * (limelightInputs.TX * 0.85);
         var correctedYawDegrees = SuperStructure.Turret.TurretRotationDegrees + txCorrectionDegrees;
 
         // Apply the same dead-zone / mechanical limits as the pose-based path
