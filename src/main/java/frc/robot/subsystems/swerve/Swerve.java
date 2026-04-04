@@ -22,7 +22,7 @@ import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
 import frc.robot.subsystems.vision.VisionMap;
-import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -233,7 +233,7 @@ public class Swerve extends LoggedSubsystem {
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
+  private void evaluateLimelightPoseEstimation(LimelightCameraInputs llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;

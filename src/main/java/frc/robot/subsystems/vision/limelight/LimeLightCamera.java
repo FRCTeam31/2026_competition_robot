@@ -16,7 +16,7 @@ public class LimeLightCamera implements AutoCloseable {
         _limelightName = limelightName;
     }
 
-    public void updateInputs(LimelightCameraInputsAutoLogged inputs) {
+    public void updateInputs(LimelightCameraInputs inputs) {
         inputs.TargetHorizontalOffset = getHorizontalOffsetFromTarget();
         inputs.TargetVerticalOffset = getVerticalOffsetFromTarget();
         inputs.BotPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(_limelightName);

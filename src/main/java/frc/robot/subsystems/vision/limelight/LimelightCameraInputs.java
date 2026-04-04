@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers.LimelightResults;
 import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers.PoseEstimate;
 
-@AutoLog
 public class LimelightCameraInputs {
 
     /**
