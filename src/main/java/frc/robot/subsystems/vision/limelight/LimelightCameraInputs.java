@@ -35,11 +35,6 @@ public class LimelightCameraInputs {
     public PoseEstimate BotPoseEstimate = new PoseEstimate();
 
     /**
-     * The robot's MT2 pose in field space.
-     */
-    public PoseEstimate BotPoseEstimateMT2 = new PoseEstimate();
-
-    /**
      * The pose of the target relative to the robot, as calculated from the limelight's horizontal and vertical offsets and the known height of the target. 
      */
     public Pose3d TagPoseRobotSpace = new Pose3d();

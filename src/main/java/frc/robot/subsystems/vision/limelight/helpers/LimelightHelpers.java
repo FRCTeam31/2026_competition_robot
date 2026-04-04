@@ -29,6 +29,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.littletonrobotics.junction.AutoLog;
+
 import edu.wpi.first.net.PortForwarder;
 
 /**
@@ -454,6 +457,7 @@ public class LimelightHelpers {
     /**
      * Limelight Results object, parsed from a Limelight's JSON results output.
      */
+    @AutoLog
     public static class LimelightResults {
 
         public String error;
@@ -717,6 +721,7 @@ public class LimelightHelpers {
     /**
      * Represents a 3D Pose Estimate.
      */
+    @AutoLog
     public static class PoseEstimate {
         public Pose2d pose;
         public double timestampSeconds;
