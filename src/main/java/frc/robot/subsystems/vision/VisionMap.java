@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 public class VisionMap {
-        public static final String LimelightTurretName = "limelight";
+        public static final String LimelightTurretName = "limelight-turret";
         public static final Transform3d LimelightTurretTransform = new Transform3d();
 
         public static final String PhotonCam1Name = "leftCam";

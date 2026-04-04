@@ -18,6 +18,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.SerialPort.StopBits;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -277,6 +278,7 @@ public class Turret extends LoggedSubsystem {
                 // startTime = Timer.getFPGATimestamp();
                 break;
             case STOPPED:
+                _turret.setFlywheelVoltage(0);
                 break;
         }
 
@@ -584,7 +586,11 @@ public class Turret extends LoggedSubsystem {
      * Sets the operating mode directly.
      */
     public Command setOperatingMode(OperatingMode mode) {
-        return this.runOnce(() -> SuperStructure.Turret.OperatingMode = mode);
+        return this.runOnce(() -> {
+            if (SuperStructure.Turret.OperatingMode == OperatingMode.STOPPED)
+                return;
+            SuperStructure.Turret.OperatingMode = mode;
+        });
     }
 
     // --- Firing -------------------------------------------------------
