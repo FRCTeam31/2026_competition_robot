@@ -27,7 +27,7 @@ import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.VisionMap;
-import frc.robot.subsystems.vision.limelight.helpers.LimelightTarget_Fiducial;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers.LimelightTarget_Fiducial;
 import frc.robot.FieldTargets.TargetType;
 
 import static edu.wpi.first.units.Units.Degree;
