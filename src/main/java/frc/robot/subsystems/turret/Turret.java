@@ -482,7 +482,7 @@ public class Turret extends LoggedSubsystem {
         // Apply a correction based on horizontal offset.
         // tx is positive when target is right of crosshair; verify sign matches turret convention.
         // Use a gain < 1.0 to reduce oscillation from latency/inertia.
-        var txCorrectionDegrees = limelightInputs.TX * 0.7;
+        var txCorrectionDegrees = -1 * (limelightInputs.TX * 0.7);
         var correctedYawDegrees = SuperStructure.Turret.TurretRotationDegrees + txCorrectionDegrees;
 
         // Apply the same dead-zone / mechanical limits as the pose-based path
