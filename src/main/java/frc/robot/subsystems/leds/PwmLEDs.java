@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class PwmLEDs extends SubsystemBase {
+public class PwmLEDs extends SubsystemBase implements ILEDs {
     private final ScheduledExecutorService _updateLoopExecutor = Executors.newScheduledThreadPool(1);
     private AddressableLED _led;
     private AddressableLEDBuffer _ledBuffer;

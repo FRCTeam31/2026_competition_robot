@@ -19,7 +19,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.dashboard.DriverDashboard;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
+import frc.robot.subsystems.leds.ILEDs;
 import frc.robot.subsystems.leds.PwmLEDs;
+import frc.robot.subsystems.leds.prism.PrismLEDs;
+import frc.robot.subsystems.leds.prism.PrismMap;
+import edu.wpi.first.wpilibj.SerialPort;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
 import frc.robot.subsystems.hopper.Hopper.IntakeFeedState;
@@ -35,7 +39,7 @@ public class Container {
   public static OperatorInterface OperatorInterface;
   public static SendableChooser<Command> AutoChooser;
 
-  // public static PwmLEDs LEDs;
+  public static ILEDs LEDs;
   public static Swerve Swerve;
   public static LimelightVision LimelightVision;
   public static PhotonVision PhotonVision;
@@ -56,7 +60,14 @@ public class Container {
       Dashboard = new DriverDashboard();
 
       // Create subsystems
-      // LEDs = new PwmLEDs();
+      LEDs = Robot.isReal()
+          ? new PrismLEDs(SerialPort.Port.kUSB, new PrismLEDs.StripConfig[] {
+              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
+              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
+              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
+              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
+          })
+          : new PwmLEDs();
 
       LimelightVision = new LimelightVision();
       LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);
