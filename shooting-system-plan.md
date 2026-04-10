@@ -1,10 +1,10 @@
-# FRC Shooting System — Two-Phase Implementation Plan
+# FRC Shooting System -- Two-Phase Implementation Plan
 
 ## Context
 
 The robot has a flywheel shooter with two degrees of freedom:
-- **Hood angle** — adjustable between `HOOD_MIN_ANGLE_DEGREES` and `HOOD_MAX_ANGLE_DEGREES`
-- **Flywheel speed** — adjustable between a min and max RPS
+- **Hood angle** -- adjustable between `HOOD_MIN_ANGLE_DEGREES` and `HOOD_MAX_ANGLE_DEGREES`
+- **Flywheel speed** -- adjustable between a min and max RPS
 
 The current ballistics solver (`_mutNominalTargetVector`) produces a physically correct launch vector, but the raw magnitude is not usable as a flywheel setpoint due to energy losses and ball compression. Hood pitch from the vector is also inverted relative to what the mechanism needs. Both axes need to be driven from measured treemaps instead.
 
@@ -12,7 +12,7 @@ Yaw logic is correct and should not be changed.
 
 ---
 
-## Phase 1 — Max Hood Angle, Single Treemap
+## Phase 1 -- Max Hood Angle, Single Treemap
 
 ### Goal
 Get the robot scoring as fast as possible using a single measured treemap at max hood angle.
@@ -37,11 +37,11 @@ For each sample:
 3. Tune flywheel RPS live until shots are consistently going in
 4. Record the confirmed RPS value
 
-This takes ~10–15 minutes on the practice field.
+This takes ~10-15 minutes on the practice field.
 
 ### Code Changes
 
-#### `TurretMap.java` — add treemap
+#### `TurretMap.java` -- add treemap
 
 ```java
 public static final InterpolatingDoubleTreeMap FLYWHEEL_SPEED_MAX_HOOD = new InterpolatingDoubleTreeMap();
@@ -114,7 +114,7 @@ private ShotSolution resolveShotSolution(double distanceMeters) {
 }
 ```
 
-#### `actOnAutoMode()` — replace hood and flywheel blocks
+#### `actOnAutoMode()` -- replace hood and flywheel blocks
 
 ```java
 // Distance from turret pose to target
@@ -142,7 +142,7 @@ if (inputs.FiringState == FiringState.FIRING) {
 
 ---
 
-## Phase 2 — Min Hood Angle, Extended Range
+## Phase 2 -- Min Hood Angle, Extended Range
 
 ### Goal
 Add long-distance shots by taking a second set of measurements at `HOOD_MIN_ANGLE_DEGREES`.
@@ -154,7 +154,7 @@ After Phase 1 is confirmed working in a match. Use the next available practice f
 
 Same procedure as Phase 1, but:
 - Fix hood at `HOOD_MIN_ANGLE_DEGREES` for all measurements
-- Focus on distances **beyond the max of your Phase 1 map** (e.g. 6m–10m)
+- Focus on distances **beyond the max of your Phase 1 map** (e.g. 6m-10m)
 - Suggested samples: 6.0m, 7.5m, 9.0m (adjust to your field geometry)
 
 > The bottom of the min-hood range can overlap slightly with the top of the max-hood range. The resolution logic will always prefer max hood when both maps cover a distance.
@@ -181,10 +181,10 @@ No other changes needed. `resolveShotSolution()` will automatically start using 
 ```
 Given distanceMeters:
   ├─ Is distance within FLYWHEEL_SPEED_MAX_HOOD range?
-  │    └─ YES → return (maxHoodRPS, HOOD_MAX_ANGLE) [CALCULATED]
+  │    └─ YES -> return (maxHoodRPS, HOOD_MAX_ANGLE) [CALCULATED]
   ├─ Is FLYWHEEL_SPEED_MIN_HOOD populated AND distance within its range?
-  │    └─ YES → return (minHoodRPS, HOOD_MIN_ANGLE) [CALCULATED]
-  └─ Otherwise → return NOT_CALCULATED, feeder cut immediately
+  │    └─ YES -> return (minHoodRPS, HOOD_MIN_ANGLE) [CALCULATED]
+  └─ Otherwise -> return NOT_CALCULATED, feeder cut immediately
 ```
 
 ---

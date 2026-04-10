@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
- * Unit tests for {@link Protocol} — frame building, checksum, and response parsing.
+ * Unit tests for {@link Protocol} -- frame building, checksum, and response parsing.
  */
 class PrismProtocolTest {
 
@@ -67,7 +67,7 @@ class PrismProtocolTest {
     void testBuildConfigureFrame_largePixelCount() {
         byte[] frame = Protocol.buildConfigureFrame(0, 300, ColorOrder.RGB);
 
-        // 300 = 0x012C → low byte 0x2C, high byte 0x01
+        // 300 = 0x012C -> low byte 0x2C, high byte 0x01
         assertEquals(0x2C, frame[6] & 0xFF);
         assertEquals(0x01, frame[7] & 0xFF);
     }

@@ -150,7 +150,7 @@ public final class Protocol {
     public static PrismResponse findAndParseResponse(byte[] data, int length) {
         for (int i = 0; i <= length - PrismMap.FRAME_OVERHEAD; i++) {
             if (data[i] == PrismMap.SYNC_BYTE_1 && (i + 1 < length) && data[i + 1] == PrismMap.SYNC_BYTE_2) {
-                // Found potential frame start — try to parse from here
+                // Found potential frame start -- try to parse from here
                 int remaining = length - i;
                 byte[] candidate = new byte[remaining];
                 System.arraycopy(data, i, candidate, 0, remaining);

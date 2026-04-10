@@ -52,7 +52,7 @@ public final class LEDPatternUtil {
     /**
      * Creates a blinking pattern of a single solid color with a one-time startup
      * delay. The LEDs stay off for the specified delay duration after the pattern
-     * first starts, then begin blinking normally. The delay only applies once —
+     * first starts, then begin blinking normally. The delay only applies once --
      * subsequent cycles run without pause.
      *
      * @param color     The color to blink
@@ -90,7 +90,7 @@ public final class LEDPatternUtil {
     /**
      * Creates a pattern that shows a base pattern for a duration, then turns off
      * for a duration, repeating endlessly. The base pattern can be any
-     * {@link LEDPattern} — solid, blinking, rainbow, chase, etc.
+     * {@link LEDPattern} -- solid, blinking, rainbow, chase, etc.
      *
      * <p>This differs from {@link LEDPattern#blink} in that the base pattern's
      * own animation continues to run during the "on" phase rather than being
@@ -261,7 +261,7 @@ public final class LEDPatternUtil {
      * Creates a step mask with a single color at the given position and black elsewhere.
      *
      * @param color    The color for the mask
-     * @param position The normalized position (0.0–1.0) where the color starts
+     * @param position The normalized position (0.0-1.0) where the color starts
      * @return A map suitable for {@link LEDPattern#steps}
      */
     public static Map<Number, Color> singleColorMask(Color color, Number position) {
@@ -274,7 +274,7 @@ public final class LEDPatternUtil {
      *
      * @param color1   The color for the first segment
      * @param color2   The color for the second segment
-     * @param position The normalized position (0.0–1.0) where the second segment begins
+     * @param position The normalized position (0.0-1.0) where the second segment begins
      * @return A map suitable for {@link LEDPattern#steps}
      */
     public static Map<Number, Color> dualColorMask(Color color1, Color color2, Number position) {

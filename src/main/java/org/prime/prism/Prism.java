@@ -95,7 +95,7 @@ public class Prism {
     private long _deviceUptimeMs;
     private long _lastDeviceUptimeMs;
 
-    // Strip configuration state — stored for resend on reconnect
+    // Strip configuration state -- stored for resend on reconnect
     private final int[] _stripPixelCounts = new int[PrismMap.STRIP_COUNT];
     private final ColorOrder[] _stripColorOrders = new ColorOrder[PrismMap.STRIP_COUNT];
     private final boolean[] _stripConfigured = new boolean[PrismMap.STRIP_COUNT];
@@ -246,7 +246,7 @@ public class Prism {
 
         // Check for heartbeat timeout
         if (_lastHeartbeatTime > 0 && (now - _lastHeartbeatTime) > PrismMap.HEARTBEAT_TIMEOUT_MS / 1000.0) {
-            DataLogManager.log("[Prism] Heartbeat timeout — marking device disconnected.");
+            DataLogManager.log("[Prism] Heartbeat timeout -- marking device disconnected.");
             markDisconnected();
         }
     }

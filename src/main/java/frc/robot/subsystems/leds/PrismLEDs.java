@@ -5,7 +5,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.prime.prism.Prism;
-import org.prime.prism.Prism.ColorOrder;
 import org.prime.prism.Prism.PrismMap;
 import org.prime.prism.Prism.StripConfig;
 

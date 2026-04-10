@@ -10,7 +10,7 @@ import org.prime.prism.Prism.ColorOrder;
 import edu.wpi.first.hal.HAL;
 
 /**
- * Unit tests for {@link Prism} — verifies construction and configuration storage.
+ * Unit tests for {@link Prism} -- verifies construction and configuration storage.
  *
  * <p>Note: Full serial I/O testing requires a physical device or mock serial port.
  * These tests verify the device's state management and configuration tracking logic
@@ -34,7 +34,7 @@ class PrismDeviceTest {
     void testConfigureStrip_storesConfigEvenWhenDisconnected() {
         Prism device = new Prism(edu.wpi.first.wpilibj.SerialPort.Port.kUSB);
 
-        // Should not throw even when disconnected — config is stored for later
+        // Should not throw even when disconnected -- config is stored for later
         boolean result = device.configureStrip(0, 30, ColorOrder.GRB);
         assertFalse(result, "Should return false when disconnected");
     }

@@ -1,4 +1,4 @@
-# FRC Team 31 — 2026 Competition Robot
+# FRC Team 31 -- 2026 Competition Robot
 
 ## Overview
 WPILib command-based robot (Java 17, Gradle). Season: 2026. Build system: GradleRIO `2026.2.1`.
@@ -25,7 +25,7 @@ The mascot is **Mango Bird**. A custom ASCII Mango Bird prints on every Gradle b
 src/main/java/
 ├── frc/robot/
 │   ├── Main.java                  # Entry point
-│   ├── Robot.java                 # LoggedRobot — sets up AKit logging modes (REAL/SIM/REPLAY)
+│   ├── Robot.java                 # LoggedRobot -- sets up AKit logging modes (REAL/SIM/REPLAY)
 │   ├── Container.java             # Dependency wiring + command factories
 │   ├── SuperStructure.java        # Static holder for all AutoLogged inputs
 │   ├── FieldTargets.java          # 2026 field geometry, hub/zone positions
@@ -46,7 +46,7 @@ src/main/java/
 ```
 
 ## IO Abstraction Pattern (Critical)
-Every hardware subsystem splits into **Interface → Real → Sim** + an `Inputs` class:
+Every hardware subsystem splits into **Interface -> Real -> Sim** + an `Inputs` class:
 
 ```
 subsystems/turret/
@@ -62,16 +62,16 @@ The subsystem class calls `io.updateInputs(inputs)` then `Logger.processInputs(.
 ## Subsystems
 | Subsystem | Key File | Hardware | Key States/Enums |
 |---|---|---|---|
-| **Swerve** | `Swerve.java` | 8× TalonFX, Pigeon2, 4× CANcoder | — |
+| **Swerve** | `Swerve.java` | 8× TalonFX, Pigeon2, 4× CANcoder | -- |
 | **Turret** | `Turret.java` | 3 motors: yaw, hood, flywheel | `FiringState`, `OperatingMode` |
 | **Hopper** | `Hopper.java` | 2 motors + 2 solenoids | `TransferFeedState`, `HopperIntakeState` |
 | **Climb** | `Climb.java` | 1 motor + 2 solenoids | `ClimbState` |
 | **LEDs** | `PwmLEDs.java` | PWM LED strip | patterns in `LEDPatterns.java` |
-| **Vision** | `LimelightVision`, `PhotonVision` | 2+ cameras | — |
+| **Vision** | `LimelightVision`, `PhotonVision` | 2+ cameras | -- |
 
 ## Swerve Details
 - **Chassis**: 24.75" square, max speed 5.4 m/s
-- **Module layout**: FL / FR / RL / RR — CAN IDs and offsets in `SwerveModuleMap.java`
+- **Module layout**: FL / FR / RL / RR -- CAN IDs and offsets in `SwerveModuleMap.java`
 - **Gyro**: Pigeon2 (`GyroReal` / `GyroSim`)
 - **Auto-align**: `AutoAlign.java` (turret targeting while driving)
 - **Pathfinding**: `LocalADStarADK.java` (AKit-compatible wrapper)
@@ -117,7 +117,7 @@ Configured in `Robot.java`:
 ```
 
 ## Gradle Notes
-- `gversion` generates `BuildConstants.java` (package `org.prime.util`) — only on autocommit branches
+- `gversion` generates `BuildConstants.java` (package `org.prime.util`) -- only on autocommit branches
 - Desktop simulation support is **enabled** (`includeDesktopSupport = true`)
 - Fat JAR bundles all deps; source/vendordeps backed up inside the jar under `backup/`
 
