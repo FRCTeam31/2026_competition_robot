@@ -11,7 +11,8 @@
 
 // ========================= Strip State ======================================
 
-typedef struct {
+typedef struct
+{
     int gpio;
     uint16_t pixel_count;
     color_order_t color_order;

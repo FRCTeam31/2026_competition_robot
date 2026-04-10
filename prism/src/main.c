@@ -32,17 +32,21 @@ static uint8_t s_tx_buf[32];
 
 // ========================= Uptime ===========================================
 
-static uint32_t get_uptime_ms(void) {
+static uint32_t get_uptime_ms(void)
+{
     return (uint32_t)(esp_timer_get_time() / 1000ULL);
 }
 
 // ========================= Serial I/O =======================================
 
-static void serial_send(const uint8_t *data, size_t len) {
+static void serial_send(const uint8_t *data, size_t len)
+{
     size_t written = 0;
-    while (written < len) {
+    while (written < len)
+    {
         int ret = usb_serial_jtag_write_bytes(data + written, len - written, pdMS_TO_TICKS(10));
-        if (ret < 0) {
+        if (ret < 0)
+        {
             ESP_LOGE(TAG, "USB write error");
             break;
         }
@@ -52,8 +56,10 @@ static void serial_send(const uint8_t *data, size_t len) {
 
 // ========================= Command Handlers =================================
 
-static void handle_configure(const uint8_t *payload, uint16_t len) {
-    if (len < 4) {
+static void handle_configure(const uint8_t *payload, uint16_t len)
+{
+    if (len < 4)
+    {
         ESP_LOGW(TAG, "CONFIGURE payload too short: %d", len);
         return;
     }
@@ -68,17 +74,20 @@ static void handle_configure(const uint8_t *payload, uint16_t len) {
 
     // Send CONFIG_ACK
     size_t frame_len = prism_build_config_ack(s_tx_buf, strip,
-                                               ok ? PRISM_STATUS_OK : PRISM_STATUS_ERROR);
+                                              ok ? PRISM_STATUS_OK : PRISM_STATUS_ERROR);
     serial_send(s_tx_buf, frame_len);
 }
 
-static void handle_pixel_data(const uint8_t *payload, uint16_t len) {
-    if (len < 3) { // At least strip index + 2 bytes for pixel count
+static void handle_pixel_data(const uint8_t *payload, uint16_t len)
+{
+    if (len < 3)
+    { // At least strip index + 2 bytes for pixel count
         return;
     }
 
     uint8_t strip = payload[0];
-    if (strip >= PRISM_STRIP_COUNT) {
+    if (strip >= PRISM_STRIP_COUNT)
+    {
         return;
     }
 
@@ -89,12 +98,15 @@ static void handle_pixel_data(const uint8_t *payload, uint16_t len) {
     led_driver_refresh_strip(strip);
 }
 
-static void handle_pixel_data_all(const uint8_t *payload, uint16_t len) {
+static void handle_pixel_data_all(const uint8_t *payload, uint16_t len)
+{
     size_t offset = 0;
 
-    for (int strip = 0; strip < PRISM_STRIP_COUNT; strip++) {
+    for (int strip = 0; strip < PRISM_STRIP_COUNT; strip++)
+    {
         // Need at least 2 bytes for pixel count
-        if (offset + 2 > len) {
+        if (offset + 2 > len)
+        {
             ESP_LOGW(TAG, "PIXEL_DATA_ALL truncated at strip %d", strip);
             break;
         }
@@ -103,7 +115,8 @@ static void handle_pixel_data_all(const uint8_t *payload, uint16_t len) {
         offset += 2;
 
         size_t rgb_len = (size_t)pixel_count * 3;
-        if (offset + rgb_len > len) {
+        if (offset + rgb_len > len)
+        {
             ESP_LOGW(TAG, "PIXEL_DATA_ALL truncated RGB data for strip %d", strip);
             break;
         }
@@ -116,67 +129,77 @@ static void handle_pixel_data_all(const uint8_t *payload, uint16_t len) {
     led_driver_refresh_all();
 }
 
-static void handle_heartbeat_req(void) {
+static void handle_heartbeat_req(void)
+{
     size_t frame_len = prism_build_heartbeat_rsp(s_tx_buf,
-                                                  get_uptime_ms(),
-                                                  PRISM_FIRMWARE_VERSION,
-                                                  PRISM_STATUS_OK);
+                                                 get_uptime_ms(),
+                                                 PRISM_FIRMWARE_VERSION,
+                                                 PRISM_STATUS_OK);
     serial_send(s_tx_buf, frame_len);
 }
 
 // ========================= Frame Dispatch ===================================
 
-static void dispatch_frame(const prism_frame_t *frame) {
-    switch (frame->command) {
-        case PRISM_CMD_CONFIGURE:
-            handle_configure(frame->payload, frame->payload_len);
-            break;
-        case PRISM_CMD_PIXEL_DATA:
-            handle_pixel_data(frame->payload, frame->payload_len);
-            break;
-        case PRISM_CMD_PIXEL_DATA_ALL:
-            handle_pixel_data_all(frame->payload, frame->payload_len);
-            break;
-        case PRISM_CMD_HEARTBEAT_REQ:
-            handle_heartbeat_req();
-            break;
-        default:
-            ESP_LOGW(TAG, "Unknown command: 0x%02X", frame->command);
-            break;
+static void dispatch_frame(const prism_frame_t *frame)
+{
+    switch (frame->command)
+    {
+    case PRISM_CMD_CONFIGURE:
+        handle_configure(frame->payload, frame->payload_len);
+        break;
+    case PRISM_CMD_PIXEL_DATA:
+        handle_pixel_data(frame->payload, frame->payload_len);
+        break;
+    case PRISM_CMD_PIXEL_DATA_ALL:
+        handle_pixel_data_all(frame->payload, frame->payload_len);
+        break;
+    case PRISM_CMD_HEARTBEAT_REQ:
+        handle_heartbeat_req();
+        break;
+    default:
+        ESP_LOGW(TAG, "Unknown command: 0x%02X", frame->command);
+        break;
     }
 }
 
 // ========================= Main Task ========================================
 
-static void prism_main_task(void *arg) {
+static void prism_main_task(void *arg)
+{
     ESP_LOGI(TAG, "Prism main task started");
 
-    while (1) {
+    while (1)
+    {
         // Read available data from USB serial into parse buffer
         int bytes_read = usb_serial_jtag_read_bytes(
             s_parse_buf + s_parse_buf_len,
             sizeof(s_parse_buf) - s_parse_buf_len,
-            pdMS_TO_TICKS(1)
-        );
+            pdMS_TO_TICKS(1));
 
-        if (bytes_read > 0) {
+        if (bytes_read > 0)
+        {
             s_parse_buf_len += bytes_read;
         }
 
         // Try to parse and dispatch frames from the buffer
-        while (s_parse_buf_len >= PRISM_FRAME_OVERHEAD) {
+        while (s_parse_buf_len >= PRISM_FRAME_OVERHEAD)
+        {
             prism_frame_t frame;
             size_t consumed = prism_parse_frame(s_parse_buf, s_parse_buf_len, &frame);
 
-            if (consumed == 0) {
+            if (consumed == 0)
+            {
                 // No complete frame yet — if the buffer is getting full and we
                 // haven't found a sync, discard some data to make room
-                if (s_parse_buf_len > PRISM_MAX_FRAME_SIZE / 2) {
+                if (s_parse_buf_len > PRISM_MAX_FRAME_SIZE / 2)
+                {
                     // Try to find the next sync byte pair to realign
                     size_t discard = 1;
-                    for (size_t i = 1; i < s_parse_buf_len - 1; i++) {
+                    for (size_t i = 1; i < s_parse_buf_len - 1; i++)
+                    {
                         if (s_parse_buf[i] == PRISM_SYNC_BYTE_1 &&
-                            s_parse_buf[i + 1] == PRISM_SYNC_BYTE_2) {
+                            s_parse_buf[i + 1] == PRISM_SYNC_BYTE_2)
+                        {
                             discard = i;
                             break;
                         }
@@ -192,7 +215,8 @@ static void prism_main_task(void *arg) {
             dispatch_frame(&frame);
 
             // Remove consumed bytes from the parse buffer
-            if (consumed < s_parse_buf_len) {
+            if (consumed < s_parse_buf_len)
+            {
                 memmove(s_parse_buf, s_parse_buf + consumed, s_parse_buf_len - consumed);
             }
             s_parse_buf_len -= consumed;
@@ -202,7 +226,8 @@ static void prism_main_task(void *arg) {
 
 // ========================= Entry Point ======================================
 
-void app_main(void) {
+void app_main(void)
+{
     ESP_LOGI(TAG, "Prism firmware v%d starting", PRISM_FIRMWARE_VERSION);
 
     // Initialize USB Serial JTAG driver (CDC)
