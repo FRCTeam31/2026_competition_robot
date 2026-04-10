@@ -1,8 +1,13 @@
-package frc.robot.subsystems.leds.prism;
+package frc.robot.subsystems.leds;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.prime.prism.Prism;
+import org.prime.prism.Prism.ColorOrder;
+import org.prime.prism.Prism.PrismMap;
+import org.prime.prism.Prism.StripConfig;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -16,7 +21,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.leds.ILEDs;
 
 /**
  * LED subsystem that drives a Prism USB serial LED controller.
@@ -28,14 +32,8 @@ import frc.robot.subsystems.leds.ILEDs;
  */
 public class PrismLEDs extends SubsystemBase implements ILEDs {
 
-    /**
-     * Configuration for a single LED strip on the Prism device.
-     */
-    public record StripConfig(int pixelCount, PrismMap.ColorOrder colorOrder) {
-    }
-
     private final ScheduledExecutorService _updateLoopExecutor = Executors.newScheduledThreadPool(1);
-    private final PrismDevice _device;
+    private final Prism _device;
     private final AddressableLEDBuffer[] _buffers;
     private final AddressableLEDBufferView[] _sections;
     private final LEDPattern[] _sectionPatterns;
@@ -58,7 +56,7 @@ public class PrismLEDs extends SubsystemBase implements ILEDs {
         }
 
         // Create device and configure strips
-        _device = new PrismDevice(port);
+        _device = new Prism(port);
 
         _buffers = new AddressableLEDBuffer[PrismMap.STRIP_COUNT];
         _sections = new AddressableLEDBufferView[PrismMap.STRIP_COUNT];

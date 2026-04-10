@@ -1,4 +1,6 @@
-package frc.robot.subsystems.leds.prism;
+package org.prime.prism;
+
+import org.prime.prism.Prism.PrismMap;
 
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
@@ -12,9 +14,9 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
  *
  * Checksum is XOR of all payload bytes.
  */
-public final class PrismProtocol {
+public final class Protocol {
 
-    private PrismProtocol() {
+    private Protocol() {
     }
 
     // ========================= Response Types ===============================
@@ -38,7 +40,7 @@ public final class PrismProtocol {
      * @param order      Color order for the strip's LEDs
      * @return The complete frame bytes ready for serial transmission
      */
-    public static byte[] buildConfigureFrame(int strip, int pixelCount, PrismMap.ColorOrder order) {
+    public static byte[] buildConfigureFrame(int strip, int pixelCount, Prism.ColorOrder order) {
         byte[] payload = new byte[4];
         payload[0] = (byte) strip;
         payload[1] = (byte) (pixelCount & 0xFF);

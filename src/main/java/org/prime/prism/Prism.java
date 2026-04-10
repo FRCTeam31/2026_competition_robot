@@ -1,4 +1,4 @@
-package frc.robot.subsystems.leds.prism;
+package org.prime.prism;
 
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Alert;
@@ -13,7 +13,80 @@ import edu.wpi.first.wpilibj.Timer;
  * <p>Handles strip configuration (with ACK + retry), pixel data streaming,
  * heartbeat health monitoring, and automatic reconnection on disconnect.
  */
-public class PrismDevice {
+public class Prism {
+
+    /**
+    * Constants for the Prism USB serial LED controller.
+    */
+    public class PrismMap {
+
+        // ========================= Serial Configuration =========================
+
+        public static final int BAUD_RATE = 2_000_000;
+        public static final int DATA_BITS = 8;
+        public static final int STOP_BITS = 1;
+
+        // ========================= Frame Framing ================================
+
+        public static final byte SYNC_BYTE_1 = (byte) 0xAA;
+        public static final byte SYNC_BYTE_2 = (byte) 0x55;
+
+        // ========================= Commands (RoboRIO -> Device) ==================
+
+        public static final byte CMD_CONFIGURE = 0x01;
+        public static final byte CMD_PIXEL_DATA = 0x02;
+        public static final byte CMD_PIXEL_DATA_ALL = 0x03;
+        public static final byte CMD_HEARTBEAT_REQ = 0x04;
+
+        // ========================= Commands (Device -> RoboRIO) ==================
+
+        public static final byte CMD_CONFIG_ACK = (byte) 0x81;
+        public static final byte CMD_HEARTBEAT_RSP = (byte) 0x84;
+
+        // ========================= Status Codes =================================
+
+        public static final byte STATUS_OK = 0x00;
+        public static final byte STATUS_ERROR = 0x01;
+
+        // ========================= Strip Configuration ==========================
+
+        public static final int STRIP_COUNT = 4;
+        public static final int MAX_PIXELS_PER_STRIP = 144;
+
+        // ========================= Timeouts & Retry =============================
+
+        public static final int CONFIG_ACK_TIMEOUT_MS = 100;
+        public static final int HEARTBEAT_TIMEOUT_MS = 500;
+        public static final int MAX_RETRIES = 3;
+        public static final int RECONNECT_INTERVAL_MS = 1000;
+        public static final int HEARTBEAT_INTERVAL_MS = 250;
+
+        // ========================= Frame Overhead ===============================
+
+        /** 2 sync bytes + 1 command + 2 length + 1 checksum = 6 bytes framing overhead */
+        public static final int FRAME_OVERHEAD = 6;
+    }
+
+    // ========================= Color Order Enum =============================
+    public enum ColorOrder {
+        RGB((byte) 0x00),
+        GRB((byte) 0x01),
+        RGBW((byte) 0x02),
+        GRBW((byte) 0x03);
+
+        public final byte value;
+
+        ColorOrder(byte value) {
+            this.value = value;
+        }
+    }
+
+    /**
+     * Configuration for a single LED strip on the Prism device.
+     */
+    public record StripConfig(int pixelCount, ColorOrder colorOrder) {
+    }
+
     private SerialPort _serialPort;
     private final SerialPort.Port _port;
     private boolean _connected;
@@ -24,7 +97,7 @@ public class PrismDevice {
 
     // Strip configuration state — stored for resend on reconnect
     private final int[] _stripPixelCounts = new int[PrismMap.STRIP_COUNT];
-    private final PrismMap.ColorOrder[] _stripColorOrders = new PrismMap.ColorOrder[PrismMap.STRIP_COUNT];
+    private final ColorOrder[] _stripColorOrders = new ColorOrder[PrismMap.STRIP_COUNT];
     private final boolean[] _stripConfigured = new boolean[PrismMap.STRIP_COUNT];
 
     private final Alert _disconnectedAlert = new Alert("[Prism] Device disconnected.", Alert.AlertType.kWarning);
@@ -37,7 +110,7 @@ public class PrismDevice {
      *
      * @param port The USB serial port to use (e.g., SerialPort.Port.kUSB)
      */
-    public PrismDevice(SerialPort.Port port) {
+    public Prism(SerialPort.Port port) {
         _port = port;
         _connected = false;
         _lastHeartbeatTime = 0;
@@ -59,7 +132,7 @@ public class PrismDevice {
      * @param order      Color order for the strip's LEDs
      * @return true if the device acknowledged the configuration
      */
-    public boolean configureStrip(int strip, int pixelCount, PrismMap.ColorOrder order) {
+    public boolean configureStrip(int strip, int pixelCount, ColorOrder order) {
         // Store config for reconnect
         _stripPixelCounts[strip] = pixelCount;
         _stripColorOrders[strip] = order;
@@ -69,7 +142,7 @@ public class PrismDevice {
             return false;
         }
 
-        byte[] frame = PrismProtocol.buildConfigureFrame(strip, pixelCount, order);
+        byte[] frame = Protocol.buildConfigureFrame(strip, pixelCount, order);
 
         for (int attempt = 0; attempt < PrismMap.MAX_RETRIES; attempt++) {
             try {
@@ -77,8 +150,8 @@ public class PrismDevice {
                 _serialPort.flush();
 
                 // Wait for CONFIG_ACK
-                PrismProtocol.PrismResponse response = readResponse(PrismMap.CONFIG_ACK_TIMEOUT_MS);
-                if (response instanceof PrismProtocol.ConfigAck ack
+                Protocol.PrismResponse response = readResponse(PrismMap.CONFIG_ACK_TIMEOUT_MS);
+                if (response instanceof Protocol.ConfigAck ack
                         && ack.stripIndex() == strip
                         && ack.status() == PrismMap.STATUS_OK) {
                     return true;
@@ -107,7 +180,7 @@ public class PrismDevice {
         }
 
         try {
-            byte[] frame = PrismProtocol.buildPixelDataAllFrame(buffers);
+            byte[] frame = Protocol.buildPixelDataAllFrame(buffers);
             _serialPort.write(frame, frame.length);
             return true;
         } catch (Exception e) {
@@ -138,7 +211,7 @@ public class PrismDevice {
         if (now - _lastHeartbeatRequestTime >= PrismMap.HEARTBEAT_INTERVAL_MS / 1000.0) {
             _lastHeartbeatRequestTime = now;
             try {
-                byte[] frame = PrismProtocol.buildHeartbeatRequest();
+                byte[] frame = Protocol.buildHeartbeatRequest();
                 _serialPort.write(frame, frame.length);
             } catch (Exception e) {
                 handleSerialError("heartbeat request", e);
@@ -152,9 +225,9 @@ public class PrismDevice {
             if (available > 0) {
                 int toRead = Math.min(available, _readBuffer.length);
                 byte[] data = _serialPort.read(toRead);
-                PrismProtocol.PrismResponse response = PrismProtocol.findAndParseResponse(data, data.length);
+                Protocol.PrismResponse response = Protocol.findAndParseResponse(data, data.length);
 
-                if (response instanceof PrismProtocol.HeartbeatResponse hb) {
+                if (response instanceof Protocol.HeartbeatResponse hb) {
                     _lastHeartbeatTime = now;
                     _lastDeviceUptimeMs = _deviceUptimeMs;
                     _deviceUptimeMs = hb.uptimeMs();
@@ -246,7 +319,7 @@ public class PrismDevice {
         }
     }
 
-    private PrismProtocol.PrismResponse readResponse(int timeoutMs) {
+    private Protocol.PrismResponse readResponse(int timeoutMs) {
         long deadline = System.currentTimeMillis() + timeoutMs;
 
         while (System.currentTimeMillis() < deadline) {
@@ -255,7 +328,7 @@ public class PrismDevice {
                 if (available > 0) {
                     int toRead = Math.min(available, _readBuffer.length);
                     byte[] data = _serialPort.read(toRead);
-                    PrismProtocol.PrismResponse response = PrismProtocol.findAndParseResponse(data, data.length);
+                    Protocol.PrismResponse response = Protocol.findAndParseResponse(data, data.length);
                     if (response != null) {
                         return response;
                     }

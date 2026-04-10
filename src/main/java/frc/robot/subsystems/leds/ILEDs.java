@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * Interface for LED subsystems. Both {@link PwmLEDs} and
- * {@link frc.robot.subsystems.leds.prism.PrismLEDs PrismLEDs} implement this
+ * {@link frc.robot.subsystems.leds.PrismLEDs PrismLEDs} implement this
  * so that {@code Container.LEDs} can be typed polymorphically.
  */
 public interface ILEDs {

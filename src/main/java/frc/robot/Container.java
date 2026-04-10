@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.List;
 
+import org.prime.prism.Prism;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -20,9 +22,8 @@ import frc.robot.dashboard.DriverDashboard;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.ILEDs;
+import frc.robot.subsystems.leds.PrismLEDs;
 import frc.robot.subsystems.leds.PwmLEDs;
-import frc.robot.subsystems.leds.prism.PrismLEDs;
-import frc.robot.subsystems.leds.prism.PrismMap;
 import edu.wpi.first.wpilibj.SerialPort;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
@@ -61,11 +62,11 @@ public class Container {
 
       // Create subsystems
       LEDs = Robot.isReal()
-          ? new PrismLEDs(SerialPort.Port.kUSB, new PrismLEDs.StripConfig[] {
-              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
-              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
-              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
-              new PrismLEDs.StripConfig(30, PrismMap.ColorOrder.GRB),
+          ? new PrismLEDs(SerialPort.Port.kUSB, new Prism.StripConfig[] {
+              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
+              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
+              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
+              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
           })
           : new PwmLEDs();
 

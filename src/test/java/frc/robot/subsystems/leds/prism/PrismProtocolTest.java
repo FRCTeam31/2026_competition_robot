@@ -3,12 +3,15 @@ package frc.robot.subsystems.leds.prism;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.prime.prism.Prism.ColorOrder;
+import org.prime.prism.Prism.PrismMap;
+import org.prime.prism.Protocol;
 
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
- * Unit tests for {@link PrismProtocol} — frame building, checksum, and response parsing.
+ * Unit tests for {@link Protocol} — frame building, checksum, and response parsing.
  */
 class PrismProtocolTest {
 
@@ -16,20 +19,20 @@ class PrismProtocolTest {
 
     @Test
     void testWrapFrame_hasSyncBytes() {
-        byte[] frame = PrismProtocol.buildHeartbeatRequest();
+        byte[] frame = Protocol.buildHeartbeatRequest();
         assertEquals((byte) 0xAA, frame[0], "First sync byte");
         assertEquals((byte) 0x55, frame[1], "Second sync byte");
     }
 
     @Test
     void testWrapFrame_commandByte() {
-        byte[] frame = PrismProtocol.buildHeartbeatRequest();
+        byte[] frame = Protocol.buildHeartbeatRequest();
         assertEquals(PrismMap.CMD_HEARTBEAT_REQ, frame[2], "Command byte");
     }
 
     @Test
     void testHeartbeatRequest_emptyPayload() {
-        byte[] frame = PrismProtocol.buildHeartbeatRequest();
+        byte[] frame = Protocol.buildHeartbeatRequest();
         // 6 bytes overhead + 0 payload
         assertEquals(PrismMap.FRAME_OVERHEAD, frame.length);
         // Payload length should be 0
@@ -43,7 +46,7 @@ class PrismProtocolTest {
 
     @Test
     void testBuildConfigureFrame_structure() {
-        byte[] frame = PrismProtocol.buildConfigureFrame(2, 60, PrismMap.ColorOrder.GRB);
+        byte[] frame = Protocol.buildConfigureFrame(2, 60, ColorOrder.GRB);
 
         assertEquals((byte) 0xAA, frame[0]);
         assertEquals((byte) 0x55, frame[1]);
@@ -57,12 +60,12 @@ class PrismProtocolTest {
         assertEquals(2, frame[5] & 0xFF); // strip index
         assertEquals(60, frame[6] & 0xFF); // pixel count low byte
         assertEquals(0, frame[7] & 0xFF); // pixel count high byte
-        assertEquals(PrismMap.ColorOrder.GRB.value, frame[8]); // color order
+        assertEquals(ColorOrder.GRB.value, frame[8]); // color order
     }
 
     @Test
     void testBuildConfigureFrame_largePixelCount() {
-        byte[] frame = PrismProtocol.buildConfigureFrame(0, 300, PrismMap.ColorOrder.RGB);
+        byte[] frame = Protocol.buildConfigureFrame(0, 300, ColorOrder.RGB);
 
         // 300 = 0x012C → low byte 0x2C, high byte 0x01
         assertEquals(0x2C, frame[6] & 0xFF);
@@ -79,7 +82,7 @@ class PrismProtocolTest {
             buffers[i].setLED(0, new Color(1.0, 0.0, 0.0)); // Red
         }
 
-        byte[] frame = PrismProtocol.buildPixelDataAllFrame(buffers);
+        byte[] frame = Protocol.buildPixelDataAllFrame(buffers);
 
         assertEquals((byte) 0xAA, frame[0]);
         assertEquals((byte) 0x55, frame[1]);
@@ -100,7 +103,7 @@ class PrismProtocolTest {
         // Set strip 0 to pure green
         buffers[0].setLED(0, new Color(0.0, 1.0, 0.0));
 
-        byte[] frame = PrismProtocol.buildPixelDataAllFrame(buffers);
+        byte[] frame = Protocol.buildPixelDataAllFrame(buffers);
 
         // Strip 0: starts at payload offset 0 in frame[5..]
         // [pixelCount:2][R][G][B]
@@ -120,7 +123,7 @@ class PrismProtocolTest {
         buffers[2] = new AddressableLEDBuffer(1); // 1 pixel
         buffers[3] = new AddressableLEDBuffer(0); // 0 pixels
 
-        byte[] frame = PrismProtocol.buildPixelDataAllFrame(buffers);
+        byte[] frame = Protocol.buildPixelDataAllFrame(buffers);
 
         // Payload: (2+9) + (2+6) + (2+3) + (2+0) = 26 bytes
         int expectedPayload = 26;
@@ -131,33 +134,33 @@ class PrismProtocolTest {
 
     @Test
     void testComputeChecksum_empty() {
-        assertEquals(0, PrismProtocol.computeChecksum(new byte[0]));
+        assertEquals(0, Protocol.computeChecksum(new byte[0]));
     }
 
     @Test
     void testComputeChecksum_singleByte() {
-        assertEquals((byte) 0x42, PrismProtocol.computeChecksum(new byte[] { 0x42 }));
+        assertEquals((byte) 0x42, Protocol.computeChecksum(new byte[] { 0x42 }));
     }
 
     @Test
     void testComputeChecksum_xorProperty() {
         // XOR of identical bytes = 0
-        assertEquals(0, PrismProtocol.computeChecksum(new byte[] { 0x55, 0x55 }));
+        assertEquals(0, Protocol.computeChecksum(new byte[] { 0x55, 0x55 }));
         // XOR is order-independent and associative
         byte[] data = { 0x01, 0x02, 0x03 };
-        assertEquals((byte) (0x01 ^ 0x02 ^ 0x03), PrismProtocol.computeChecksum(data));
+        assertEquals((byte) (0x01 ^ 0x02 ^ 0x03), Protocol.computeChecksum(data));
     }
 
     @Test
     void testFrameChecksum_isValid() {
-        byte[] frame = PrismProtocol.buildConfigureFrame(1, 30, PrismMap.ColorOrder.GRB);
+        byte[] frame = Protocol.buildConfigureFrame(1, 30, ColorOrder.GRB);
 
         // Extract payload and verify checksum
         int payloadLen = (frame[3] & 0xFF) | ((frame[4] & 0xFF) << 8);
         byte[] payload = new byte[payloadLen];
         System.arraycopy(frame, 5, payload, 0, payloadLen);
 
-        byte expected = PrismProtocol.computeChecksum(payload);
+        byte expected = Protocol.computeChecksum(payload);
         assertEquals(expected, frame[frame.length - 1]);
     }
 
@@ -169,9 +172,9 @@ class PrismProtocolTest {
         byte[] payload = { 0x02, PrismMap.STATUS_OK }; // strip 2, success
         byte[] frame = buildResponseFrame(PrismMap.CMD_CONFIG_ACK, payload);
 
-        PrismProtocol.PrismResponse response = PrismProtocol.parseResponse(frame);
-        assertInstanceOf(PrismProtocol.ConfigAck.class, response);
-        PrismProtocol.ConfigAck ack = (PrismProtocol.ConfigAck) response;
+        Protocol.PrismResponse response = Protocol.parseResponse(frame);
+        assertInstanceOf(Protocol.ConfigAck.class, response);
+        Protocol.ConfigAck ack = (Protocol.ConfigAck) response;
         assertEquals(2, ack.stripIndex());
         assertEquals(PrismMap.STATUS_OK, ack.status());
     }
@@ -186,9 +189,9 @@ class PrismProtocolTest {
         };
         byte[] frame = buildResponseFrame(PrismMap.CMD_HEARTBEAT_RSP, payload);
 
-        PrismProtocol.PrismResponse response = PrismProtocol.parseResponse(frame);
-        assertInstanceOf(PrismProtocol.HeartbeatResponse.class, response);
-        PrismProtocol.HeartbeatResponse hb = (PrismProtocol.HeartbeatResponse) response;
+        Protocol.PrismResponse response = Protocol.parseResponse(frame);
+        assertInstanceOf(Protocol.HeartbeatResponse.class, response);
+        Protocol.HeartbeatResponse hb = (Protocol.HeartbeatResponse) response;
         assertEquals(12345, hb.uptimeMs());
         assertEquals(0x0102, hb.firmwareVersion());
         assertEquals(0, hb.status());
@@ -197,14 +200,14 @@ class PrismProtocolTest {
     @Test
     void testParseResponse_nullOnInvalidSync() {
         byte[] frame = { 0x00, 0x00, PrismMap.CMD_CONFIG_ACK, 0x02, 0x00, 0x01, 0x00, 0x01 };
-        assertNull(PrismProtocol.parseResponse(frame));
+        assertNull(Protocol.parseResponse(frame));
     }
 
     @Test
     void testParseResponse_nullOnTooShort() {
-        assertNull(PrismProtocol.parseResponse(new byte[] { (byte) 0xAA, (byte) 0x55 }));
-        assertNull(PrismProtocol.parseResponse(null));
-        assertNull(PrismProtocol.parseResponse(new byte[0]));
+        assertNull(Protocol.parseResponse(new byte[] { (byte) 0xAA, (byte) 0x55 }));
+        assertNull(Protocol.parseResponse(null));
+        assertNull(Protocol.parseResponse(new byte[0]));
     }
 
     @Test
@@ -213,14 +216,14 @@ class PrismProtocolTest {
         byte[] frame = buildResponseFrame(PrismMap.CMD_CONFIG_ACK, payload);
         // Corrupt the checksum
         frame[frame.length - 1] ^= 0xFF;
-        assertNull(PrismProtocol.parseResponse(frame));
+        assertNull(Protocol.parseResponse(frame));
     }
 
     @Test
     void testParseResponse_nullOnUnknownCommand() {
         byte[] payload = { 0x00 };
         byte[] frame = buildResponseFrame((byte) 0xFF, payload);
-        assertNull(PrismProtocol.parseResponse(frame));
+        assertNull(Protocol.parseResponse(frame));
     }
 
     // ========================= findAndParseResponse Tests ====================
@@ -239,14 +242,14 @@ class PrismProtocolTest {
         withNoise[4] = (byte) 0x9A;
         System.arraycopy(validFrame, 0, withNoise, 5, validFrame.length);
 
-        PrismProtocol.PrismResponse response = PrismProtocol.findAndParseResponse(withNoise, withNoise.length);
+        Protocol.PrismResponse response = Protocol.findAndParseResponse(withNoise, withNoise.length);
         assertNotNull(response);
-        assertInstanceOf(PrismProtocol.ConfigAck.class, response);
+        assertInstanceOf(Protocol.ConfigAck.class, response);
     }
 
     @Test
     void testFindAndParseResponse_nullOnEmptyBuffer() {
-        assertNull(PrismProtocol.findAndParseResponse(new byte[0], 0));
+        assertNull(Protocol.findAndParseResponse(new byte[0], 0));
     }
 
     // ========================= Helpers =======================================
@@ -261,7 +264,7 @@ class PrismProtocolTest {
         frame[3] = (byte) (payload.length & 0xFF);
         frame[4] = (byte) ((payload.length >> 8) & 0xFF);
         System.arraycopy(payload, 0, frame, 5, payload.length);
-        frame[frameLen - 1] = PrismProtocol.computeChecksum(payload);
+        frame[frameLen - 1] = Protocol.computeChecksum(payload);
         return frame;
     }
 }
