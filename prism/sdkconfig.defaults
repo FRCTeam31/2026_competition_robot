@@ -1,0 +1,13 @@
+# Prism sdkconfig defaults for XIAO ESP32-C3
+
+# Use USB Serial JTAG for console output
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# Disable default UART console to free UART pins
+CONFIG_ESP_CONSOLE_UART_DEFAULT=n
+
+# FreeRTOS tick rate — 1000 Hz for 1ms resolution
+CONFIG_FREERTOS_HZ=1000
+
+# RMT — ensure enough memory for 4 strips
+CONFIG_RMT_ISR_IRAM_SAFE=y
