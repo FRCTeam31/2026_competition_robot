@@ -4,7 +4,7 @@ using PrismTestApp;
 
 // ========================= Configuration ====================================
 
-const int pixelsPerStrip = 30;          // Adjust to match your physical strips
+const int pixelsPerStrip = 8;           // Adjust to match your physical strips
 const int targetFps = 60;
 const double rotationIntervalSec = 5.0;
 const int baudRate = 2_000_000;
