@@ -8,6 +8,7 @@ import org.prime.util.MutVector;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -280,9 +281,9 @@ public class Turret extends LoggedSubsystem {
                 break;
         }
 
-        // if (DriverStation.isEnabled()) {
-        //     TurretLEDHelper.updateLEDs(inputs);
-        // }
+        if (DriverStation.isEnabled()) {
+            TurretLEDHelper.updateLEDs(inputs);
+        }
 
         actOnFeedState(inputs.FeedState);
         // System.out

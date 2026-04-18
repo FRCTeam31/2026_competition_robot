@@ -6,8 +6,6 @@ package frc.robot;
 
 import java.util.List;
 
-import org.prime.prism.Prism;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -22,8 +20,10 @@ import frc.robot.dashboard.DriverDashboard;
 import frc.robot.oi.OperatorInterface;
 import frc.robot.pneumatics.Pneumatics;
 import frc.robot.subsystems.leds.ILEDs;
-import frc.robot.subsystems.leds.PrismLEDs;
-import frc.robot.subsystems.leds.PwmLEDs;
+import frc.robot.subsystems.prism.PrismMap;
+import frc.robot.subsystems.prism.PrismReal;
+import frc.robot.subsystems.prism.PrismSim;
+import frc.robot.subsystems.prism.PrismSubsystem;
 import edu.wpi.first.wpilibj.SerialPort;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.Hopper.HopperIntakeState;
@@ -62,13 +62,12 @@ public class Container {
 
       // Create subsystems
       LEDs = Robot.isReal()
-          ? new PrismLEDs(SerialPort.Port.kUSB, new Prism.StripConfig[] {
-              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
-              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
-              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
-              new Prism.StripConfig(30, Prism.ColorOrder.GRB),
-          })
-          : new PwmLEDs();
+          ? new PrismSubsystem(
+              new PrismReal(SerialPort.Port.kUSB),
+              PrismMap.STRIP_CONFIGS)
+          : new PrismSubsystem(
+              new PrismSim(PrismMap.SIM_COM_PORT, PrismMap.SIM_BAUD_RATE),
+              PrismMap.STRIP_CONFIGS);
 
       LimelightVision = new LimelightVision();
       LimelightVision.addCamera(VisionMap.LimelightTurretName, VisionMap.LimelightTurretTransform);

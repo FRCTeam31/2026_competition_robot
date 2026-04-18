@@ -1,11 +1,10 @@
-package frc.robot.subsystems.leds;
+package frc.robot.subsystems.prism;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.prime.prism.Prism;
-import org.prime.prism.Prism.PrismMap;
+import org.littletonrobotics.junction.Logger;
 import org.prime.prism.Prism.StripConfig;
 
 import edu.wpi.first.units.Units;
@@ -15,48 +14,45 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.leds.ILEDs;
 
 /**
- * LED subsystem that drives a Prism USB serial LED controller.
+ * Prism LED subsystem using IO abstraction. Works with both {@link PrismReal}
+ * on the roboRIO and {@link PrismSim} for desktop simulation with real hardware.
  *
- * <p>Renders all patterns locally using WPILib's {@link LEDPattern} at 125fps,
- * then streams the raw RGB pixel data to the Prism device over USB serial.
- * Local {@link AddressableLEDBuffer}s are maintained for simulation, dashboard
- * readback, and other local consumers.
+ * <p>Renders WPILib {@link LEDPattern}s locally at ~125fps and streams pixel data
+ * to the device via the {@link IPrism} interface.
  */
-public class PrismLEDs extends SubsystemBase implements ILEDs {
+public class PrismSubsystem extends SubsystemBase implements ILEDs {
 
     private final ScheduledExecutorService _updateLoopExecutor = Executors.newScheduledThreadPool(1);
-    private final Prism _device;
+    private final IPrism _io;
+    private final PrismInputsAutoLogged _inputs = new PrismInputsAutoLogged();
     private final AddressableLEDBuffer[] _buffers;
     private final AddressableLEDBufferView[] _sections;
     private final LEDPattern[] _sectionPatterns;
     private byte _loopErrorCounter = 0;
 
     private final LEDPattern _initialPattern = LEDPattern.solid(Color.kGhostWhite).breathe(Units.Seconds.of(4));
-    private final Alert _loopStoppedAlert = new Alert("[Prism] Update loop failed.", Alert.AlertType.kWarning);
+    private final Alert _loopStoppedAlert = new Alert("[PrismSubsystem] Update loop failed.", Alert.AlertType.kWarning);
 
     /**
-     * Creates a PrismLEDs subsystem connected to the specified USB port.
+     * Creates the Prism subsystem with the given IO implementation and strip configs.
      *
-     * @param port         The serial port to use (e.g., {@link SerialPort.Port#kUSB})
-     * @param stripConfigs Configuration for each of the 4 strips. Array length must equal
-     *                     {@link PrismMap#STRIP_COUNT}.
+     * @param io           The IO implementation (Real or Sim)
+     * @param stripConfigs Configuration for each strip
      */
-    public PrismLEDs(SerialPort.Port port, StripConfig[] stripConfigs) {
+    public PrismSubsystem(IPrism io, StripConfig[] stripConfigs) {
         if (stripConfigs.length != PrismMap.STRIP_COUNT) {
             throw new IllegalArgumentException(
                     "Expected " + PrismMap.STRIP_COUNT + " strip configs, got " + stripConfigs.length);
         }
 
-        // Create device and configure strips
-        _device = new Prism(port);
-
+        _io = io;
         _buffers = new AddressableLEDBuffer[PrismMap.STRIP_COUNT];
         _sections = new AddressableLEDBufferView[PrismMap.STRIP_COUNT];
         _sectionPatterns = new LEDPattern[PrismMap.STRIP_COUNT];
@@ -65,9 +61,9 @@ public class PrismLEDs extends SubsystemBase implements ILEDs {
             var config = stripConfigs[i];
 
             // Configure device strip
-            _device.configureStrip(i, config.pixelCount(), config.colorOrder());
+            _io.configureStrip(i, config.pixelCount(), config.colorOrder());
 
-            // Create local buffer for rendering and readback
+            // Create local buffer for rendering
             _buffers[i] = new AddressableLEDBuffer(config.pixelCount());
             _sections[i] = _buffers[i].createView(0, config.pixelCount() - 1);
             _sectionPatterns[i] = _initialPattern;
@@ -78,15 +74,23 @@ public class PrismLEDs extends SubsystemBase implements ILEDs {
             _initialPattern.applyTo(_buffers[i]);
         }
 
-        // Start 125fps update loop
-        _updateLoopExecutor.scheduleAtFixedRate(this::updateLoop, 0, 8, TimeUnit.MILLISECONDS);
+        // Start ~125fps update loop
+        _updateLoopExecutor.scheduleAtFixedRate(this::updateLoop, 0, PrismMap.UPDATE_RATE_MS, TimeUnit.MILLISECONDS);
         _loopStoppedAlert.set(false);
+    }
+
+    // ========================= Periodic =====================================
+
+    @Override
+    public void periodic() {
+        _io.updateInputs(_inputs);
+        Logger.processInputs("Prism", _inputs);
     }
 
     // ========================= Update Loop ==================================
 
     private void updateLoop() {
-        if (_loopErrorCounter > PrismMap.MAX_RETRIES) {
+        if (_loopErrorCounter > PrismMap.MAX_LOOP_ERRORS_BEFORE_SHUTDOWN) {
             _loopStoppedAlert.set(true);
             stopUpdateLoop();
             return;
@@ -101,36 +105,31 @@ public class PrismLEDs extends SubsystemBase implements ILEDs {
             }
 
             // Stream pixel data to device
-            if (_device.isConnected()) {
-                _device.sendPixelData(_buffers);
+            if (_io.isConnected()) {
+                _io.sendPixelData(_buffers);
             }
 
             // Periodic heartbeat / reconnect
-            _device.periodicHeartbeat();
+            _io.periodicHeartbeat();
         } catch (Exception e) {
             _loopErrorCounter++;
-            DataLogManager.log("[Prism:ERROR] Update loop failed: " + e.getMessage());
-            DriverStation.reportError("[Prism:ERROR] Update loop failed: " + e.getMessage(),
+            _inputs.LoopErrorCount = _loopErrorCounter;
+            DataLogManager.log("[PrismSubsystem:ERROR] Update loop failed: " + e.getMessage());
+            DriverStation.reportError("[PrismSubsystem:ERROR] Update loop failed: " + e.getMessage(),
                     e.getStackTrace());
         }
     }
 
     // ========================= Loop Control =================================
 
-    /**
-     * Stops the update loop for the LEDs.
-     */
     public void stopUpdateLoop() {
         _updateLoopExecutor.shutdown();
         _loopStoppedAlert.set(true);
     }
 
-    /**
-     * Starts the update loop for the LEDs.
-     */
     public void startUpdateLoop() {
         _loopErrorCounter = 0;
-        _updateLoopExecutor.scheduleAtFixedRate(this::updateLoop, 0, 8, TimeUnit.MILLISECONDS);
+        _updateLoopExecutor.scheduleAtFixedRate(this::updateLoop, 0, PrismMap.UPDATE_RATE_MS, TimeUnit.MILLISECONDS);
     }
 
     // ========================= ILEDs Implementation =========================
@@ -159,21 +158,11 @@ public class PrismLEDs extends SubsystemBase implements ILEDs {
 
     // ========================= Accessors ====================================
 
-    /**
-     * Returns the local LED buffer for a given strip. Useful for simulation,
-     * dashboard rendering, or reading back rendered pixel data.
-     *
-     * @param strip Strip index (0-3)
-     * @return The local AddressableLEDBuffer for this strip
-     */
     public AddressableLEDBuffer getBuffer(int strip) {
         return _buffers[strip];
     }
 
-    /**
-     * @return true if the Prism device is connected and responding to heartbeats
-     */
     public boolean isDeviceConnected() {
-        return _device.isConnected();
+        return _io.isConnected();
     }
 }
