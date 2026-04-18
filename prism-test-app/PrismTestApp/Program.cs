@@ -4,30 +4,39 @@ using PrismTestApp;
 
 // ========================= Configuration ====================================
 
-const int pixelsPerStrip = 8;           // Adjust to match your physical strips
-const int targetFps = 60;
-const double rotationIntervalSec = 5.0;
+const int pixelsPerStrip = 8;            // 8 LEDs per strip for testing
+const int targetFps = 120;              // 120 FPS — hard requirement
 const int baudRate = 2_000_000;
 
-// ========================= Pattern Registry =================================
+// ========================= Solid-Color Pattern Registry =====================
 
-// Delegate: fills buffer[0..pixelCount*3-1] with RGB data given the current time
-delegate void PatternFunc(byte[] buffer, int pixelCount, double timeSec);
+// Breathing effect: sinusoidal brightness modulation
+static void FillBreathe(byte[] buf, int count, byte r, byte g, byte b, double timeSec, double speed)
+{
+    // Map sin wave to 0.0–1.0 brightness
+    double brightness = (Math.Sin(timeSec * speed * Math.PI * 2) + 1.0) / 2.0;
+    // Clamp minimum so LEDs never fully go off (looks better)
+    brightness = 0.05 + brightness * 0.95;
+    byte rr = (byte)(r * brightness);
+    byte gg = (byte)(g * brightness);
+    byte bb = (byte)(b * brightness);
+    for (int i = 0; i < count; i++) { buf[i * 3] = rr; buf[i * 3 + 1] = gg; buf[i * 3 + 2] = bb; }
+}
 
 PatternFunc[] patterns =
 [
-    Patterns.Rainbow,          // animated
-    Patterns.LarsonScanner,    // animated
-    Patterns.BlueBreath,       // static
-    Patterns.GreenGoldStripes, // static
+    (buf, n, t) => FillBreathe(buf, n, 255, 0,   0,   t, 0.5),  // Strip 0: RED — slow
+    (buf, n, t) => FillBreathe(buf, n, 0,   255, 0,   t, 1.0),  // Strip 1: GREEN — medium
+    (buf, n, t) => FillBreathe(buf, n, 0,   0,   255, t, 2.0),  // Strip 2: BLUE — fast
+    (buf, n, t) => FillBreathe(buf, n, 255, 255, 255, t, 3.0),  // Strip 3: WHITE — fastest
 ];
 
 string[] patternNames =
 [
-    "Rainbow (animated)",
-    "Larson Scanner (animated)",
-    "Blue Gradient (static)",
-    "Green/Gold Stripes (static)",
+    "BREATHE RED (0.5 Hz)",
+    "BREATHE GREEN (1 Hz)",
+    "BREATHE BLUE (2 Hz)",
+    "BREATHE WHITE (3 Hz)",
 ];
 
 // ========================= COM Port Selection ===============================
@@ -111,19 +120,76 @@ Console.WriteLine($"Configuring {PrismProtocol.StripCount} strips × {pixelsPerS
 
 for (byte strip = 0; strip < PrismProtocol.StripCount; strip++)
 {
+    Console.WriteLine($"  Strip {strip}: sending config frame...");
     var configFrame = PrismProtocol.BuildConfigureFrame(strip, (ushort)pixelsPerStrip, PrismProtocol.ColorOrderGrb);
-    SendFrame(serial, configFrame);
-    Thread.Sleep(50);
 
-    if (TryReadResponse(serial, out cmd, out status, out _, out _) && cmd == PrismProtocol.CmdConfigAck)
+    if (!serial.IsOpen)
     {
-        string statusText = status == PrismProtocol.StatusOk ? "OK" : "ERROR";
-        Console.WriteLine($"  Strip {strip}: {statusText}");
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"  ERROR: Port closed before sending config for strip {strip}!");
+        Console.ResetColor();
+        return 1;
+    }
+
+    SendFrame(serial, configFrame);
+    Console.WriteLine($"  Strip {strip}: frame sent ({configFrame.Length} bytes), waiting for response...");
+    Thread.Sleep(500); // Long delay to give ESP32 plenty of time
+
+    if (!serial.IsOpen)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"  ERROR: Port closed after sending config for strip {strip}!");
+        Console.WriteLine("  (Device likely crashed/rebooted — check firmware debug output)");
+        Console.ResetColor();
+        return 1;
+    }
+
+    // Dump all raw bytes received (debug messages + protocol frames)
+    int available = serial.BytesToRead;
+    if (available > 0)
+    {
+        var rawBuf = new byte[available];
+        int read = serial.Read(rawBuf, 0, available);
+
+        // Print any printable ASCII as debug text
+        string rawText = System.Text.Encoding.ASCII.GetString(rawBuf, 0, read);
+        bool hasDebug = rawText.Contains("[DBG]");
+        if (hasDebug)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write("  Device debug: ");
+            foreach (char c in rawText)
+            {
+                if (c >= ' ' && c <= '~') Console.Write(c);
+                else if (c == '\n') Console.Write('\n' + "                ");
+            }
+            Console.WriteLine();
+            Console.ResetColor();
+        }
+
+        // Try to parse a protocol response from the raw data
+        if (PrismProtocol.TryParseResponse(rawBuf.AsSpan(0, read), out cmd, out status, out _, out _) > 0
+            && cmd == PrismProtocol.CmdConfigAck)
+        {
+            string statusText = status == PrismProtocol.StatusOk ? "OK" : "ERROR";
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"  Strip {strip}: {statusText}");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"  Strip {strip}: no ACK (got {read} bytes: ");
+            for (int b = 0; b < Math.Min(read, 32); b++)
+                Console.Write($"{rawBuf[b]:X2} ");
+            Console.WriteLine(")");
+            Console.ResetColor();
+        }
     }
     else
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"  Strip {strip}: no ACK");
+        Console.WriteLine($"  Strip {strip}: no response (0 bytes available)");
         Console.ResetColor();
     }
 }
@@ -137,12 +203,12 @@ for (int i = 0; i < PrismProtocol.StripCount; i++)
 // ========================= Main Loop ========================================
 
 Console.WriteLine();
-Console.WriteLine("Streaming patterns. Press Ctrl+C or Q to quit.");
+Console.WriteLine("Streaming static patterns. Press Ctrl+C or Q to quit.");
+Console.WriteLine("Strip assignments (fixed):");
+PrintStripAssignment(0, patternNames);
 Console.WriteLine();
 
-int rotationOffset = 0;
 var sw = Stopwatch.StartNew();
-double lastRotationTime = 0;
 int frameCount = 0;
 double lastFpsTime = 0;
 int lastFpsFrame = 0;
@@ -157,19 +223,10 @@ try
     {
         double now = sw.Elapsed.TotalSeconds;
 
-        // Rotate patterns every N seconds
-        if (now - lastRotationTime >= rotationIntervalSec)
-        {
-            lastRotationTime = now;
-            rotationOffset = (rotationOffset + 1) % patterns.Length;
-            PrintStripAssignment(rotationOffset, patternNames);
-        }
-
-        // Render each strip's pattern
+        // Render each strip with its fixed pattern
         for (int strip = 0; strip < PrismProtocol.StripCount; strip++)
         {
-            int patternIdx = (strip + rotationOffset) % patterns.Length;
-            patterns[patternIdx](stripBuffers[strip], pixelsPerStrip, now);
+            patterns[strip](stripBuffers[strip], pixelsPerStrip, now);
         }
 
         // Send all pixel data in one frame
@@ -183,7 +240,7 @@ try
         {
             double elapsed = now - lastFpsTime;
             double fps = (frameCount - lastFpsFrame) / elapsed;
-            Console.Write($"\r  {fps:F1} fps | frame {frameCount} | rotation {rotationOffset}    ");
+            Console.Write($"\r  {fps:F1} fps | frame {frameCount}    ");
             lastFpsFrame = frameCount;
             lastFpsTime = now;
         }
@@ -290,3 +347,6 @@ static void PrintStripAssignment(int offset, string[] names)
     }
     Console.ResetColor();
 }
+
+// Delegate: fills buffer[0..pixelCount*3-1] with RGB data given the current time
+delegate void PatternFunc(byte[] buffer, int pixelCount, double timeSec);

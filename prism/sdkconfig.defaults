@@ -1,13 +1,16 @@
-# Prism sdkconfig defaults for XIAO ESP32-C3
+# Prism sdkconfig defaults for XIAO ESP32-S3
 
-# Use USB Serial JTAG for console output
-CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+# Use TinyUSB CDC for app serial (native USB-OTG on GPIO19/20)
+CONFIG_TINYUSB_CDC_ENABLED=y
+CONFIG_TINYUSB_CDC_RX_BUFSIZE=4096
+CONFIG_TINYUSB_CDC_TX_BUFSIZE=4096
 
-# Disable default UART console to free UART pins
-CONFIG_ESP_CONSOLE_UART_DEFAULT=n
+# Keep UART0 console enabled for debug logs (separate from USB CDC)
+# XIAO ESP32-S3: UART0 TX=GPIO43, RX=GPIO44 (directly on chip, not routed
+# to USB-C, but visible if you connect a USB-UART adapter to those pads)
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_USB_CDC=n
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=n
 
 # FreeRTOS tick rate — 1000 Hz for 1ms resolution
 CONFIG_FREERTOS_HZ=1000
-
-# RMT — ensure enough memory for 4 strips
-CONFIG_RMT_ISR_IRAM_SAFE=y

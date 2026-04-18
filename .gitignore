@@ -187,3 +187,5 @@ compile_commands.json
 .factorypath
 
 .pio/
+managed_components/
+obj/
