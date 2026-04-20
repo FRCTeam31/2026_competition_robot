@@ -121,8 +121,6 @@ public class Turret extends LoggedSubsystem {
     private double _manualHoodDegrees = TurretMap.HOOD_HOME_DEGREES;
 
     // -------------------- Internal Tracking --------------------------
-    private double _targetFlywheelVelocityRPS = 0;
-    private double _manualYawInput;
     private boolean _isHomingHood = false;
 
     // IDW Controller
@@ -297,6 +295,7 @@ public class Turret extends LoggedSubsystem {
      * </ol>
      * When IDLE: return turret to home position, flywheel to idle speed, stop feeding.
      */
+    @SuppressWarnings("unused")
     private void actOnAutoMode(TurretInputsAutoLogged inputs) {
         var turretPose = getTurretPose();
         var target = resolveAutoTarget(); // Keep logging updated even when not firing
@@ -638,13 +637,6 @@ public class Turret extends LoggedSubsystem {
                     _manualYawDegrees + deltaDegrees,
                     TurretMap.DEADZONE_END_DEGREES, TurretMap.DEADZONE_START_DEGREES);
         }));
-    }
-
-    /**
-     * Sets the manual yaw trim input for AUTO mode (acts as a trim multiplier).
-     */
-    public Command setAutoYawTrimInput(double input) {
-        return this.runOnce(() -> _manualYawInput = input);
     }
 
     // --- Homing --------------------------------------------------------
