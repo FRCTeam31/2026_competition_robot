@@ -66,7 +66,7 @@ public class TurretLEDHelper {
 
         LEDPattern desiredPattern = resolveDesiredLedPattern(inputs);
         if (desiredPattern != null && desiredPattern != _lastLedPattern) {
-            Container.LEDs.setAllSectionPatterns(desiredPattern);
+            Container.LEDs.setSectionPattern(0, desiredPattern);
             _lastLedPattern = desiredPattern;
         }
     }

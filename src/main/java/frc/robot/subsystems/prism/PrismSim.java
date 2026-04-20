@@ -9,6 +9,7 @@ import org.prime.prism.Prism.ColorOrder;
 import org.prime.prism.Prism.PrismMap;
 import org.prime.prism.Protocol;
 
+import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -36,6 +37,12 @@ public class PrismSim implements IPrism {
     private final int[] _stripPixelCounts = new int[PrismMap.STRIP_COUNT];
     private final ColorOrder[] _stripColorOrders = new ColorOrder[PrismMap.STRIP_COUNT];
     private final boolean[] _stripConfigured = new boolean[PrismMap.STRIP_COUNT];
+
+    // WPILib AddressableLED mirror for simulation display
+    private AddressableLED _simLed;
+    private AddressableLEDBuffer _simLedBuffer;
+    private int _simLedLength;
+    private volatile AddressableLEDBuffer[] _simLedPendingBuffers;
 
     // Serial thread and queues (robot loop never touches the serial port)
     private Thread _serialThread;
@@ -109,6 +116,10 @@ public class PrismSim implements IPrism {
         try {
             byte[] frame = Protocol.buildPixelDataAllFrame(buffers);
             _latestPixelFrame = frame;
+
+            // Stash buffers for the sim LED mirror (updated in periodicHeartbeat)
+            _simLedPendingBuffers = buffers;
+
             return true;
         } catch (Exception e) {
             DataLogManager.log("[PrismSim] Error building pixel data: " + e.getMessage());
@@ -168,6 +179,13 @@ public class PrismSim implements IPrism {
                     + (now - _lastHeartbeatTime) + "s)");
             _connected = false;
         }
+
+        // Update the simulation LED mirror (deferred from sendPixelData)
+        AddressableLEDBuffer[] pending = _simLedPendingBuffers;
+        if (pending != null) {
+            _simLedPendingBuffers = null;
+            updateSimLed(pending);
+        }
     }
 
     @Override
@@ -185,6 +203,10 @@ public class PrismSim implements IPrism {
             } catch (InterruptedException ignored) {
             }
             _serialThread = null;
+        }
+        if (_simLed != null) {
+            _simLed.close();
+            _simLed = null;
         }
         _connected = false;
     }
@@ -310,6 +332,40 @@ public class PrismSim implements IPrism {
     }
 
     // ========================= Helpers ======================================
+
+    /**
+     * Mirrors the pixel data to a WPILib AddressableLED so it appears in the
+     * simulation GUI. All strip buffers are concatenated into a single LED string.
+     */
+    private void updateSimLed(AddressableLEDBuffer[] buffers) {
+        int totalLength = 0;
+        for (AddressableLEDBuffer buf : buffers) {
+            totalLength += buf.getLength();
+        }
+
+        // (Re)create the AddressableLED if the total length changed
+        if (_simLed == null || totalLength != _simLedLength) {
+            if (_simLed != null) {
+                _simLed.close();
+            }
+            _simLedLength = totalLength;
+            _simLedBuffer = new AddressableLEDBuffer(totalLength);
+            _simLed = new AddressableLED(frc.robot.subsystems.prism.PrismMap.SIM_LED_PWM_PORT);
+            _simLed.setLength(totalLength);
+            _simLed.start();
+        }
+
+        // Copy pixel data from all strip buffers into the combined buffer
+        int offset = 0;
+        for (AddressableLEDBuffer buf : buffers) {
+            for (int i = 0; i < buf.getLength(); i++) {
+                _simLedBuffer.setLED(offset + i, buf.getLED(i));
+            }
+            offset += buf.getLength();
+        }
+
+        _simLed.setData(_simLedBuffer);
+    }
 
     private static int getFrameSize(Protocol.PrismResponse resp) {
         if (resp instanceof Protocol.HeartbeatResponse) {

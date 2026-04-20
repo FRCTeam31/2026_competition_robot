@@ -13,7 +13,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -30,12 +29,9 @@ import frc.robot.subsystems.vision.VisionMap;
 import frc.robot.subsystems.vision.limelight.helpers.LimelightTarget_Fiducial;
 import frc.robot.FieldTargets.TargetType;
 
-import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
-import static org.prime.util.PhysicsConstants.GRAVITY;
-
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 

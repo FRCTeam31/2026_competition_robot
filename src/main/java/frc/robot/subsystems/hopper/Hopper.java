@@ -93,6 +93,9 @@ public class Hopper extends LoggedSubsystem {
         processInputs(SuperStructure.Hopper);
 
         actOnState(SuperStructure.Hopper);
+
+        // Update hopper LED strip
+        HopperLEDHelper.updateLEDs(SuperStructure.Hopper);
     }
 
     // #region Commands

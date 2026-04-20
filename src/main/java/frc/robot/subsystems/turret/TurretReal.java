@@ -1,11 +1,8 @@
 package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Seconds;
-
 import java.util.Objects;
 
 import org.littletonrobotics.junction.Logger;
@@ -22,11 +19,9 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.MathUtil;
@@ -49,7 +44,7 @@ public class TurretReal implements ITurret {
     private TalonSRX _turretRotator;
     private DigitalInput _turretResetLimitSwitch;
     private SparkClosedLoopController _flywheelClosedLoopController;
-    private SparkClosedLoopController _hoodClosedLoopController;
+    // private SparkClosedLoopController _hoodClosedLoopController;
     private PIDController _yawPidController;
 
     // Stored setpoints for on-target calculations

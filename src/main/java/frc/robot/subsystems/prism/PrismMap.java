@@ -16,6 +16,9 @@ public class PrismMap {
     public static final String SIM_COM_PORT = "COM12";
     public static final int SIM_BAUD_RATE = 115200; // Must match firmware Serial.begin() — rate is nominal for USB CDC
 
+    /** PWM port used for the WPILib AddressableLED mirror in simulation */
+    public static final int SIM_LED_PWM_PORT = 0;
+
     /** Default strip configurations */
     public static final StripConfig[] STRIP_CONFIGS = new StripConfig[] {
             new StripConfig(PIXELS_PER_STRIP, DEFAULT_COLOR_ORDER),

@@ -311,6 +311,9 @@ public class Swerve extends LoggedSubsystem {
         SwerveMap.Chassis.MaxSpeedMetersPerSecond);
     Container.OperatorInterface.setControllerRumbleIntensity(Container.OperatorInterface.DriverController,
         _rumbleHelper.getRumbleIntensity());
+
+    // Update swerve LED strip
+    SwerveLEDHelper.updateLEDs(SuperStructure.Swerve);
   }
 
   // #region Commands
