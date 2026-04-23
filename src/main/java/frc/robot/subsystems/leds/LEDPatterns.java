@@ -1,6 +1,6 @@
 package frc.robot.subsystems.leds;
 
-import java.util.Map;
+import org.prime.util.LEDPatternUtil;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Time;
@@ -17,63 +17,154 @@ public class LEDPatterns {
         private static final Time SLOW_ALTERNATE = Units.Milliseconds.of(500);
         private static final Time FAST_ALTERNATE = Units.Milliseconds.of(100);
 
-        // ------------------------ Blink: Red --------------------------------
-        public static final LEDPattern RedSlowBlink = Blink(Color.kRed, SLOW_BLINK, SLOW_BLINK);
-        public static final LEDPattern RedFastBlink = Blink(Color.kRed, FAST_BLINK, FAST_BLINK);
-        public static final LEDPattern RedQuickFlash = Blink(Color.kRed, QUICK_FLASH_ON, QUICK_FLASH_OFF);
+        // ------------------------ Red --------------------------------
+        public static final LEDPattern RedSlowBlink = slowBlink(Color.kRed);
+        public static final LEDPattern RedFastBlink = fastBlink(Color.kRed);
+        public static final LEDPattern RedQuickFlash = quickFlash(Color.kRed);
+        public static final LEDPattern RedSlowBurstBlink = slowBurstBlink(Color.kRed);
+        public static final LEDPattern RedFastBurstBlink = fastBurstBlink(Color.kRed);
+        public static final LEDPattern RedAlternatingSlow = alternatingSlow(Color.kRed);
+        public static final LEDPattern RedAlternatingFast = alternatingFast(Color.kRed);
+        public static final LEDPattern RedTwoToneSlow = twoToneSlow(Color.kRed);
+        public static final LEDPattern RedTwoToneFast = twoToneFast(Color.kRed);
 
-        // ------------------------ Blink: Yellow -----------------------------
-        public static final LEDPattern YellowSlowBlink = Blink(Color.kYellow, SLOW_BLINK, SLOW_BLINK);
-        public static final LEDPattern YellowFastBlink = Blink(Color.kYellow, FAST_BLINK, FAST_BLINK);
+        // ------------------------ Yellow -----------------------------
+        public static final LEDPattern YellowSlowBlink = slowBlink(Color.kYellow);
+        public static final LEDPattern YellowFastBlink = fastBlink(Color.kYellow);
+        public static final LEDPattern YellowQuickFlash = quickFlash(Color.kYellow);
+        public static final LEDPattern YellowSlowBurstBlink = slowBurstBlink(Color.kYellow);
+        public static final LEDPattern YellowFastBurstBlink = fastBurstBlink(Color.kYellow);
+        public static final LEDPattern YellowAlternatingSlow = alternatingSlow(Color.kYellow);
+        public static final LEDPattern YellowAlternatingFast = alternatingFast(Color.kYellow);
+        public static final LEDPattern YellowTwoToneSlow = twoToneSlow(Color.kYellow);
+        public static final LEDPattern YellowTwoToneFast = twoToneFast(Color.kYellow);
 
-        // ------------------------ Blink: Blue -------------------------------
-        public static final LEDPattern BlueSlowBlink = Blink(Color.kBlue, SLOW_BLINK, SLOW_BLINK);
-        public static final LEDPattern BlueFastBlink = Blink(Color.kBlue, FAST_BLINK, FAST_BLINK);
+        // ------------------------ Blue -------------------------------
+        public static final LEDPattern BlueSlowBlink = slowBlink(Color.kBlue);
+        public static final LEDPattern BlueFastBlink = fastBlink(Color.kBlue);
+        public static final LEDPattern BlueQuickFlash = quickFlash(Color.kBlue);
+        public static final LEDPattern BlueSlowBurstBlink = slowBurstBlink(Color.kBlue);
+        public static final LEDPattern BlueFastBurstBlink = fastBurstBlink(Color.kBlue);
+        public static final LEDPattern BlueAlternatingSlow = alternatingSlow(Color.kBlue);
+        public static final LEDPattern BlueAlternatingFast = alternatingFast(Color.kBlue);
+        public static final LEDPattern BlueTwoToneSlow = twoToneSlow(Color.kBlue);
+        public static final LEDPattern BlueTwoToneFast = twoToneFast(Color.kBlue);
 
-        // ------------------------ Two-Tone: Green ---------------------
-        // 4 LEDs green, both sides, alternating back and forth
-        public static final LEDPattern GreenTwoToneSlow = TwoTone(Color.kGreen, Color.kGreen, SLOW_ALTERNATE);
-        public static final LEDPattern GreenTwoToneFast = TwoTone(Color.kGreen, Color.kGreen, FAST_ALTERNATE);
+        // ------------------------ Green ---------------------
+        public static final LEDPattern GreenSlowBlink = slowBlink(Color.kGreen);
+        public static final LEDPattern GreenFastBlink = fastBlink(Color.kGreen);
+        public static final LEDPattern GreenQuickFlash = quickFlash(Color.kGreen);
+        public static final LEDPattern GreenSlowBurstBlink = slowBurstBlink(Color.kGreen);
+        public static final LEDPattern GreenFastBurstBlink = fastBurstBlink(Color.kGreen);
+        public static final LEDPattern GreenAlternatingSlow = alternatingSlow(Color.kGreen);
+        public static final LEDPattern GreenAlternatingFast = alternatingFast(Color.kGreen);
+        public static final LEDPattern GreenTwoToneSlow = twoToneSlow(Color.kGreen);
+        public static final LEDPattern GreenTwoToneFast = twoToneFast(Color.kGreen);
 
-        // ------------------------ Two-Tone: Yellow --------------------
-        public static final LEDPattern YellowTwoToneSlow = TwoTone(Color.kYellow, Color.kYellow, SLOW_ALTERNATE);
-        public static final LEDPattern YellowTwoToneFast = TwoTone(Color.kYellow, Color.kYellow, FAST_ALTERNATE);
+        // -------------------- Alternating Blink Patterns ----------------------
+        public static final LEDPattern GreenRedAlternating = LEDPatternUtil.alternating(
+                        GreenFastBlink,
+                        RedFastBlink,
+                        SLOW_ALTERNATE);
+        public static final LEDPattern BlueYellowAlternating = LEDPatternUtil.alternating(
+                        BlueFastBlink,
+                        YellowFastBlink,
+                        SLOW_ALTERNATE);
+        public static final LEDPattern BlueGreenAlternatingBurstBlink = LEDPatternUtil.split(
+                        BlueSlowBurstBlink,
+                        GreenSlowBurstBlink,
+                        LEDMap.PixelsPerSection / 2);
 
-        // ------------------------ Two-Tone: Blue ----------------------
-        public static final LEDPattern BlueTwoToneSlow = TwoTone(Color.kBlue, Color.kBlue, SLOW_ALTERNATE);
-        public static final LEDPattern BlueTwoToneFast = TwoTone(Color.kBlue, Color.kBlue, FAST_ALTERNATE);
+        // ==================== Factory Methods ================================
 
-        // ------------------------ Utility Methods ---------------------------
-        public static LEDPattern Blink(Color color, Time onPeriod, Time offPeriod) {
-                return LEDPattern.solid(color).blink(onPeriod, offPeriod);
+        /** Creates a slow-blinking pattern (500ms on, 500ms off) of the given color. */
+        public static LEDPattern slowBlink(Color color) {
+                return LEDPatternUtil.blink(color, SLOW_BLINK, SLOW_BLINK);
+        }
+
+        /** Creates a fast-blinking pattern (100ms on, 100ms off) of the given color. */
+        public static LEDPattern fastBlink(Color color) {
+                return LEDPatternUtil.blink(color, FAST_BLINK, FAST_BLINK);
+        }
+
+        /** Creates a fast-blinking pattern (100ms on, 100ms off) of the given color. */
+        public static LEDPattern fastBlink(Color color, Time blinkTime) {
+                return LEDPatternUtil.blink(color, blinkTime, blinkTime);
+        }
+
+        /** Creates a quick-flash pattern (50ms on, 100ms off) of the given color. */
+        public static LEDPattern quickFlash(Color color) {
+                return LEDPatternUtil.blink(color, QUICK_FLASH_ON, QUICK_FLASH_OFF);
         }
 
         /**
-         * Creates a two-tone alternating pattern: the first half of the strip shows
-         * one color and the second half shows another. The two halves blink in
-         * opposite phase so they visually swap back and forth at the given period.
-         *
-         * @param primary   the first color (LEDs 0-3 in phase A)
-         * @param secondary the second color (LEDs 4-7 in phase A)
-         * @param period    how long each phase lasts before swapping
+         * Creates a slow burst-blink pattern: a fast-blinking base shown for 500ms,
+         * then off for 500ms, repeating.
          */
-        public static LEDPattern TwoTone(Color primary, Color secondary, Time period) {
-                var step1Mask = LEDPattern.steps(GetDualColorMask(Color.kWhite, Color.kBlack, 0.5))
-                                .blink(period);
-                var step2Mask = LEDPattern.steps(GetDualColorMask(Color.kBlack, Color.kWhite, 0.5))
-                                .blink(period);
-
-                var base = LEDPattern.steps(GetDualColorMask(primary, secondary, 0.5));
-                var mask = step1Mask.overlayOn(step2Mask);
-
-                return base.mask(mask);
+        public static LEDPattern slowBurstBlink(Color color) {
+                return LEDPatternUtil.burstBlink(
+                                fastBlink(color),
+                                SLOW_BLINK,
+                                SLOW_BLINK);
         }
 
-        public static Map<Number, Color> GetSingleColorMask(Color color, Number position) {
-                return GetDualColorMask(color, Color.kBlack, position);
+        /**
+         * Creates a fast burst-blink pattern: a fast-blinking base shown for 100ms,
+         * then off for 100ms, repeating.
+         */
+        public static LEDPattern fastBurstBlink(Color color) {
+                return LEDPatternUtil.burstBlink(
+                                fastBlink(color),
+                                FAST_BLINK,
+                                FAST_BLINK);
         }
 
-        public static Map<Number, Color> GetDualColorMask(Color color1, Color color2, Number position) {
-                return Map.of(0, color1, position, color2);
+        /**
+         * Creates a slow alternating pattern: one half shows the color while the
+         * other is off, then they swap every 500ms.
+         */
+        public static LEDPattern alternatingSlow(Color color) {
+                return LEDPatternUtil.alternating(
+                                LEDPattern.solid(color),
+                                LEDPattern.kOff,
+                                SLOW_ALTERNATE);
+        }
+
+        /**
+         * Creates a fast alternating pattern: one half shows the color while the
+         * other is off, then they swap every 100ms.
+         */
+        public static LEDPattern alternatingFast(Color color) {
+                return LEDPatternUtil.alternating(
+                                LEDPattern.solid(color),
+                                LEDPattern.kOff,
+                                FAST_ALTERNATE);
+        }
+
+        /**
+         * Creates a slow two-tone pattern: the given color alternates with black
+         * across two halves of the strip, swapping every 500ms.
+         */
+        public static LEDPattern twoToneSlow(Color color) {
+                return LEDPatternUtil.twoTone(color, Color.kBlack, SLOW_ALTERNATE);
+        }
+
+        /**
+         * Creates a fast two-tone pattern: the given color alternates with black
+         * across two halves of the strip, swapping every 100ms.
+         */
+        public static LEDPattern twoToneFast(Color color) {
+                return LEDPatternUtil.twoTone(color, Color.kBlack, FAST_ALTERNATE);
+        }
+
+        /**
+         * Creates a two-color alternating pattern: left half shows one color's
+         * fast blink, right half shows the other, swapping sides every 500ms.
+         */
+        public static LEDPattern twoColorAlternating(Color left, Color right) {
+                return LEDPatternUtil.alternating(
+                                fastBlink(left),
+                                fastBlink(right),
+                                SLOW_ALTERNATE);
         }
 }

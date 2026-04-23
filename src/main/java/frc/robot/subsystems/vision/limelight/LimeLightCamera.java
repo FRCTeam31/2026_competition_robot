@@ -16,14 +16,17 @@ public class LimeLightCamera implements AutoCloseable {
         _limelightName = limelightName;
     }
 
-    public void updateInputs(LimelightCameraInputsAutoLogged inputs) {
+    public void updateInputs(LimelightCameraInputs inputs) {
         inputs.TargetHorizontalOffset = getHorizontalOffsetFromTarget();
         inputs.TargetVerticalOffset = getVerticalOffsetFromTarget();
         inputs.BotPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(_limelightName);
-        inputs.BotPoseEstimateMT2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(_limelightName);
+        // inputs.BotPoseEstimateMT2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(_limelightName);
         inputs.CurrentResults = LimelightHelpers.getLatestResults(_limelightName);
         inputs.TargetValid = LimelightHelpers.getTV(_limelightName);
         inputs.TagPoseRobotSpace = LimelightHelpers.getTargetPose3d_RobotSpace(_limelightName);
+        inputs.TagPoseCameraSpace = LimelightHelpers.getTargetPose3d_CameraSpace(_limelightName);
+        inputs.PrimaryTagId = LimelightHelpers.getFiducialID(_limelightName);
+        inputs.TX = LimelightHelpers.getTX(_limelightName);
     }
 
     //#region Basic Targeting Data

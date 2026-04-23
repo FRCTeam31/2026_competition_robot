@@ -45,8 +45,8 @@ public class SwerveControlSuppliers {
       disableAutoAlign.run();
     }
 
-    var x = X.getAsDouble();
-    var y = -Y.getAsDouble();
+    var x = -X.getAsDouble();
+    var y = Y.getAsDouble();
     var z = -Z.getAsDouble();
 
     return _useFiltering

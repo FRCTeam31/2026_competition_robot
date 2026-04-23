@@ -3,11 +3,13 @@ package frc.robot;
 import java.util.HashMap;
 import java.util.Map;
 
-import frc.robot.subsystems.climb.ClimbInputsAutoLogged;
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import frc.robot.subsystems.hopper.HopperInputsAutoLogged;
 import frc.robot.subsystems.swerve.SwerveSubsystemInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.SwerveModuleInputsAutoLogged;
-import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.turret.TurretInputsAutoLogged;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 /**
@@ -18,11 +20,9 @@ public class SuperStructure {
 
     public static HopperInputsAutoLogged Hopper = new HopperInputsAutoLogged();
 
-    // public static TurretInputsAutoLogged Turret = new TurretInputsAutoLogged();
+    public static TurretInputsAutoLogged Turret = new TurretInputsAutoLogged();
 
-    public static ClimbInputsAutoLogged Climb = new ClimbInputsAutoLogged();
-
-    public static Map<String, LimelightCameraInputsAutoLogged> VisionLimelights = new HashMap<>();
+    public static Map<String, LimelightCameraInputs> VisionLimelights = new HashMap<>();
 
     public static Map<String, PhotonCameraInputsAutoLogged> VisionPhotons = new HashMap<>();
 

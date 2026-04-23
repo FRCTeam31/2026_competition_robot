@@ -23,4 +23,6 @@ public class PhotonCameraInputs {
     public double[] CurrentStdDevs = VisionMap.kSingleTagStdDevs;
 
     public double TimestampSeconds = 0.0;
+
+    public double AverageTagDistance = -1.0;
 }

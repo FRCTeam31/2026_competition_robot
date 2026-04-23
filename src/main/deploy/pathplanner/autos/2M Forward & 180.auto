@@ -7,19 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Hleftballsin"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 4.0
+            "pathName": "2M Forward & 180"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Left 1 Cycle",
+  "folder": "Tests",
   "choreoAuto": false
 }

@@ -1,10 +1,6 @@
 {
   "download": {
-    "deleteAfter": false,
     "localDir": "C:\\Users\\Hudson\\Documents\\logs",
     "serverTeam": "31"
-  },
-  "output": {
-    "outputFolder": "C:\\Users\\Hudson\\Documents\\log_output"
   }
 }

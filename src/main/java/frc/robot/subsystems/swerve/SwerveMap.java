@@ -5,7 +5,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.MomentOfInertia;
 
 import frc.robot.subsystems.swerve.module.SwerveModuleMap;
 
@@ -16,7 +15,7 @@ public class SwerveMap {
                 public static final double TrackWidthMeters = Units.inchesToMeters(24.75);
                 public static final double WheelBaseMeters = Units.inchesToMeters(24.75);
                 public static final double MaxSpeedMetersPerSecond = 5.4;
-                public static final double MaxAngularSpeedRadians = Math.PI * 2;
+                public static final double MaxAngularSpeedRadians = Math.PI * 2 * 0.75;
                 public static final double BumperWidthMeters = Units.inchesToMeters(2.5);
                 public static final double ApproachDistance = (WheelBaseMeters / 2) + BumperWidthMeters - 0.1;
         }
@@ -27,7 +26,7 @@ public class SwerveMap {
         }
 
         // PID Constants
-        public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.65, 0, 0);
+        public static final ExtendedPIDConstants DrivePID = new ExtendedPIDConstants(0.5, 0, 0, 0, 0.71, 0, 0.25);
         public static final ExtendedPIDConstants SteeringPID = new ExtendedPIDConstants(17, 0, 0);
         public static final ExtendedPIDConstants AutoAlignPID = new ExtendedPIDConstants(4, 0, 0.08);
         public static final ExtendedPIDConstants PathPlannerTranslationPID = new ExtendedPIDConstants(4.5, 0, 0);
@@ -42,9 +41,8 @@ public class SwerveMap {
         // Feature Flags
         public static final boolean USE_LIMELIGHT_POSE_ESTIMATION = false;
 
-        // TODO: Reevaluate these constants after testing drive current limits on robot
-        public static final int DriveStallCurrentLimit = 40;
-        public static final int DriveFreeCurrentLimit = 30;
+        public static final int DriveStallCurrentLimit = 80;
+        public static final int DriveFreeCurrentLimit = 60;
 
         public static final int DriveSupplyCurrentLimitDuration = 100;
 
@@ -53,37 +51,36 @@ public class SwerveMap {
                         3,
                         4,
                         10,
-                        0.061279,
-                        false,
+                        0.064697,
+                        true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, Chassis.WheelBaseMeters / 2));
         public static final SwerveModuleMap FrontRightSwerveModule = new SwerveModuleMap(
                         6,
                         5,
                         11,
-                        0.033203,
-                        false,
+                        0.039307,
+                        true,
                         false,
                         new Translation2d(Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearLeftSwerveModule = new SwerveModuleMap(
                         7,
                         8,
                         12,
-                        0.910400,
-                        true,
+                        0.925781,
+                        false,
                         false,
                         new Translation2d(-(Chassis.TrackWidthMeters / 2), (Chassis.WheelBaseMeters / 2)));
         public static final SwerveModuleMap RearRightSwerveModule = new SwerveModuleMap(
                         2,
                         1,
                         9,
-                        0.834717,
+                        0.340332,
                         false,
                         false,
                         new Translation2d(-Chassis.TrackWidthMeters / 2, -(Chassis.WheelBaseMeters / 2)));
 
         public static final RobotConfig PathPlannerRobotConfiguration = new RobotConfig(
-                        // TODO: Determine the robot's weight and MOI
                         Units.lbsToKilograms(114),
                         edu.wpi.first.units.Units.KilogramSquareMeters.of(3).magnitude(),
                         new ModuleConfig(

@@ -115,6 +115,11 @@ public class SupplierXboxController extends CommandXboxController {
             getRightStickXSupplier(driveDeadband, curveWeight),
             getRightStickYSupplier(driveDeadband, curveWeight),
             getLeftStickXSupplier(driveDeadband, curveWeight));
+      case DroneReversed:
+        return new SwerveControlSuppliers(
+            getLeftStickXSupplier(driveDeadband, curveWeight),
+            getLeftStickYSupplier(driveDeadband, curveWeight),
+            getRightStickXSupplier(driveDeadband, curveWeight));
     }
   }
 }

@@ -3,10 +3,6 @@ package frc.robot.subsystems.leds;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.prime.dashboard.Elastic;
-import org.prime.dashboard.Elastic.Notification;
-import org.prime.dashboard.Elastic.NotificationLevel;
-
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -15,6 +11,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -29,7 +26,8 @@ public class PwmLEDs extends SubsystemBase {
     public byte _loopErrorCounter = 0;
 
     private LEDPattern _initialPattern = LEDPattern.solid(Color.kGhostWhite).breathe(Units.Seconds.of(4));
-    private Alert _loopStoppedAlert;
+    private Alert _loopStoppedAlert = new Alert("Update loop has failed 3 times. Stopping loop.",
+            AlertType.kError);
 
     public PwmLEDs() {
         // Initialize the LED strip and buffer
@@ -78,10 +76,11 @@ public class PwmLEDs extends SubsystemBase {
     private void updateLedStrip() {
         // If we've failed too many times, stop the loop and alert the user
         if (_loopErrorCounter > LEDMap.MaxLoopErrorsBeforeShutdown) {
-            Elastic.sendNotification(new Notification(NotificationLevel.ERROR, "LEDs Failed",
-                    "Update loop has failed 3 times. Stopping loop."));
+            _loopStoppedAlert.set(true);
             stopUpdateLoop();
         }
+
+        _loopStoppedAlert.set(false);
 
         try {
             for (var i = 0; i < LEDMap.SectionCount; i++) {

@@ -62,6 +62,7 @@ public class PhotonVisionCamera {
             inputs.PrimaryTargetId = -1;
             inputs.PrimaryTargetRotation2d = new Rotation3d();
             inputs.BotPoseEstimate = null;
+            inputs.AverageTagDistance = -1;
             inputs.TimestampSeconds = -1;
             return;
         }
@@ -72,8 +73,11 @@ public class PhotonVisionCamera {
                 inputs.LatestResult = result;
         }
 
+        inputs.TimestampSeconds = inputs.LatestResult.getTimestampSeconds();
+
         if (inputs.LatestResult.hasTargets()) {
             inputs.TargetCount = inputs.LatestResult.getTargets().size();
+            inputs.AverageTagDistance = calculateAverageTagDistance(inputs.LatestResult.getTargets());
             var target = inputs.LatestResult.getBestTarget();
             inputs.PrimaryTargetId = target.getFiducialId();
             inputs.PrimaryTargetRotation2d = new Rotation3d(0, target.getPitch(), target.getYaw());
@@ -89,7 +93,26 @@ public class PhotonVisionCamera {
             }, () -> {
                 inputs.BotPoseEstimate = null;
             });
+        } else {
+            inputs.TargetCount = 0;
+            inputs.PrimaryTargetId = -1;
+            inputs.PrimaryTargetRotation2d = new Rotation3d();
+            inputs.BotPoseEstimate = null;
+            inputs.AverageTagDistance = -1;
         }
+    }
+
+    private double calculateAverageTagDistance(List<PhotonTrackedTarget> targets) {
+        if (targets.isEmpty()) {
+            return -1;
+        }
+
+        double sum = 0;
+        for (var target : targets) {
+            sum += target.getBestCameraToTarget().getTranslation().getNorm();
+        }
+
+        return sum / targets.size();
     }
 
     /**

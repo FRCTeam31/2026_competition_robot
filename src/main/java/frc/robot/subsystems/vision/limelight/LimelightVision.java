@@ -32,7 +32,7 @@ public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem
         }
 
         _limelights.put(name, new LimeLightCamera(name));
-        SuperStructure.VisionLimelights.put(name, new LimelightCameraInputsAutoLogged());
+        SuperStructure.VisionLimelights.put(name, new LimelightCameraInputs());
         var robotCameraPose = new Pose3d(robotCameraTransform.getTranslation(), robotCameraTransform.getRotation());
         setCameraPose(name, robotCameraPose);
         return true;
@@ -140,7 +140,7 @@ public class LimelightVision extends LoggedSubsystem implements IVisionSubsystem
         // Update superstructure
         for (var name : _limelights.keySet()) {
             _limelights.get(name).updateInputs(SuperStructure.VisionLimelights.get(name));
-            Logger.processInputs("Vision/LL/" + name, SuperStructure.VisionLimelights.get(name));
+            // Logger.processInputs("Vision/LL/" + name, SuperStructure.VisionLimelights.get(name));
         }
     }
 

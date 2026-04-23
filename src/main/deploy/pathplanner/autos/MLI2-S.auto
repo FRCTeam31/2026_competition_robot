@@ -21,12 +21,6 @@
           "data": {
             "pathName": "Hleftballsin"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CleftToLeftShoot"
-          }
         }
       ]
     }

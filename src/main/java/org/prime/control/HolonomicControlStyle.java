@@ -10,4 +10,9 @@ public enum HolonomicControlStyle {
    * Controls a swerve drive with the left stick's X-axis controlling rotation and the right stick controlling forward and strafe
    */
   Drone,
+
+  /**
+   * Controls a swerve drive with the right stick's X-axis controlling rotation and the left stick controlling forward and strafe
+   */
+  DroneReversed
 }

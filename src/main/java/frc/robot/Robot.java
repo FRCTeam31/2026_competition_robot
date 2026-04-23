@@ -22,13 +22,18 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.hopper.Hopper.TransferFeedState;
+import frc.robot.subsystems.leds.LEDPatterns;
 import frc.robot.subsystems.swerve.util.LocalADStarADK;
+import frc.robot.subsystems.turret.Turret.FiringState;
+import frc.robot.subsystems.turret.Turret.UptakeState;
 
 public class Robot extends LoggedRobot {
 
@@ -61,20 +66,18 @@ public class Robot extends LoggedRobot {
     // Set up the dashboard
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath()); // Start the web server for downloading elastic layout from robot
     Elastic.selectTab("Auto");
+    Preferences.removeAll();
 
     // Set an LED pattern to display when the robot goes disabled after a match
-    new BooleanEvent(EventLoop, () -> DriverStation.isFMSAttached() && DriverStation.isDisabled() && _hasEnteredTeleop)
-        .rising()
-        .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
-            Container.LEDs.setAllSectionPatternsCommand(
-                LEDPattern.solid(getAllianceColor()).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.85))),
-            Commands.waitSeconds(3.15),
-            Container.LEDs.setAllSectionPatternsCommand(
-                LEDPattern.solid(Color.kGreen).blink(Units.Seconds.of(0.15), Units.Seconds.of(0.15))),
-            Commands.waitSeconds(0.75),
-            Container.LEDs
-                .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(4))))
-            .ignoringDisable(true)));
+    // new BooleanEvent(EventLoop, () -> DriverStation.isDisabled() && _hasEnteredTeleop)
+    //     .rising()
+    //     .ifHigh(() -> CommandScheduler.getInstance().schedule(Commands.sequence(
+    //         Container.LEDs.setAllSectionPatternsCommand(
+    //             LEDPatterns.fastBlink(Color.kGreen, Units.Milliseconds.of(50))),
+    //         Commands.waitSeconds(0.5),
+    //         Container.LEDs
+    //             .setAllSectionPatternsCommand(LEDPattern.solid(getAllianceColor()).breathe(Units.Seconds.of(3))))
+    //         .ignoringDisable(true)));
   }
 
   /**
@@ -137,7 +140,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     DataLogManager.log("Robot disabled");
-    // CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
+    CommandScheduler.getInstance().schedule(Container.Swerve.disableAutoAlignCommand());
   }
 
   /**
@@ -160,6 +163,9 @@ public class Robot extends LoggedRobot {
       _autonomousCommand.cancel();
 
     // _autonomousCommand = Container.AutoChooser.getSelected();
+    _autonomousCommand = Container.Turret.setFiring(FiringState.FIRING)
+        .andThen(Container.Turret.setFeed(UptakeState.FORWARDS))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.INWARDS));
 
     if (_autonomousCommand == null || _autonomousCommand == Commands.none()) {
       DriverStation.reportError("[ERROR] >> No auto command selected", false);
@@ -170,7 +176,7 @@ public class Robot extends LoggedRobot {
       }
 
       // Schedule the auto command
-      // CommandScheduler.getInstance().schedule(_autonomousCommand);
+      CommandScheduler.getInstance().schedule(_autonomousCommand);
     }
   }
 
@@ -179,15 +185,17 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void teleopInit() {
+    CommandScheduler.getInstance().schedule(Container.Turret.setFeed(UptakeState.STOPPED)
+        .andThen(Container.Turret.setFiring(FiringState.IDLE))
+        .andThen(Container.Hopper.setFeed(TransferFeedState.STOPPED)));
+
     DataLogManager.log("Teleop Enabled");
     _hasEnteredTeleop = true;
 
-    // if (_autonomousCommand != null) {
-    //   // Cancel the auto command if it's still running
-    //   _autonomousCommand.cancel();
-    // } else {
-    //   Container.Swerve.resetGyro();
-    // }
+    if (_autonomousCommand != null) {
+      // Cancel the auto command if it's still running
+      _autonomousCommand.cancel();
+    }
   }
 
   /**

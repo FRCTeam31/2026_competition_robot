@@ -132,7 +132,7 @@ public class PhotonVision extends LoggedSubsystem implements IVisionSubsystem {
             if (inputs.BotPoseEstimate == null)
                 continue;
 
-            Container.TeleopDashboardSection.setFieldVisionEstimationPose(inputs.BotPoseEstimate);
+            Container.Dashboard.setFieldVisionEstimationPose(inputs.BotPoseEstimate);
         }
     }
 

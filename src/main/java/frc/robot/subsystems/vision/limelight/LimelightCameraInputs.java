@@ -4,10 +4,9 @@ import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.subsystems.vision.limelight.helpers.LimelightResults;
-import frc.robot.subsystems.vision.limelight.helpers.PoseEstimate;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers.LimelightResults;
+import frc.robot.subsystems.vision.limelight.helpers.LimelightHelpers.PoseEstimate;
 
-@AutoLog
 public class LimelightCameraInputs {
 
     /**
@@ -35,12 +34,13 @@ public class LimelightCameraInputs {
     public PoseEstimate BotPoseEstimate = new PoseEstimate();
 
     /**
-     * The robot's MT2 pose in field space.
-     */
-    public PoseEstimate BotPoseEstimateMT2 = new PoseEstimate();
-
-    /**
      * The pose of the target relative to the robot, as calculated from the limelight's horizontal and vertical offsets and the known height of the target. 
      */
     public Pose3d TagPoseRobotSpace = new Pose3d();
+
+    public Pose3d TagPoseCameraSpace = new Pose3d();
+
+    public double PrimaryTagId = -1;
+
+    public double TX = 0;
 }

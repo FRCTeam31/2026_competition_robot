@@ -10,7 +10,7 @@
 
 // /**
 //  * Tests for {@link TurretDeadZoneHelper} dead zone math.
-//  * All angles are in rotations (1 rotation = 360°) unless otherwise noted.
+//  * All angles are in rotations (1 rotation = 360-degrees) unless otherwise noted.
 //  */
 // class TurretDeadZoneHelperTest {
 
@@ -21,14 +21,14 @@
 //         HAL.initialize(500, 0);
 //     }
 
-//     // ──────────────────── Default helper: 170°–190° dead zone ────────────────────
+//     // -------------------- Default helper: 170-degrees-190-degrees dead zone --------------------
 
-//     /** A 20° dead zone centred on 180° (the "back" of the turret). */
+//     /** A 20-degrees dead zone centred on 180-degrees (the "back" of the turret). */
 //     private TurretDeadZoneHelper makeDefault() {
 //         return new TurretDeadZoneHelper(170, 190);
 //     }
 
-//     // ─────────────────────────── isInDeadZone ────────────────────────────────────
+//     // --------------------------- isInDeadZone ------------------------------------
 
 //     @Nested
 //     class IsInDeadZone {
@@ -36,7 +36,7 @@
 //         @Test
 //         void centerOfDeadZone_isInside() {
 //             var helper = makeDefault();
-//             assertTrue(helper.isInDeadZone(180.0 / 360.0)); // 180°
+//             assertTrue(helper.isInDeadZone(180.0 / 360.0)); // 180-degrees
 //         }
 
 //         @Test
@@ -67,19 +67,19 @@
 //         @Test
 //         void negativeAngle_normalisedCorrectly() {
 //             var helper = makeDefault();
-//             // -180° is the same as 180° = inside
+//             // -180-degrees is the same as 180-degrees = inside
 //             assertTrue(helper.isInDeadZone(-180.0 / 360.0));
 //         }
 
 //         @Test
 //         void multipleRotations_normalisedCorrectly() {
 //             var helper = makeDefault();
-//             // 540° = 180° = inside
+//             // 540-degrees = 180-degrees = inside
 //             assertTrue(helper.isInDeadZone(540.0 / 360.0));
 //         }
 //     }
 
-//     // ────────────────── Wrapping dead zone (e.g., 350°–10°) ──────────────────────
+//     // ------------------ Wrapping dead zone (e.g., 350deg-10deg) ----------------------
 
 //     @Nested
 //     class WrappingDeadZone {
@@ -114,7 +114,7 @@
 //         }
 //     }
 
-//     // ────────────────────── computeLegalSetpoint ─────────────────────────────────
+//     // ---------------------- computeLegalSetpoint ---------------------------------
 
 //     @Nested
 //     class ComputeLegalSetpoint {
@@ -122,7 +122,7 @@
 //         @Test
 //         void targetInLiveZone_noDeadZoneCrossing_returnsTarget() {
 //             var helper = makeDefault();
-//             // Current at 90°, target at 100° -- simple move, no crossing
+//             // Current at 90-degrees, target at 100-degrees -- simple move, no crossing
 //             double current = 90.0 / 360.0;
 //             double target = 100.0 / 360.0;
 //             double result = helper.computeLegalSetpoint(current, target);
@@ -132,7 +132,7 @@
 //         @Test
 //         void targetInsideDeadZone_clampedToNearerEdge() {
 //             var helper = makeDefault();
-//             // Current at 160°, target at 175° (inside DZ) → should clamp to 170° (start edge)
+//             // Current at 160-degrees, target at 175-degrees (inside DZ) -> should clamp to 170-degrees (start edge)
 //             double current = 160.0 / 360.0;
 //             double target = 175.0 / 360.0;
 //             double result = helper.computeLegalSetpoint(current, target);
@@ -142,7 +142,7 @@
 //         @Test
 //         void targetInsideDeadZone_clampedToFarEdge() {
 //             var helper = makeDefault();
-//             // Current at 200°, target at 185° (inside DZ) → should clamp to 190° (end edge)
+//             // Current at 200-degrees, target at 185-degrees (inside DZ) -> should clamp to 190-degrees (end edge)
 //             double current = 200.0 / 360.0;
 //             double target = 185.0 / 360.0;
 //             double result = helper.computeLegalSetpoint(current, target);
@@ -152,19 +152,19 @@
 //         @Test
 //         void shortestPathCrossesDeadZone_goesLongWay() {
 //             var helper = makeDefault();
-//             // Current at 160°, target at 200°. Shortest arc is 40° through the DZ.
+//             // Current at 160-degrees, target at 200-degrees. Shortest arc is 40-degrees through the DZ.
 //             // Should NOT go through the DZ; should route to the DZ edge on current side.
 //             double current = 160.0 / 360.0;
 //             double target = 200.0 / 360.0;
 //             double result = helper.computeLegalSetpoint(current, target);
-//             // Should route to start edge (170°) which is on the same side as current (160°)
+//             // Should route to start edge (170-degrees) which is on the same side as current (160-degrees)
 //             assertEquals(170.0 / 360.0, result, 0.01);
 //         }
 
 //         @Test
 //         void longPathDoesNotCrossDeadZone_takesShortPath() {
 //             var helper = makeDefault();
-//             // Current at 0°, target at 90° -- 90° arc doesn't cross 170-190 DZ
+//             // Current at 0-degrees, target at 90-degrees -- 90-degrees arc doesn't cross 170-190 DZ
 //             double current = 0.0;
 //             double target = 90.0 / 360.0;
 //             double result = helper.computeLegalSetpoint(current, target);
@@ -174,7 +174,7 @@
 //         @Test
 //         void unwrappedCoordinatesPreserved() {
 //             var helper = makeDefault();
-//             // Current at 1.25 rotations (450° = 90°), target at 1.0 rotation (360° = 0°)
+//             // Current at 1.25 rotations (450-degrees = 90-degrees), target at 1.0 rotation (360-degrees = 0-degrees)
 //             // The arc doesn't cross the DZ, so it should return something near current
 //             double current = 1.25;
 //             double target = 1.0;
@@ -184,7 +184,7 @@
 //         }
 //     }
 
-//     // ────────────────────── shouldBlockManualInput ─────────────────────────────
+//     // ---------------------- shouldBlockManualInput -----------------------------
 
 //     @Nested
 //     class ShouldBlockManualInput {
@@ -192,7 +192,7 @@
 //         @Test
 //         void outsideDeadZone_neverBlocks() {
 //             var helper = makeDefault();
-//             // At 90° (well outside DZ), any input is fine
+//             // At 90-degrees (well outside DZ), any input is fine
 //             assertFalse(helper.shouldBlockManualInput(90.0 / 360.0, 0.8));
 //             assertFalse(helper.shouldBlockManualInput(90.0 / 360.0, -0.8));
 //         }
@@ -200,28 +200,28 @@
 //         @Test
 //         void inDeadZone_nearStartEdge_positiveInputBlocked() {
 //             var helper = makeDefault();
-//             // At 172° (inside DZ, closer to 170° start edge), positive = deeper in → blocked
+//             // At 172-degrees (inside DZ, closer to 170-degrees start edge), positive = deeper in -> blocked
 //             assertTrue(helper.shouldBlockManualInput(172.0 / 360.0, 0.5));
 //         }
 
 //         @Test
 //         void inDeadZone_nearStartEdge_negativeInputAllowed() {
 //             var helper = makeDefault();
-//             // At 172° (inside DZ, closer to 170° start edge), negative = back out → allowed
+//             // At 172-degrees (inside DZ, closer to 170-degrees start edge), negative = back out -> allowed
 //             assertFalse(helper.shouldBlockManualInput(172.0 / 360.0, -0.5));
 //         }
 
 //         @Test
 //         void inDeadZone_nearEndEdge_negativeInputBlocked() {
 //             var helper = makeDefault();
-//             // At 188° (inside DZ, closer to 190° end edge), negative = deeper in → blocked
+//             // At 188-degrees (inside DZ, closer to 190-degrees end edge), negative = deeper in -> blocked
 //             assertTrue(helper.shouldBlockManualInput(188.0 / 360.0, -0.5));
 //         }
 
 //         @Test
 //         void inDeadZone_nearEndEdge_positiveInputAllowed() {
 //             var helper = makeDefault();
-//             // At 188° (inside DZ, closer to 190° end edge), positive = out toward end → allowed
+//             // At 188-degrees (inside DZ, closer to 190-degrees end edge), positive = out toward end -> allowed
 //             assertFalse(helper.shouldBlockManualInput(188.0 / 360.0, 0.5));
 //         }
 
@@ -235,19 +235,19 @@
 //         @Test
 //         void exactlyAtStartEdge_positiveInputBlocked() {
 //             var helper = makeDefault();
-//             // At 170° (start edge, inside DZ, closer to start), positive → deeper in
+//             // At 170-degrees (start edge, inside DZ, closer to start), positive -> deeper in
 //             assertTrue(helper.shouldBlockManualInput(170.0 / 360.0, 1.0));
 //         }
 
 //         @Test
 //         void exactlyAtStartEdge_negativeInputAllowed() {
 //             var helper = makeDefault();
-//             // At 170° (start edge), negative → out of DZ
+//             // At 170-degrees (start edge), negative -> out of DZ
 //             assertFalse(helper.shouldBlockManualInput(170.0 / 360.0, -1.0));
 //         }
 //     }
 
-//     // ──────────────────────── normalizeTo01 ──────────────────────────────────────
+//     // ------------------------ normalizeTo01 --------------------------------------
 
 //     @Nested
 //     class NormalizeTo01 {

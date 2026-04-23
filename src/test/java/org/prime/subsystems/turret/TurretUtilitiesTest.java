@@ -24,7 +24,7 @@
 //     private static final double EPSILON = 1e-4;
 //     private static final double ANGLE_EPSILON = 0.5; // degrees
 
-//     // Reasonable defaults for a turret — tests are not tied to any specific robot's TurretMap
+//     // Reasonable defaults for a turret - tests are not tied to any specific robot's TurretMap
 //     private static final double SHOOTER_HEIGHT = 0.45;
 //     private static final double OVERSHOOT_HEIGHT = 0.2;
 
@@ -41,7 +41,7 @@
 //     class CalculateAimVectorTests {
 
 //         /**
-//          * A target directly in front of the source (+X direction) should yield a yaw near 0°.
+//          * A target directly in front of the source (+X direction) should yield a yaw near 0-degrees.
 //          */
 //         @Test
 //         void yawIsZero_WhenTargetIsDirectlyAhead() throws Exception {
@@ -53,11 +53,11 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(0.0, result.getYaw(), ANGLE_EPSILON,
-//                     "Yaw should be ~0° when target is directly in +X direction");
+//                     "Yaw should be ~0-degrees when target is directly in +X direction");
 //         }
 
 //         /**
-//          * A target directly to the left (+Y direction) should yield a yaw near 90°.
+//          * A target directly to the left (+Y direction) should yield a yaw near 90-degrees.
 //          */
 //         @Test
 //         void yawIs90_WhenTargetIsDirectlyLeft() throws Exception {
@@ -69,11 +69,11 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(90.0, result.getYaw(), ANGLE_EPSILON,
-//                     "Yaw should be ~90° when target is directly in +Y direction");
+//                     "Yaw should be ~90-degrees when target is directly in +Y direction");
 //         }
 
 //         /**
-//          * A target behind the source (-X direction) should yield yaw near ±180°.
+//          * A target behind the source (-X direction) should yield yaw near +-180-degrees.
 //          */
 //         @Test
 //         void yawIs180_WhenTargetIsBehind() throws Exception {
@@ -85,11 +85,11 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(180.0, Math.abs(result.getYaw()), ANGLE_EPSILON,
-//                     "Yaw should be ±180° when target is directly in -X direction");
+//                     "Yaw should be +-180-degrees when target is directly in -X direction");
 //         }
 
 //         /**
-//          * A target at 45° in the +X/+Y quadrant should have yaw near 45°.
+//          * A target at 45-degrees in the +X/+Y quadrant should have yaw near 45-degrees.
 //          */
 //         @Test
 //         void yawIs45_WhenTargetIsDiagonal() throws Exception {
@@ -101,7 +101,7 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(45.0, result.getYaw(), ANGLE_EPSILON,
-//                     "Yaw should be ~45° for a diagonal target in +X/+Y");
+//                     "Yaw should be ~45-degrees for a diagonal target in +X/+Y");
 //         }
 
 //         /**
@@ -159,7 +159,7 @@
 
 //         /**
 //          * For a target at nearly the same effective height, the optimal angle
-//          * from horizontal is near 45°, so the "from vertical" pitch should be near 45°.
+//          * from horizontal is near 45-degrees, so the "from vertical" pitch should be near 45-degrees.
 //          */
 //         @Test
 //         void sameHeightTarget_ProducesReasonableTrajectory() throws Exception {
@@ -173,7 +173,7 @@
 
 //             double pitch = result.getPitch();
 //             assertTrue(pitch > 30 && pitch < 65,
-//                     String.format("For same-height shot, pitch should be near 45° from vertical, got %.2f", pitch));
+//                     String.format("For same-height shot, pitch should be near 45-degrees from vertical, got %.2f", pitch));
 //             assertTrue(result.getMagnitude() > 0, "Speed should be positive");
 //         }
 
@@ -292,7 +292,7 @@
 //         }
 
 //         /**
-//          * Second quadrant target (-X, +Y) should produce yaw around 135°.
+//          * Second quadrant target (-X, +Y) should produce yaw around 135-degrees.
 //          */
 //         @Test
 //         void yawIsCorrect_WhenTargetIsInSecondQuadrant() throws Exception {
@@ -304,11 +304,11 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(135.0, result.getYaw(), ANGLE_EPSILON,
-//                     "Yaw should be ~135° for target in -X/+Y quadrant");
+//                     "Yaw should be ~135-degrees for target in -X/+Y quadrant");
 //         }
 
 //         /**
-//          * Fourth quadrant target (+X, -Y) should produce yaw around -45°.
+//          * Fourth quadrant target (+X, -Y) should produce yaw around -45-degrees.
 //          */
 //         @Test
 //         void yawIsCorrect_WhenTargetIsInFourthQuadrant() throws Exception {
@@ -320,7 +320,7 @@
 //                     SHOOTER_HEIGHT, OVERSHOOT_HEIGHT, 10, 60, 0, 100);
 
 //             assertEquals(-45.0, result.getYaw(), ANGLE_EPSILON,
-//                     "Yaw should be ~-45° for target in +X/-Y quadrant");
+//                     "Yaw should be ~-45-degrees for target in +X/-Y quadrant");
 //         }
 
 //         /**
@@ -404,7 +404,7 @@
 //         }
 
 //         /**
-//          * At 90° turret rotation, a forward offset should map to +Y.
+//          * At 90-degrees turret rotation, a forward offset should map to +Y.
 //          */
 //         @Test
 //         void forwardOffset_MapsToY_At90DegRotation() {
@@ -419,7 +419,7 @@
 //         }
 
 //         /**
-//          * At 90° turret rotation, a lateral (Y) offset should map to -X.
+//          * At 90-degrees turret rotation, a lateral (Y) offset should map to -X.
 //          */
 //         @Test
 //         void lateralOffset_MapsToNegX_At90DegRotation() {
@@ -434,7 +434,7 @@
 //         }
 
 //         /**
-//          * At 180° rotation, a forward offset should negate in X.
+//          * At 180-degrees rotation, a forward offset should negate in X.
 //          */
 //         @Test
 //         void forwardOffset_NegatesInX_At180DegRotation() {
@@ -449,7 +449,7 @@
 //         }
 
 //         /**
-//          * Combined forward + lateral offset at 45° rotation.
+//          * Combined forward + lateral offset at 45-degrees rotation.
 //          */
 //         @Test
 //         void combinedOffset_RotatesCorrectly_At45Deg() {

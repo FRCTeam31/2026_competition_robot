@@ -11,18 +11,18 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.dashboard.DrivetrainDashboardSection;
 import frc.robot.Container;
 import frc.robot.FieldTargets;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.swerve.util.AutoAlign;
 import frc.robot.subsystems.vision.VisionMap;
-import frc.robot.subsystems.vision.limelight.LimelightCameraInputsAutoLogged;
+import frc.robot.subsystems.vision.limelight.LimelightCameraInputs;
 import frc.robot.subsystems.vision.photon.PhotonCameraInputsAutoLogged;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -41,7 +41,6 @@ import org.prime.sysid.SysIdRoutineHelper;
 
 public class Swerve extends LoggedSubsystem {
 
-  private DrivetrainDashboardSection _drivetrainDashboardSection;
   private ImpactRumbleHelper _rumbleHelper;
 
   // IO
@@ -58,6 +57,8 @@ public class Swerve extends LoggedSubsystem {
   // SysId characterization
   private final SysIdRoutineHelper _driveSysId;
 
+  private Alert _photonTooFarAlert = new Alert("Photon estimation skipped", AlertType.kInfo);
+
   /**
    * Creates a new Drivetrain.
    */
@@ -73,12 +74,10 @@ public class Swerve extends LoggedSubsystem {
     // Configure AutoAlign
     _autoAlign = new AutoAlign(SwerveMap.AutoAlignPID);
 
-    _drivetrainDashboardSection = new DrivetrainDashboardSection();
-
     configurePathPlanner();
 
     // Configure SysId routine for drive motor characterization.
-    // All 4 modules are driven in unison, locked at 0° heading.
+    // All 4 modules are driven in unison, locked at 0-degrees heading.
     _driveSysId = new SysIdRoutineHelper(
         this,
         "SwerveDrive",
@@ -120,9 +119,9 @@ public class Swerve extends LoggedSubsystem {
     // Set up PP to feed current path poses to the dashboard's field widget
     // PathPlannerLogging.setLogCurrentPoseCallback(pose -> Container.TeleopDashboardSection.setFieldRobotPose(pose));
     PathPlannerLogging
-        .setLogTargetPoseCallback(pose -> Container.TeleopDashboardSection.getFieldTargetPose().setPose(pose));
+        .setLogTargetPoseCallback(pose -> Container.Dashboard.getFieldTargetPose().setPose(pose));
     PathPlannerLogging
-        .setLogActivePathCallback(poses -> Container.TeleopDashboardSection.getFieldPath().setPoses(poses));
+        .setLogActivePathCallback(poses -> Container.Dashboard.getFieldPath().setPoses(poses));
 
     // Configure PathPlanner holonomic control
     _primeHolonomicController = new PrimeHolonomicDriveController(
@@ -202,13 +201,15 @@ public class Swerve extends LoggedSubsystem {
   private void processVisionEstimations() {
     // (1 rad/s is about 60 degrees/s)
     var currentRotationalVelocity = RadiansPerSecond
-        .of(Math.abs(SuperStructure.Swerve.RobotRelativeChassisSpeeds.omegaRadiansPerSecond));
-    var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond);
-    var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond);
+        .of(Math.abs(SuperStructure.Swerve.RobotRelativeChassisSpeeds.omegaRadiansPerSecond)).abs(RadiansPerSecond);
+    var currentXVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vxMetersPerSecond)
+        .abs(MetersPerSecond);
+    var currentYVelocity = MetersPerSecond.of(SuperStructure.Swerve.RobotRelativeChassisSpeeds.vyMetersPerSecond)
+        .abs(MetersPerSecond);
 
-    var withinPoseEstimationVelocity = currentRotationalVelocity.lt(DegreesPerSecond.of(60)) &&
-        currentXVelocity.lt(MetersPerSecond.of(2)) &&
-        currentYVelocity.lt(MetersPerSecond.of(2));
+    var withinPoseEstimationVelocity = currentRotationalVelocity < 60 &&
+        currentXVelocity < 2 &&
+        currentYVelocity < 2;
 
     recordOutput("withinPoseEstimationVelocity", withinPoseEstimationVelocity);
     if (!withinPoseEstimationVelocity) {
@@ -223,12 +224,16 @@ public class Swerve extends LoggedSubsystem {
     if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam1Name)) {
       evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam1Name));
     }
+
+    if (SuperStructure.VisionPhotons.containsKey(VisionMap.PhotonCam2Name)) {
+      evaluatePhotonPoseEstimation(SuperStructure.VisionPhotons.get(VisionMap.PhotonCam2Name));
+    }
   }
 
   /**
    * Evaluates a limelight pose and feeds it into the pose estimator
    */
-  private void evaluateLimelightPoseEstimation(LimelightCameraInputsAutoLogged llInputs) {
+  private void evaluateLimelightPoseEstimation(LimelightCameraInputs llInputs) {
     // If no tags in view, reject the update
     if (llInputs.BotPoseEstimate == null || llInputs.BotPoseEstimate.tagCount == 0)
       return;
@@ -256,6 +261,13 @@ public class Swerve extends LoggedSubsystem {
     if (photonInputs.BotPoseEstimate == null || photonInputs.TargetCount == 0)
       return;
 
+    if (photonInputs.AverageTagDistance > VisionMap.PHOTON_MAX_AVG_TAG_DISTANCE_METERS) {
+      System.out.println(photonInputs.AverageTagDistance);
+      _photonTooFarAlert.set(true);
+      return;
+    }
+    _photonTooFarAlert.set(false);
+
     _swervePackager.addPoseEstimatorVisionMeasurement(
         photonInputs.BotPoseEstimate,
         photonInputs.TimestampSeconds,
@@ -274,13 +286,12 @@ public class Swerve extends LoggedSubsystem {
   public void periodic() {
     // Get inputs
     _swervePackager.updateInputs(SuperStructure.Swerve);
+
     SuperStructure.Swerve.AutoAlignCorrection = _autoAlign.getCorrection(SuperStructure.Swerve.GyroAngle);
     processInputs(SuperStructure.Swerve);
 
     processVisionEstimations();
-    // TODO: Disabled Temp
-    // Container.TeleopDashboardSection.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
-    // Container.TeleopDashboardSection.setGyroHeading(SuperStructure.Swerve.GyroAngle);
+    Container.Dashboard.setFieldRobotPose(SuperStructure.Swerve.EstimatedRobotPose);
 
     // Update LEDs
     recordOutput("autoAlign/Enabled", SuperStructure.Swerve.UseAutoAlign);
@@ -290,11 +301,6 @@ public class Swerve extends LoggedSubsystem {
     if (DriverStation.isAutonomousEnabled()) {
       recordOutput("pp-translation-error", _primeHolonomicController.getTranslationError());
     }
-
-    // Update dashboard
-    recordOutput("estimatedRobotPose", SuperStructure.Swerve.EstimatedRobotPose);
-    _drivetrainDashboardSection.setAutoAlignEnabled(SuperStructure.Swerve.UseAutoAlign);
-    _drivetrainDashboardSection.setAutoAlignTarget(_autoAlign.getSetpoint());
 
     // Update rumble
     _rumbleHelper.addSample(
@@ -373,6 +379,7 @@ public class Swerve extends LoggedSubsystem {
           ? angle + 180
           : angle;
       _autoAlign.setSetpoint(Rotation2d.fromDegrees(setpoint));
+      SuperStructure.Swerve.AutoAlignSetpoint = setpoint;
       setAutoAlignEnabled(true);
     });
   }
@@ -445,10 +452,11 @@ public class Swerve extends LoggedSubsystem {
       double dy = hubPosition.getY() - robotPose.getY();
       double angleToHubRadians = Math.atan2(dy, dx);
 
-      // Add π to face AWAY from the hub
+      // Add pi to face AWAY from the hub
       var awayFromHubAngle = Rotation2d.fromRadians(angleToHubRadians + Math.PI);
 
       _autoAlign.setSetpoint(awayFromHubAngle);
+      SuperStructure.Swerve.AutoAlignSetpoint = awayFromHubAngle.getDegrees();
       setAutoAlignEnabled(true);
     }).finallyDo(() -> setAutoAlignEnabled(false));
   }
@@ -462,7 +470,7 @@ public class Swerve extends LoggedSubsystem {
 
   /**
    * Returns a SysId characterization command for all 4 swerve drive motors.
-   * Modules are locked at 0° heading and driven in unison.
+   * Modules are locked at 0-degrees heading and driven in unison.
    *
    * @param testType  QUASISTATIC (ramp) or DYNAMIC (step)
    * @param direction FORWARD or REVERSE

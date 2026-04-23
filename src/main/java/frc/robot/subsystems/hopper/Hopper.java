@@ -6,6 +6,7 @@ import org.prime.subsystems.LoggedSubsystem;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.SuperStructure;
 
@@ -159,6 +160,23 @@ public class Hopper extends LoggedSubsystem {
         return this.run(() -> {
             overrideIntakeFeedPercentOut(percentOut);
         }).finallyDo(() -> overrideIntakeFeedPercentOut(HopperMap.MAX_INTAKE_FEED_PERCENT_OUT));
+    }
+
+    /**
+    * Oscillates the intake solenoid between IN and OUT to jostle balls toward the transfer/feed.
+    * When interrupted (e.g., firing stops), leaves the intake in the OUT position.
+    * @param cycleDurationSeconds The duration of one full IN/OUT cycle
+    * @return A command that runs until interrupted
+    */
+    public Command oscillateIntake(double cycleDurationSeconds) {
+        double halfCycle = cycleDurationSeconds / 2.0;
+        return Commands.waitSeconds(halfCycle)
+                .andThen(Commands.repeatingSequence(
+                        this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.IN),
+                        Commands.waitSeconds(halfCycle),
+                        this.runOnce(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT),
+                        Commands.waitSeconds(halfCycle)))
+                .finallyDo(() -> SuperStructure.Hopper.IntakeControlState = HopperIntakeState.OUT);
     }
 
     // #endregion
